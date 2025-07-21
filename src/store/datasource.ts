@@ -6,6 +6,7 @@ import type { MaiMaiSong } from "@/types/songs";
 import type { LXNSScore } from "@/types/lxns";
 import { formatDate } from "@/utils/StrUtil";
 import { useLocalStorage } from "@vueuse/core";
+import { exportFile } from "@/utils/functionUtil";
 const DEFAULT_DS = {
   list: new Map<number, any[]>(),
   update_time: '从未获取'
@@ -69,15 +70,8 @@ export const useDataStore = defineStore("datasource", () => {
   })
   const exportDivingFishData = () => {
     if (hasDivingFishData.value) {
-      const blob = new Blob([JSON.stringify(DivingFishSource.value.list)], { type: 'application/json' })
-      const url = URL.createObjectURL(blob)
-      const a = document.createElement('a')
-      a.href = url
-      a.download = formatDate(DivingFishSource.value.update_time) + "-divingFish.json"
-      document.body.appendChild(a)
-      a.click()
-      document.body.removeChild(a)
-      URL.revokeObjectURL(url)
+      const fileName = formatDate(DivingFishSource.value.update_time) + "-divingFish.json";
+      exportFile(JSON.stringify(DivingFishSource.value.list), fileName)
     }
   }
   //LXNS
@@ -99,15 +93,8 @@ export const useDataStore = defineStore("datasource", () => {
   })
   const exportLXNSData = () => {
     if (hasLXNSData.value) {
-      const blob = new Blob([JSON.stringify([...LXNSSource.value.list])], { type: 'application/json' })
-      const url = URL.createObjectURL(blob)
-      const a = document.createElement('a')
-      a.href = url
-      a.download = formatDate(LXNSSource.value.update_time) + "-LXNS.json"
-      document.body.appendChild(a)
-      a.click()
-      document.body.removeChild(a)
-      URL.revokeObjectURL(url)
+      const fileName = formatDate(LXNSSource.value.update_time) + "-LXNS.json";
+      exportFile(JSON.stringify([...LXNSSource.value.list]), fileName)
     }
   }
   //auto
