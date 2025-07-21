@@ -214,7 +214,6 @@ interface OrderBadge {
     status_index: number
 }
 //order
-// const STATUS_LIST = ['none', 'dec', 'asc']
 const OrderBadges = ref([
     {
         label: "达成率",
@@ -326,12 +325,29 @@ const filteredScoreList = computed(() => {
     }
     return Array.from(result);
 })
-
+//init
+const createUnplayedScore = (song: MaiMaiSong, song_type: "standard" | "dx" | "utage", level_index: number): LXNSScore => {
+    const diff = song.difficulties[song_type].find(d => d.level_index === level_index);
+    return {
+        id: song.id,
+        song_name: song.title,
+        level: diff ? diff.level : "0",
+        level_index,
+        achievements: 0,
+        dx_score: 0,
+        dx_rating: 0,
+        rate_type: '',
+        type: song_type,
+        play_time: null,
+        last_played_time: null,
+        is_played: false
+    }
+}
 const initScoreList = () => {
     initStatus();
     const coll = getCollectionByLabel(route.query.label as string)
     if (!coll) {
-        toast.error("合集不存在")
+        toast.error("合集不存在", { position: "top-center" })
         backHome()
         return;
     }
@@ -344,17 +360,20 @@ const initScoreList = () => {
             const spilt = level_str.split("_")
             if (spilt.length !== 3) continue;
             const song_id = spilt[0];
-            const song_type = spilt[1];
+            const song_type = spilt[1] as "standard" | "dx" | "utage";
             const level_index = spilt[2];
-            const score = getScore(Number(song_id), song_type as "standard" | "dx" | "utage", Number(level_index))
+            const song = SONG_MAP.get(Number(song_id)) as MaiMaiSong;
+            let score: LXNSScore = getScore(Number(song_id), song_type, Number(level_index))
             if (score) {
-                scoreList.value.push({
-                    score,
-                    song: SONG_MAP.get(Number(song_id)) as MaiMaiSong,
-                    score_id: level_str
-                })
                 calcStatusBoard(score)
+            } else {
+                score = createUnplayedScore(song, song_type, Number(level_index))
             }
+            scoreList.value.push({
+                score,
+                song,
+                score_id: level_str
+            })
         }
     }
     //统计总数

@@ -27,4 +27,6 @@ export interface LXNSScore extends BasicScore {
   play_time: string | null;
   /** 谱面最后游玩的 UTC 时间 */
   last_played_time: string | null;
+  /** 是否有拥有成绩（用于构建未游玩难度） */
+  is_played?: boolean
 }

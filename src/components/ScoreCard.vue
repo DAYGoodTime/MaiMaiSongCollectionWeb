@@ -22,9 +22,12 @@
                                 </TooltipProvider>
                                 <img class="w-auto h-5" :src="cardData.typeIconUrl" alt="Song Type" />
                             </div>
-                            <div class="flex items-center gap-1 font-bold text-2xl text-left">
+                            <div v-if="cardData.unplayed" class="flex items-center gap-1 font-bold text-2xl text-left">
                                 <span>{{ cardData.achievementFormatted }}%</span>
                                 <img :src="cardData.achievementIconUrl" alt="Achievement Icon" class="h-8 w-16">
+                            </div>
+                            <div v-else class="font-bold text-xl text-left">
+                                暂未游玩
                             </div>
                         </div>
                     </div>
@@ -35,7 +38,6 @@
                         <div class="flex w-12">
                             <FCFSPanel class="h-7 w-7" :fc="score.score.fc" :fs="score.score.fs" />
                         </div>
-
                     </div>
                 </div>
                 <div v-if="openMenu" class="p-2 bg-gray-50" ref="target">
@@ -81,7 +83,6 @@ onClickOutside(target, () => {
         openMenu.value = false;
     }
 });
-
 const cardData = computed(() => {
     const isUtage = props.score.score.type === 'utage';
     const levelIndex = props.score.score.level_index;
@@ -95,14 +96,14 @@ const cardData = computed(() => {
 
     const diff = getSongDiff(props.score.song, props.score.score);
     const levelValue = diff ? formatLevelValue(diff.level_value) : '';
-
     return {
         cardClass,
         coverUrl: getImageCoverUrl(props.score.song.id ?? 0),
         typeIconUrl: getImageAssertUrl(props.score.score.type === 'dx' ? 'DX' : 'SD'),
         achievementFormatted: formatAchievement(props.score.score.achievements),
         achievementIconUrl: getAchievementIcon(props.score.score.achievements),
-        details: `#${props.score.song.id} ${levelValue} → ${formatDxRating(props.score.score.dx_rating)}`
+        details: `#${props.score.song.id} ${levelValue} → ${formatDxRating(props.score.score.dx_rating)}`,
+        unplayed: props.score.score.is_played === undefined ? false : props.score.score.is_played
     }
 });
 
