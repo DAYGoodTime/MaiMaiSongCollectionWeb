@@ -1,28 +1,34 @@
 <template>
+    <Sheet v-model:open="showAdvanced">
+        <SheetContent>
+            <SheetHeader>
+                <SheetTitle>高级选项</SheetTitle>
+                <SheetDescription>
+                    这里有一些自动化操作，未来可能会逐步添加
+                </SheetDescription>
+            </SheetHeader>
+            <div class="flex-1 my-4">
+                <div>
+                    <p class="font-semibold">自动导入</p>
+                    <span class="text-sm text-gray-600">根据预先设定的逻辑进行成绩的筛选导入</span><span
+                        class="text-sm text-red-600">且会覆盖合集原来的数据</span>
+                    <div class="flex justify-center gap-4 mt-2">
+                        <Button @click="lazy_master_13">全13</Button>
+                    </div>
+                </div>
+            </div>
+            <SheetFooter>
+                <SheetClose as-child>
+                    <Button type="submit">
+                        关闭
+                    </Button>
+                </SheetClose>
+            </SheetFooter>
+        </SheetContent>
+    </Sheet>
     <div class="container mx-auto px-4 py-4">
-        <div class="grid gap-4 md:grid-cols-3">
-            <Card class="md:col-span-1">
-                <CardHeader>
-                    <CardTitle>高级选项</CardTitle>
-                </CardHeader>
-                <CardContent>
-                    <Accordion type="single" collapsible>
-                        <AccordionItem value="item-1">
-                            <AccordionTrigger>
-                                <p class="text-lg">自动导入</p>
-                            </AccordionTrigger>
-                            <AccordionContent>
-                                <p class="text-gray-400 my-2">根据预先设定的逻辑进行成绩的筛选导入</p>
-                                <p class=" text-red-600 my-2">注意，这会覆盖掉原来的合集内容</p>
-                                <div class="flex my-4">
-                                    <Button @click="lazy_master_13">全13</Button>
-                                </div>
-                            </AccordionContent>
-                        </AccordionItem>
-                    </Accordion>
-                </CardContent>
-            </Card>
-            <Card class="md:col-span-2">
+        <div class="flex justify-center">
+            <Card class="w-full lg:w-1/2">
                 <CardHeader>
                     <CardTitle>排序与搜索</CardTitle>
                 </CardHeader>
@@ -37,6 +43,9 @@
                                 <ChevronUp v-if="order.status_index === 2" />
                             </Badge>
                         </div>
+                    </div>
+                    <div class="flex justify-center">
+                        <Button variant="outline" @click="showAdvanced = true">高级功能</Button>
                     </div>
                     <div class="relative w-full max-w-sm mx-auto items-center">
                         <Input id="search" type="text" placeholder="搜索成绩..." class="pl-10"
@@ -53,19 +62,19 @@
             </Card>
         </div>
         <!-- 成绩列表 -->
-        <ScrollArea class="w-full max-h-screen overflow-auto my-8">
+        <ScrollArea class="w-full max-h-screen overflow-auto my-8 rounded-xl border shadow hover:shadow-xl py-2">
             <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-2 p-2 justify-items-center">
                 <ScoreCard v-for="card in filteredScoreList" :key="card.score_id" :score="card"
                     @on-delete="initScoreList"
-                    class="transition-shadow rounded-xl shadow hover:shadow-lg bg-white/90" />
+                    class="transition-shadow rounded-xl shadow hover:shadow-xl bg-white/90" />
             </div>
         </ScrollArea>
         <!-- 统计卡片 -->
-        <Card class="mx-auto mt-4 lg:w-[30rem]">
+        <Card class="mx-auto mt-4 lg:w-[30rem] shadow hover:shadow-xl">
             <CardTitle>
                 <div class="flex justify-between items-center mb-4">
                     <div></div>
-                    <Button variant="ghost" class="p-0" @click="showDetailStats = !showDetailStats">
+                    <Button variant="ghost" class="mt-1 mr-1" @click="showDetailStats = !showDetailStats">
                         <span class="text-sm text-muted-foreground">{{ showDetailStats ? '收起' : '显示详细统计信息' }}</span>
                         <ChevronDown v-if="!showDetailStats" class="ml-1 h-4 w-4" />
                         <ChevronUp v-if="showDetailStats" class="ml-1 h-4 w-4" />
@@ -183,7 +192,6 @@
 <script setup lang="ts">
 import ScoreCard from '@/components/ScoreCard.vue';
 import { ScrollArea } from '@/components/shadcn/ui/scroll-area';
-import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/shadcn/ui/accordion'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/shadcn/ui/card'
 import { Badge } from '@/components/shadcn/ui/badge';
 import { Search, X, ChevronDown, ChevronUp } from 'lucide-vue-next'
@@ -199,7 +207,15 @@ import { toHiragana } from 'wanakana';
 import { conventFcFsStr, getNoteDesigners, getSongDiff } from '@/utils/StrUtil';
 import { ACHIEVEMENT, getAchievementIcon, PLAY_BONUS, getFCFSIcon } from '@/utils/urlUtils';
 import type { LXNSScore } from '@/types/lxns';
-
+import {
+    Sheet,
+    SheetClose,
+    SheetContent,
+    SheetDescription,
+    SheetFooter,
+    SheetHeader,
+    SheetTitle,
+} from '@/components/shadcn/ui/sheet'
 const { route, backHome } = useRouterHelper()
 const { getScore, getSongListAsMap, getSongDataList } = useDataStore()
 const { getCollectionByLabel, UserCollectionList } = useCollectionStore()
@@ -388,24 +404,6 @@ watch(
 onMounted(() => {
     initScoreList();
 })
-//auto import
-const lazy_master_13 = () => {
-    const song_list = getSongDataList.list;
-    const result_score = new Set<string>([])
-    const coll_index = UserCollectionList.findIndex(c => c.label == collectionStore.CurrentCollectionLabel);
-    for (const song of song_list) {
-        const difficulties = [...song.difficulties.standard, ...song.difficulties.dx];
-        for (const diff of difficulties) {
-            if (diff.level === "13") {
-                result_score.add(`${song.id}_${diff.type}_${diff.level_index}`)
-            }
-        }
-    }
-    if (UserCollectionList[coll_index]) {
-        UserCollectionList[coll_index].list = result_score;
-        toast.success("导入成功，请重新刷新页面")
-    }
-}
 //统计
 interface StatusValue {
     icon: string,
@@ -479,5 +477,25 @@ const statusBoard = reactive<StatusBoard>({
         { icon: getFCFSIcon(PLAY_BONUS.SYNC), current: 0, alt: "Sync", require: PLAY_BONUS.SYNC }
     ],
     total: 0
-}) 
+})
+//advance feature
+const showAdvanced = ref(false)
+//auto import
+const lazy_master_13 = () => {
+    const song_list = getSongDataList.list;
+    const result_score = new Set<string>([])
+    const coll_index = UserCollectionList.findIndex(c => c.label == collectionStore.CurrentCollectionLabel);
+    for (const song of song_list) {
+        const difficulties = [...song.difficulties.standard, ...song.difficulties.dx];
+        for (const diff of difficulties) {
+            if (diff.level === "13") {
+                result_score.add(`${song.id}_${diff.type}_${diff.level_index}`)
+            }
+        }
+    }
+    if (UserCollectionList[coll_index]) {
+        UserCollectionList[coll_index].list = result_score;
+        toast.success("导入成功，请重新刷新页面")
+    }
+}
 </script>
