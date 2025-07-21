@@ -1,0 +1,9 @@
+{
+  "recommendations": ["Vue.volar"],
+  "files.associations": {
+    "*.css": "tailwindcss"
+  },
+  "editor.quickSuggestions": {
+    "strings": true
+  }
+}

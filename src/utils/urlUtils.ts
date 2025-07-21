@@ -1,0 +1,69 @@
+export function getImageCoverUrl(id: number) {
+  if (id > 1000) {
+    id = 10000 + id;
+  }
+  if (id > 100000) {
+    id -= 110000
+  }
+  return new URL(`../assets/cover/${id ?? "0"}.webp`, import.meta.url).href;
+}
+
+export function getImageAssertUrl(name: string) {
+  return new URL(`../assets/resource/${name ?? "FALLBACK"}.png`, import.meta.url).href;
+}
+export const rankingList = [
+  { id: 'SSSp', min: 100.5, max: Infinity },
+  { id: 'SSS', min: 100, max: 100.5 },
+  { id: 'SSp', min: 99.5, max: 100 },
+  { id: 'SS', min: 99, max: 99.5 },
+  { id: 'Sp', min: 98, max: 99 },
+  { id: 'S', min: 97, max: 98 },
+  { id: 'AAA', min: 94, max: 97 },
+  { id: 'AA', min: 90, max: 94 },
+  { id: 'A', min: 80, max: 90 },
+  { id: 'BBB', min: 75, max: 80 },
+  { id: 'BB', min: 70, max: 75 },
+  { id: 'B', min: 60, max: 70 },
+  { id: 'C', min: 40, max: 60 },
+  { id: 'D', min: 0, max: 40 },
+  { id: 'clean', min: 80, max: Infinity }
+];
+
+export const ACHIEVEMENT = {
+  SSSP: 100.5,
+  SSS: 100,
+  SSP: 99.5,
+  SS: 99,
+  SP: 98,
+  S: 97,
+  AAA: 94,
+  AA: 90,
+  A: 80,
+  BBB: 75,
+  BB: 70,
+  B: 60,
+  C: 40,
+  D: 0,
+} as const;
+export function getAchievementIcon(achievement: number) {
+  if (achievement < 0 || achievement > 202)
+    throw new Error('achievement out of range');
+  let rate = rankingList.find(r => achievement >= r.min && achievement < r.max);
+  return getImageAssertUrl(rate ? `UI_TTR_Rank_${rate.id}` : "FALLBACK")
+}
+export const PLAY_BONUS = {
+  APP: "APp",
+  AP: "AP",
+  FCP: "FCp",
+  FC: "FC",
+  FDXP: "FSDp",
+  FDX: "FSD",
+  FSP: "FSp",
+  FS: "FS",
+  SYNC: "Sync",
+} as const
+export function getFCFSIcon(fcfs_name: string) {
+  let name = fcfs_name;
+  if (!name) name = "Empty"
+  return getImageAssertUrl(`UI_CHR_PlayBonus_${name}`)
+}
