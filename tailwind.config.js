@@ -67,7 +67,7 @@ export default {
 				ADVANCED: '#FBA138',
 				EXPERT: '#F65169',
 				MASTER: '#A24EE2',
-				REMASTER: '#BE6FF8',
+				REMASTER: '#DBAAFF',
 				UTAGE: '#EB47E9'
 			},
 			keyframes: {
