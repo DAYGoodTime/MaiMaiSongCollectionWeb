@@ -1,7 +1,8 @@
 <template>
     <ContextMenu>
         <ContextMenuTrigger>
-            <div class="w-64 rounded-lg shadow-lg transition-all duration-300 hover:shadow-xl">
+            <div class="w-64 rounded-lg shadow-lg transition-all duration-300 hover:shadow-xl" ref="cardbody"
+                @dblclick="() => SongInfoModalOpen = true">
                 <div :class="cardData.cardClass" @click="toggleDescMenu" class="cursor-pointer p-2">
                     <div class="flex gap-1">
                         <div class="w-12 h-12 rounded overflow-hidden flex-shrink-0">
@@ -11,11 +12,12 @@
                         <div class="flex-1 text-white min-w-0">
                             <div class="flex justify-between items-start">
                                 <TooltipProvider>
-                                    <Tooltip>
+                                    <Tooltip v-model:open="openTooltips">
                                         <TooltipTrigger class="font-bold truncate text-left">
                                             {{ score.song.title }}
                                         </TooltipTrigger>
-                                        <TooltipContent>
+                                        <TooltipContent class="cursor-pointer hover:opacity-50"
+                                            @click="() => handelCopy(score.song.title, '已成功复制歌曲名到剪切板中')">
                                             <p>{{ score.song.title }}</p>
                                         </TooltipContent>
                                     </Tooltip>
@@ -30,7 +32,6 @@
                                 <img :src="cardData.achievementIconUrl" alt="Achievement Icon" class="h-8 w-16"
                                     loading="lazy">
                             </div>
-
                         </div>
                     </div>
                 </div>
@@ -52,16 +53,25 @@
             <ContextMenuItem class="text-red-600" @click="handelRemoveScore(score.score_id)">从合集中删除</ContextMenuItem>
         </ContextMenuContent>
     </ContextMenu>
+    <Dialog v-model:open="SongInfoModalOpen">
+        <DialogContent class="lg:w-full">
+            <DialogHeader>
+                <DialogTitle>歌曲信息</DialogTitle>
+            </DialogHeader>
+            <SongInfo :song="props.score.song" :infoOnly="true" />
+        </DialogContent>
+    </Dialog>
 </template>
 
 <script setup lang="ts">
+import SongInfo from './SongInfo.vue';
 import type { ScoreExtend } from '@/types/songs';
 import { getAchievementIcon, getImageAssertUrl, getImageCoverUrl } from '@/utils/urlUtils';
-import { ref, computed } from 'vue';
+import { ref, computed, useTemplateRef } from 'vue';
 import { Textarea } from './shadcn/ui/textarea';
 import { formatAchievement, formatDxRating, formatLevelValue, getSongDiff } from '@/utils/StrUtil';
 import { useCollectionStore } from '@/store/collections';
-import { debounce } from '@/utils/functionUtil';
+import { debounce, useCopyHelper } from '@/utils/functionUtil';
 import FCFSPanel from './FCFSPanel.vue';
 import {
     ContextMenu,
@@ -69,20 +79,30 @@ import {
     ContextMenuItem,
     ContextMenuTrigger,
 } from '@/components/shadcn/ui/context-menu'
+import {
+    Dialog,
+    DialogContent,
+    DialogHeader,
+    DialogTitle,
+} from '@/components/shadcn/ui/dialog'
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/shadcn/ui/tooltip';
 import { toast } from 'vue-sonner';
-import { onClickOutside } from '@vueuse/core';
+import { onClickOutside, onLongPress, useClipboard } from '@vueuse/core';
 
 const props = defineProps<{
     score: ScoreExtend
 }>()
 
 const openMenu = ref(false);
+const openTooltips = ref(false)
 const target = ref(null);
 
 onClickOutside(target, () => {
     if (openMenu.value) {
         openMenu.value = false;
+    }
+    if (openTooltips.value) {
+        openTooltips.value = false
     }
 });
 const cardData = computed(() => {
@@ -137,4 +157,14 @@ const handelRemoveScore = (score_id: string) => {
         toast.error("删除失败");
     }
 }
+const cardBodyRef = useTemplateRef('cardbody')
+onLongPress(cardBodyRef, () => {
+    openTooltips.value = true
+}, {
+    delay: 100
+})
+//copy
+const { handelCopy } = useCopyHelper()
+//song info modal
+const SongInfoModalOpen = ref(false)
 </script>

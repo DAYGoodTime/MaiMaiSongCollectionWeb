@@ -1,4 +1,6 @@
+import { useClipboard } from "@vueuse/core";
 import { useRoute, useRouter, type RouteLocationRaw } from "vue-router";
+import { toast } from "vue-sonner";
 
 type DebouncedFunction<T extends any[]> = (...args: T) => void;
 
@@ -42,3 +44,18 @@ export function exportFile(content: any, fileName: string, type: string = "appli
   document.body.removeChild(a)
   URL.revokeObjectURL(url)
 }
+export function useCopyHelper() {
+  const { isSupported, copy } = useClipboard()
+  const handelCopy = (title: string, message: string) => {
+    if (isSupported) {
+      copy(title)
+        .then(() => {
+          toast.success(message, { position: "top-center" })
+        })
+    } else {
+      toast.error("该浏览器不支持复制")
+    }
+  }
+  return { handelCopy }
+}
+

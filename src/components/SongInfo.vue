@@ -1,103 +1,103 @@
 <template>
-    <div>
-        <Card class="mb-6 bg-white/90 shadow-lg backdrop-blur-md rounded-xl">
-            <CardContent class="p-6">
-                <div class="flex flex-col md:flex-row items-center md:items-start gap-6">
-                    <!-- 歌曲封面 -->
-                    <div class="flex-shrink-0">
-                        <img :src="getImageCoverUrl(song.id)" alt="歌曲封面"
-                            class="w-28 h-28 rounded-xl object-cover shadow-md border border-gray-200">
+    <Card class="mb-6 bg-white/90 shadow-lg backdrop-blur-md rounded-xl">
+        <CardContent class="p-6">
+            <div class="flex flex-col md:flex-row items-center md:items-start gap-6">
+                <!-- 歌曲封面 -->
+                <div class="flex-shrink-0">
+                    <img :src="getImageCoverUrl(song.id)" alt="歌曲封面"
+                        class="w-28 h-28 rounded-xl object-cover shadow-md border border-gray-200">
+                </div>
+                <!-- 歌曲详情 -->
+                <div class="flex-1 w-full">
+                    <div class="flex items-center gap-3 mb-2">
+                        <div class="bg-pink-500 text-white text-xs px-3 py-1 rounded-full shadow inline-block cursor-pointer hover:opacity-50"
+                            @click="() => handelCopy(String(song.id), '已成功复制歌曲id到剪切板中')">
+                            {{ `No ${song.id}` }}
+                        </div>
                     </div>
-                    <!-- 歌曲详情 -->
-                    <div class="flex-1 w-full">
-                        <div class="flex items-center gap-3 mb-2">
-                            <div class="bg-pink-500 text-white text-xs px-3 py-1 rounded-full shadow inline-block">
-                                {{ `No ${song.id}` }}
-                            </div>
+                    <h2 class="text-2xl font-extrabold text-gray-900 mb-1 tracking-tight hover:opacity-50 cursor-pointer"
+                        @click="() => handelCopy(song.title, '已成功复制歌曲名到剪切板中')">
+                        {{ song.title }}
+                    </h2>
+                    <p class="text-base text-gray-600 mb-4">{{ song.artist }}</p>
+                    <!-- 歌曲信息 -->
+                    <div class="grid grid-cols-2 sm:grid-cols-4 gap-x-8 gap-y-2 text-sm mb-2">
+                        <div>
+                            <span class="text-gray-500">BPM</span>
+                            <div class="font-semibold">{{ song.bpm }}</div>
                         </div>
-                        <h2 class="text-2xl font-extrabold text-gray-900 mb-1 tracking-tight">
-                            {{ song.title }}
-                        </h2>
-                        <p class="text-base text-gray-600 mb-4">{{ song.artist }}</p>
-                        <!-- 歌曲信息 -->
-                        <div class="grid grid-cols-2 sm:grid-cols-4 gap-x-8 gap-y-2 text-sm mb-2">
-                            <div>
-                                <span class="text-gray-500">BPM</span>
-                                <div class="font-semibold">{{ song.bpm }}</div>
-                            </div>
-                            <div>
-                                <span class="text-gray-500">分类</span>
-                                <div class="font-semibold">{{ song.genre }}</div>
-                            </div>
-                            <div v-if="song.map">
-                                <span class="text-gray-500">所属区域</span>
-                                <div class="font-semibold">{{ song.map }}</div>
-                            </div>
-                            <div>
-                                <span class="text-gray-500">首次出现版本</span>
-                                <div class="font-semibold">{{ song.version }}</div>
-                            </div>
+                        <div>
+                            <span class="text-gray-500">分类</span>
+                            <div class="font-semibold">{{ song.genre }}</div>
                         </div>
-                        <!-- 曲目别名 -->
-                        <div v-if="song.aliases && song.aliases.length" class="mt-2">
-                            <span class="text-gray-500 text-sm">曲目别名</span>
-                            <div class="flex flex-wrap items-center gap-2 mt-1">
-                                <Badge v-for="(alia, index) in song.aliases" :key="index" variant="outline"
-                                    class="text-xs">
-                                    {{ alia }}
-                                </Badge>
-                            </div>
+                        <div v-if="song.map">
+                            <span class="text-gray-500">所属区域</span>
+                            <div class="font-semibold">{{ song.map }}</div>
+                        </div>
+                        <div>
+                            <span class="text-gray-500">首次出现版本</span>
+                            <div class="font-semibold">{{ song.version }}</div>
+                        </div>
+                    </div>
+                    <!-- 曲目别名 -->
+                    <div v-if="song.aliases && song.aliases.length" class="mt-2">
+                        <span class="text-gray-500 text-sm">曲目别名</span>
+                        <div class="flex flex-wrap items-center gap-2 mt-1">
+                            <Badge v-for="(alia, index) in song.aliases" :key="index" variant="outline"
+                                class="text-xs cursor-pointer hover:opacity-50"
+                                @click="() => handelCopy(alia as string, '已成功复制别名到剪切板中')">
+                                {{ alia }}
+                            </Badge>
                         </div>
                     </div>
                 </div>
-                <!-- 难度选择与数据源 -->
-                <div class="flex flex-col md:flex-row justify-between items-center mt-6 gap-4">
-                    <div class="flex-1 flex justify-center md:justify-start gap-2">
-                        <Button v-for="type in availableTypeList" :key="type.value"
-                            :variant="isSelectedType(type.value) ? 'default' : 'outline'" size="sm"
-                            :class="isSelectedType(type.value) ? 'bg-orange-500 hover:bg-orange-600 text-white shadow' : ''"
-                            @click="SelectedType = type.value">
-                            {{ isSelectedType(type.value) ? '✓' : '' }} {{ type.label }}
-                        </Button>
-                    </div>
-                    <div class="flex items-center gap-2">
-                        <Select :disabled="getSelectableSource.length === 0" v-model:model-value="selectedSource">
-                            <SelectTrigger class="w-36">
-                                <SelectValue placeholder="成绩数据源" />
-                            </SelectTrigger>
-                            <SelectContent>
-                                <SelectLabel>成绩数据源选择</SelectLabel>
-                                <SelectItem :value="ds" v-for="ds in getSelectableSource" :key="ds">
-                                    {{ ds }}
-                                </SelectItem>
-                            </SelectContent>
-                        </Select>
-                    </div>
+            </div>
+            <!-- 难度选择与数据源 -->
+            <div class="flex flex-col md:flex-row justify-between items-center mt-6 gap-4" v-if="!infoOnly">
+                <div class="flex-1 flex justify-center md:justify-start gap-2">
+                    <Button v-for="type in availableTypeList" :key="type.value"
+                        :variant="isSelectedType(type.value) ? 'default' : 'outline'" size="sm"
+                        :class="isSelectedType(type.value) ? 'bg-orange-500 hover:bg-orange-600 text-white shadow' : ''"
+                        @click="SelectedType = type.value">
+                        {{ isSelectedType(type.value) ? '✓' : '' }} {{ type.label }}
+                    </Button>
                 </div>
-            </CardContent>
-        </Card>
-        <div class="space-y-4">
-            <ScoreInfo :difficulties="getScoreList" :song="song" />
-        </div>
-    </div>
+                <div class="flex items-center gap-2">
+                    <Select :disabled="getSelectableSource.length === 0" v-model:model-value="selectedSource">
+                        <SelectTrigger class="w-36">
+                            <SelectValue placeholder="成绩数据源" />
+                        </SelectTrigger>
+                        <SelectContent>
+                            <SelectLabel>成绩数据源选择</SelectLabel>
+                            <SelectItem :value="ds" v-for="ds in getSelectableSource" :key="ds">
+                                {{ ds }}
+                            </SelectItem>
+                        </SelectContent>
+                    </Select>
+                </div>
+            </div>
+        </CardContent>
+    </Card>
 </template>
 <script setup lang="ts">
 import { Card, CardContent } from '@/components/shadcn/ui/card'
 import { Button } from '@/components/shadcn/ui/button'
 import { Badge } from '@/components/shadcn/ui/badge'
 import { getImageCoverUrl } from '@/utils/urlUtils'
-import ScoreInfo from './ScoreInfo.vue'
+
 import type { MaiMaiSong } from '@/types/songs'
-import { computed, onMounted, reactive, ref, watch } from 'vue'
+import { onMounted, reactive, ref, watch } from 'vue'
 import { SelectItem, SelectLabel, SelectTrigger, Select, SelectValue, SelectContent } from './shadcn/ui/select'
 import { useDataStore } from '@/store/datasource'
+import { useCopyHelper } from '@/utils/functionUtil'
 
 const { getSelectableSource, selectedSource } = useDataStore();
-const { song } = defineProps<{
-    song: MaiMaiSong
+const { song, infoOnly } = defineProps<{
+    song: MaiMaiSong,
+    infoOnly?: boolean
 }>();
 
-const SelectedType = ref<"standard" | "dx" | "utage">("standard");
+const SelectedType = defineModel<"standard" | "dx" | "utage">("selectedType", { default: "standard" });
 const hasType = reactive({
     standard: false,
     dx: false,
@@ -147,6 +147,6 @@ watch(() => song, init, { immediate: true });
 onMounted(() => {
     init()
 });
-
-const getScoreList = computed(() => song.difficulties[SelectedType.value] || []);
+//copy
+const { handelCopy } = useCopyHelper()
 </script>

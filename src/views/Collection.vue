@@ -34,6 +34,7 @@
                 </CardHeader>
                 <CardContent class="space-y-4">
                     <div>
+                        <p class="text-sm font-mono text-gray-400">长按卡片查看别名|操作,双击打开歌曲详情</p>
                         <p class="text-sm font-medium text-muted-foreground">排序方式</p>
                         <div class="flex gap-4 justify-center pt-2">
                             <Badge class="w-fit h-8 cursor-pointer" v-for="(order, index) in OrderBadges"
