@@ -101,7 +101,10 @@ const addRankingPrefix = (prefix: "绿" | "黄" | "红" | "紫" | "白") => {
 }
 const filteredTags = computed(() => {
   const result = new Set<Tag>([]);
-  const currentTagList = modelValue.value?.map(t => t.value) ?? []
+  let currentTagList: string[] = []
+  if (modelValue.value) {
+    currentTagList = modelValue.value.map(t => t.label)
+  }
   if (!modelValue.value) return []
   if (LEVEL_MATCH_PATTEN.test(searchTerm.value)) {
     return [{
@@ -183,7 +186,9 @@ const onTagDelete = (item: Tag) => {
       </TagsInput>
 
       <ComboboxList class="w-[var(--radix-combobox-trigger-width)]">
-        <ComboboxEmpty>没有符合的标签</ComboboxEmpty>
+        <ComboboxEmpty class="py-4">
+          <div class="flex items-center text-center px-2 mx-2 h-8 border rounded-xl hover:bg-gray-200">没有符合的标签</div>
+        </ComboboxEmpty>
         <ComboboxGroup>
           <ScrollArea>
             <div class="max-h-72 w-full">
