@@ -3,8 +3,9 @@
         <div class="mb-8">
             <h1 class="text-3xl font-bold tracking-tight">设置</h1>
             <p class="text-muted-foreground mt-2">管理数据源和系统配置</p>
-            <p v-if="appStore.hasUserName" class="mt-2">欢迎回来：<span class="font-semibold">{{ appStore.UserName
-            }}</span></p>
+            <p v-if="appStore.hasUserName" class="mt-2">
+                欢迎回来：<span class="font-semibold">{{ appStore.UserName }}</span>
+            </p>
         </div>
 
         <div class="space-y-6">
@@ -320,12 +321,12 @@ const updateFishDataSource = async () => {
             }
         })
         if (!response.ok) {
-            toast.error('请求落雪数据源更新失败')
+            toast.error('请求水鱼数据源更新失败')
             return;
         }
         const result = await response.json()
         if (!result.success) {
-            toast.error(`落雪数据源更新失败: ${result.message}`)
+            toast.error(`水鱼数据源更新失败: ${result.message}`)
             return;
         }
         // 关闭对话框
