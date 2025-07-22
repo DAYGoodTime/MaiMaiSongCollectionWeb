@@ -201,7 +201,7 @@ import { type Collection, useCollectionStore } from '@/store/collections';
 import { useDataStore } from '@/store/datasource';
 import type { MaiMaiSong, ScoreExtend } from '@/types/songs';
 import { debounce, useRouterHelper } from '@/utils/functionUtil';
-import { computed, onMounted, reactive, ref, watch } from 'vue';
+import { computed, onMounted, reactive, ref, shallowRef, watch } from 'vue';
 import { toast } from 'vue-sonner';
 import { toHiragana } from 'wanakana';
 import { conventFcFsStr, getNoteDesigners, getSongDiff } from '@/utils/StrUtil';
@@ -221,7 +221,7 @@ const { getScore, getSongListAsMap, getSongDataList } = useDataStore()
 const { getCollectionByLabel, UserCollectionList } = useCollectionStore()
 const collectionStore = useCollectionStore()
 const rawCollection = ref<Collection>()
-const scoreList = ref<ScoreExtend[]>([])
+const scoreList = shallowRef<ScoreExtend[]>([])
 const SONG_MAP = getSongListAsMap();
 
 interface OrderBadge {
@@ -371,7 +371,7 @@ const initScoreList = () => {
     rawCollection.value = coll;
     if (rawCollection.value) {
         const level_list = rawCollection.value.list;
-        scoreList.value = []
+        let result: any[] = []
         for (const level_str of level_list) {
             const spilt = level_str.split("_")
             if (spilt.length !== 3) continue;
@@ -385,12 +385,13 @@ const initScoreList = () => {
             } else {
                 score = createUnplayedScore(song, song_type, Number(level_index))
             }
-            scoreList.value.push({
+            result.push({
                 score,
                 song,
                 score_id: level_str
             })
         }
+        scoreList.value = result
     }
     //统计总数
     statusBoard.total = scoreList.value.length
