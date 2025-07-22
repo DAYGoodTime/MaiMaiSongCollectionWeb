@@ -1,8 +1,8 @@
 <template>
     <ContextMenu>
         <ContextMenuTrigger>
-            <div class="w-64 rounded-lg shadow-lg transition-all duration-300 hover:shadow-xl" ref="cardbody"
-                @dblclick="() => SongInfoModalOpen = true">
+            <div class="w-64 rounded-lg shadow-lg transition-all duration-300 hover:shadow-xl"
+                @click="() => openTooltips = true" @dblclick="() => SongInfoModalOpen = true">
                 <div :class="cardData.cardClass" @click="toggleDescMenu" class="cursor-pointer p-2">
                     <div class="flex gap-1">
                         <div class="w-12 h-12 rounded overflow-hidden flex-shrink-0">
@@ -27,7 +27,7 @@
                             <div v-if="cardData.unplayed" class="font-bold text-xl text-left">
                                 暂未游玩
                             </div>
-                            <div v-else class="flex items-center gap-1 font-bold text-2xl text-left">
+                            <div v-else class="flex items-center font-bold text-2xl text-left">
                                 <span>{{ cardData.achievementFormatted }}%</span>
                                 <img :src="cardData.achievementIconUrl" alt="Achievement Icon" class="h-8 w-16"
                                     loading="lazy">
@@ -67,7 +67,7 @@
 import SongInfo from './SongInfo.vue';
 import type { ScoreExtend } from '@/types/songs';
 import { getAchievementIcon, getImageAssertUrl, getImageCoverUrl } from '@/utils/urlUtils';
-import { ref, computed, useTemplateRef } from 'vue';
+import { ref, computed } from 'vue';
 import { Textarea } from './shadcn/ui/textarea';
 import { formatAchievement, formatDxRating, formatLevelValue, getSongDiff } from '@/utils/StrUtil';
 import { useCollectionStore } from '@/store/collections';
@@ -87,7 +87,7 @@ import {
 } from '@/components/shadcn/ui/dialog'
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/shadcn/ui/tooltip';
 import { toast } from 'vue-sonner';
-import { onClickOutside, onLongPress, useClipboard } from '@vueuse/core';
+import { onClickOutside } from '@vueuse/core';
 
 const props = defineProps<{
     score: ScoreExtend
@@ -157,12 +157,6 @@ const handelRemoveScore = (score_id: string) => {
         toast.error("删除失败");
     }
 }
-const cardBodyRef = useTemplateRef('cardbody')
-onLongPress(cardBodyRef, () => {
-    openTooltips.value = true
-}, {
-    delay: 100
-})
 //copy
 const { handelCopy } = useCopyHelper()
 //song info modal

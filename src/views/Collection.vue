@@ -34,7 +34,7 @@
                 </CardHeader>
                 <CardContent class="space-y-4">
                     <div>
-                        <p class="text-sm font-mono text-gray-400">长按卡片查看别名|操作,双击打开歌曲详情</p>
+                        <p class="text-sm font-mono text-gray-400">双击卡片打开歌曲详情</p>
                         <p class="text-sm font-medium text-muted-foreground">排序方式</p>
                         <div class="flex gap-4 justify-center pt-2">
                             <Badge class="w-fit h-8 cursor-pointer" v-for="(order, index) in OrderBadges"
@@ -69,6 +69,7 @@
                     @on-delete="initScoreList"
                     class="transition-shadow rounded-xl shadow hover:shadow-xl bg-white/90" />
             </div>
+            <p class="flex items-center text-center justify-center" v-if="isEmpty">暂无任何成绩捏~</p>
         </ScrollArea>
         <!-- 统计卡片 -->
         <Card class="mx-auto mt-4 lg:w-[30rem] shadow hover:shadow-xl">
@@ -266,6 +267,7 @@ const handleOrderStatus = (_order: OrderBadge, index: number) => {
 //filtered score list
 const keyword = ref("")
 const search = ref("")
+const isEmpty = computed(() => filteredScoreList.value.length === 0)
 const onSearch = debounce((val: string | number) => {
     search.value = String(val)
 }, 200);
