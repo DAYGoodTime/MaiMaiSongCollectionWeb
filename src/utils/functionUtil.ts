@@ -1,4 +1,4 @@
-import { useClipboard } from "@vueuse/core";
+import { useClipboard, usePermission } from "@vueuse/core";
 import { useRoute, useRouter, type RouteLocationRaw } from "vue-router";
 import { toast } from "vue-sonner";
 
@@ -44,16 +44,19 @@ export function exportFile(content: any, fileName: string, type: string = "appli
   document.body.removeChild(a)
   URL.revokeObjectURL(url)
 }
+const copyWireAccess = usePermission('clipboard-write')
 export function useCopyHelper() {
-  const { isSupported, copy } = useClipboard()
+  const { copy } = useClipboard({ legacy: true })
   const handelCopy = (title: string, message: string) => {
-    if (isSupported) {
+    console.log("copy", copyWireAccess.value);
+
+    if (copyWireAccess.value === 'granted') {
       copy(title)
         .then(() => {
           toast.success(message, { position: "top-center" })
         })
     } else {
-      toast.error("该浏览器不支持复制")
+      toast.error("请允许剪切板操作，否则不可复制", { position: "top-center" })
     }
   }
   return { handelCopy }
