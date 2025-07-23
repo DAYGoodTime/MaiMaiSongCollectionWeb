@@ -1,6 +1,4 @@
-import type { BasicScore } from "./datasource";
-
-export interface LXNSScore extends BasicScore {
+export interface LXNSScore {
   /** 曲目 ID */
   id: number;
   /** 曲名  */
@@ -12,9 +10,9 @@ export interface LXNSScore extends BasicScore {
   /** 达成率 (如 97.5 表示 97.50%) */
   achievements: number;
   /** FULL COMBO 类型 (可空) */
-  fc?: string | null;
+  fc: string | null;
   /** FULL SYNC 类型 (可空) */
-  fs?: string | null;
+  fs: string | null;
   /** DX 分数 */
   dx_score: number;
   /** DX rating */

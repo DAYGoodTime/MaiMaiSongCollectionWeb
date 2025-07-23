@@ -74,7 +74,7 @@ import { ref, computed } from 'vue';
 import { Textarea } from './shadcn/ui/textarea';
 import { formatAchievement, formatDxRating, formatLevelValue, getSongDiff } from '@/utils/StrUtil';
 import { useCollectionStore } from '@/store/collections';
-import { debounce, useCopyHelper } from '@/utils/functionUtil';
+import { debounce, toFishStyleId, useCopyHelper } from '@/utils/functionUtil';
 import FCFSPanel from './FCFSPanel.vue';
 import {
     ContextMenu,
@@ -91,6 +91,7 @@ import {
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/shadcn/ui/tooltip';
 import { toast } from 'vue-sonner';
 import { onClickOutside } from '@vueuse/core';
+import { useDataStore } from '@/store/datasource';
 
 const props = defineProps<{
     score: ScoreExtend
@@ -99,6 +100,7 @@ const props = defineProps<{
 const openMenu = ref(false);
 const openTooltips = ref(false)
 const target = ref(null);
+const { selectedSource } = useDataStore()
 
 onClickOutside(target, () => {
     if (openMenu.value) {
@@ -108,6 +110,10 @@ onClickOutside(target, () => {
         openTooltips.value = false
     }
 });
+const showCurrentStyleId = (id: number) => {
+    if (selectedSource === 'lxns') return id;
+    else return toFishStyleId(id)
+}
 const cardData = computed(() => {
     const isUtage = props.score.score.type === 'utage';
     const levelIndex = props.score.score.level_index;
@@ -127,8 +133,8 @@ const cardData = computed(() => {
         coverUrl: getImageCoverUrl(props.score.song.id ?? 0),
         typeIconUrl: getImageAssertUrl(props.score.score.type === 'dx' ? 'DX' : 'SD'),
         achievementFormatted: formatAchievement(props.score.score.achievements),
-        achievementIconUrl: getAchievementIcon(props.score.score.achievements),
-        details: `#${props.score.song.id} ${levelValue} → ${formatDxRating(props.score.score.dx_rating)}`,
+        achievementIconUrl: getAchievementIcon(props.score.score.rate_type),
+        details: `#${showCurrentStyleId(props.score.song.id)} ${levelValue} → ${formatDxRating(props.score.score.dx_rating)}`,
         unplayed,
     }
 });

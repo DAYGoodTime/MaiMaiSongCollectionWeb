@@ -1,3 +1,6 @@
+import type { Score } from "@/types/datasource";
+import type { FishScore } from "@/types/divingfish";
+import type { LXNSScore } from "@/types/lxns";
 import { useClipboard, usePermission } from "@vueuse/core";
 import { useRoute, useRouter, type RouteLocationRaw } from "vue-router";
 import { toast } from "vue-sonner";
@@ -61,4 +64,53 @@ export function useCopyHelper() {
   }
   return { handelCopy }
 }
-
+export function conventToScore(score: LXNSScore | FishScore): Score {
+  return {
+    id: ("song_id" in score) ? toLXNSStyleId(score.song_id) : score.id,
+    fish_id: ("song_id" in score) ? score.song_id : toFishStyleId(score.id),
+    song_name: ("title" in score) ? score.title : score.song_name,
+    achievements: score.achievements,
+    fc: score.fc,
+    fs: score.fs,
+    level: score.level,
+    level_index: score.level_index,
+    rate_type: ("rate" in score) ? score.rate : score.rate_type,
+    dx_score: ("dxScore" in score) ? score.dxScore : score.dx_score,
+    dx_rating: ("ra" in score) ? score.ra : score.dx_rating,
+    type: toLXNSType(score.type)
+  }
+}
+export function toFishStyleId(id: number) {
+  if (id > 100000) {
+    //宴谱取后四位
+    let sid = id % 10000
+    //如果是DX还得转换
+    if (sid > 1000) {
+      //DX谱为1xxxx
+      return sid + 10000
+    }
+    return sid;
+  }
+  if (id > 1000) {
+    //DX谱为1xxxx
+    return id + 10000
+  }
+  //标谱id一致
+  return id;
+}
+export function toLXNSStyleId(id: number) {
+  if (id > 10000) {
+    //dx与宴谱取后四位
+    return id % 10000
+  }
+  //标谱id一致
+  return id;
+}
+function toLXNSType(type: string) {
+  switch (type) {
+    case "DX": return "dx";
+    case "SD": return "standard";
+    case "UTAGE": return "utage";
+    default: return type;
+  }
+}

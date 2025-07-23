@@ -9,7 +9,7 @@ import { Checkbox } from "@/components/shadcn/ui/checkbox";
 import { Label } from "@/components/shadcn/ui/label";
 import TagInputCombobox from "@/components/TagInputCombobox.vue";
 import type { Tag } from "@/components/TagInputCombobox.vue";
-import type { MaiMaiSong } from "@/types/songs";
+import type { MaiMaiSong, SongType } from "@/types/songs";
 import SongInfo from "@/components/SongInfo.vue";
 import Loading from "@/components/Loading.vue";
 import ScoreInfo from "@/components/ScoreInfo.vue";
@@ -29,7 +29,7 @@ onMounted(() => {
     loading.value = false;
   }, 300);
 })
-const SelectedType = ref<"standard" | "dx" | "utage">("standard")
+const SelectedType = ref<SongType>("standard")
 const getScoreList = computed(() => selectedSong.value?.difficulties[SelectedType.value] ?? []);
 </script>
 <template>

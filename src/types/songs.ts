@@ -1,6 +1,5 @@
-import type { LXNSScore } from "./lxns";
-
-export type MaiMaiSong = {
+import type { Score } from "./datasource";
+export interface MaiMaiSong {
   id: number;
   title: string;
   artist: string;
@@ -22,8 +21,8 @@ export type MaiMaiSong = {
   level_3: any[];
   level_4: any[];
 };
-export type SongDifficulty = {
-  type: "standard" | "dx" | "utage";
+export interface SongDifficulty {
+  type: SongType;
   level: string;
   level_value: number;
   level_index: number;
@@ -39,8 +38,9 @@ export type SongDifficulty = {
   description?: string;
   is_buddy?: boolean;
 };
-export type ScoreExtend = {
-  score: LXNSScore;
+export interface ScoreExtend {
+  score: Score;
   song: MaiMaiSong;
   score_id: string
 }
+export type SongType = "standard" | "dx" | "utage"

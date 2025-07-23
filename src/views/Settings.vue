@@ -56,10 +56,18 @@
                                 {{ formatDate(getDivingFishScoreList.update_time) }}
                             </p>
                         </div>
-                        <Button @click="showFishDialog = true" :disabled="DataSourceUpdating.divingFish" class="gap-2">
-                            <RefreshCw :class="{ 'animate-spin': DataSourceUpdating.divingFish }" class="h-4 w-4" />
-                            <span>{{ DataSourceUpdating.divingFish ? '更新中...' : '更新' }}</span>
-                        </Button>
+                        <div class="flex items-center gap-2">
+                            <Button variant="outline" @click="() => switchDataSource('divingfish')"
+                                :disabled="!hasDivingFishData || selectedSource === 'divingfish'">
+                                设为默认
+                            </Button>
+                            <Button @click="showFishDialog = true" :disabled="DataSourceUpdating.divingFish"
+                                class="gap-2">
+                                <RefreshCw :class="{ 'animate-spin': DataSourceUpdating.divingFish }" class="h-4 w-4" />
+                                <span>{{ DataSourceUpdating.divingFish ? '更新中...' : '更新' }}</span>
+                            </Button>
+                        </div>
+
                     </div>
                 </CardContent>
             </Card>
@@ -88,10 +96,16 @@
                                 {{ formatDate(getLXNSScoreList.update_time) }}
                             </p>
                         </div>
-                        <Button @click="showLxnsDialog = true" :disabled="DataSourceUpdating.lxns" class="gap-2">
-                            <RefreshCw :class="{ 'animate-spin': DataSourceUpdating.lxns }" class="h-4 w-4" />
-                            <span>{{ DataSourceUpdating.lxns ? '更新中...' : '更新' }}</span>
-                        </Button>
+                        <div class="flex items-center gap-2">
+                            <Button variant="outline" @click="() => switchDataSource('lxns')"
+                                :disabled="!hasLXNSData || selectedSource === 'lxns'">
+                                设为默认
+                            </Button>
+                            <Button @click="showLxnsDialog = true" :disabled="DataSourceUpdating.lxns" class="gap-2">
+                                <RefreshCw :class="{ 'animate-spin': DataSourceUpdating.lxns }" class="h-4 w-4" />
+                                <span>{{ DataSourceUpdating.lxns ? '更新中...' : '更新' }}</span>
+                            </Button>
+                        </div>
                     </div>
                 </CardContent>
             </Card>
@@ -135,7 +149,7 @@
             </div>
         </div>
 
-        <!-- 对话框 -->
+        <!-- 水鱼对话框 -->
         <Dialog v-model:open="showFishDialog">
             <DialogContent class="sm:max-w-[425px]">
                 <DialogHeader>
@@ -162,7 +176,7 @@
                 </form>
             </DialogContent>
         </Dialog>
-
+        <!-- 落雪对话框 -->
         <Dialog v-model:open="showLxnsDialog">
             <DialogContent class="sm:max-w-[425px]">
                 <DialogHeader>
@@ -189,7 +203,7 @@
                 </form>
             </DialogContent>
         </Dialog>
-
+        <!-- 名称对话框 -->
         <Dialog v-model:open="showSetNameDialog">
             <DialogContent class="sm:max-w-[425px]">
                 <DialogHeader>
@@ -214,7 +228,7 @@
                 </form>
             </DialogContent>
         </Dialog>
-
+        <!-- 名称确认对话框 -->
         <Dialog v-model:open="showNameConfirmDialog">
             <DialogContent class="sm:max-w-[425px]">
                 <DialogHeader>
@@ -256,14 +270,14 @@ import { useDataStore } from '@/store/datasource'
 import { useCollectionStore } from '@/store/collections'
 import { useAppStore } from '@/store/appStore'
 import { getProjectVersion } from '@/utils/StrUtil'
+import type { FishRecordResponse } from '@/types/divingfish'
 
 // 响应式数据
 const showFishDialog = ref(false)
 const showLxnsDialog = ref(false)
 const showSetNameDialog = ref(false)
 const showNameConfirmDialog = ref(false)
-const ENV_HOST = "https://maimai-provider-api.vercel.app"
-// const ENV_HOST = "http://localhost:3000/"
+const ENV_HOST = import.meta.env.VITE_API_BASE_URL
 const DataSourceUpdating = reactive({
     divingFish: false,
     lxns: false,
@@ -289,6 +303,8 @@ const {
     hasLXNSData,
     exportDivingFishData,
     hasDivingFishData,
+    switchDataSource,
+    selectedSource
 } = useDataStore();
 
 // 格式化日期
@@ -333,12 +349,12 @@ const updateFishDataSource = async () => {
         showFishDialog.value = false
         // 清空表单
         fishCredentials.token = ''
-        //存入数据
-        updateDivingFishData(result.data.data)
+        updateDivingFishData((result.data as FishRecordResponse).records)
         // 显示成功提示
         toast.success('水鱼数据源更新成功！')
     } catch (error) {
         toast.error('水鱼数据源更新失败，请查看控制台输出')
+        console.error(error);
     } finally {
         DataSourceUpdating.divingFish = false
     }
@@ -377,6 +393,7 @@ const updateLXNSDataSource = async () => {
         toast.success('落雪数据源更新成功！')
     } catch (error) {
         toast.error('落雪数据源更新失败，请查看控制台输出')
+        console.error(error);
     } finally {
         DataSourceUpdating.lxns = false
     }

@@ -58,8 +58,8 @@ const items = [
   },
 ];
 const { JumpToFromEvent, JumpTo } = useRouterHelper()
-const { UserCollectionList, EditCollectionName, DeleteCollection, newCollection } = useCollectionStore();
-
+const { EditCollectionName, DeleteCollection, newCollection } = useCollectionStore();
+const CollectionStore = useCollectionStore();
 //Dialog
 const DialogStatus = ref<"none" | "add" | "edit" | "delete">("none")
 const showDialog = computed(() => DialogStatus.value !== 'none');
@@ -138,7 +138,8 @@ const handelCollectionJump = (coll: Collection) => {
                 </CollapsibleTrigger>
                 <CollapsibleContent>
                   <SidebarMenuSub>
-                    <SidebarMenuSubItem v-for="(collection, index) in UserCollectionList" :key="collection.label">
+                    <SidebarMenuSubItem v-for="(collection, index) in CollectionStore.UserCollectionList"
+                      :key="collection.label">
                       <SidebarMenuSubButton class="cursor-pointer group/item relative"
                         @click="handelCollectionJump(collection)">
                         <span>{{ collection.label }}</span>

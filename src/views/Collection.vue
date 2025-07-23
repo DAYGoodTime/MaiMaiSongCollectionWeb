@@ -201,14 +201,13 @@ import { Input } from '@/components/shadcn/ui/input'
 import { Button } from '@/components/shadcn/ui/button';
 import { type Collection, useCollectionStore } from '@/store/collections';
 import { useDataStore } from '@/store/datasource';
-import type { MaiMaiSong, ScoreExtend } from '@/types/songs';
-import { debounce, useRouterHelper } from '@/utils/functionUtil';
+import type { MaiMaiSong, ScoreExtend, SongType } from '@/types/songs';
+import { debounce, toFishStyleId, useRouterHelper } from '@/utils/functionUtil';
 import { computed, onMounted, reactive, ref, shallowRef, watch } from 'vue';
 import { toast } from 'vue-sonner';
 import { toHiragana } from 'wanakana';
 import { conventFcFsStr, getNoteDesigners, getSongDiff } from '@/utils/StrUtil';
-import { ACHIEVEMENT, getAchievementIcon, PLAY_BONUS, getFCFSIcon } from '@/utils/urlUtils';
-import type { LXNSScore } from '@/types/lxns';
+import { ACHIEVEMENT, PLAY_BONUS, ACHIEVEMENT_ICON, PLAY_BONUS_ICON } from '@/utils/urlUtils';
 import {
     Sheet,
     SheetClose,
@@ -218,6 +217,7 @@ import {
     SheetHeader,
     SheetTitle,
 } from '@/components/shadcn/ui/sheet'
+import type { Score } from '@/types/datasource';
 const { route, backHome } = useRouterHelper()
 const { getScore, getSongListAsMap, getSongDataList } = useDataStore()
 const { getCollectionByLabel, UserCollectionList } = useCollectionStore()
@@ -345,20 +345,21 @@ const filteredScoreList = computed(() => {
     return Array.from(result);
 })
 //init
-const createUnplayedScore = (song: MaiMaiSong, song_type: "standard" | "dx" | "utage", level_index: number): LXNSScore => {
+const createUnplayedScore = (song: MaiMaiSong, song_type: SongType, level_index: number): Score => {
     const diff = song.difficulties[song_type].find(d => d.level_index === level_index);
     return {
         id: song.id,
+        fish_id: toFishStyleId(song.id),
         song_name: song.title,
         level: diff ? diff.level : "0",
         level_index,
         achievements: 0,
+        fc: null,
+        fs: null,
         dx_score: 0,
         dx_rating: 0,
         rate_type: '',
         type: song_type,
-        play_time: null,
-        last_played_time: null,
         is_played: false
     }
 }
@@ -379,10 +380,10 @@ const initScoreList = () => {
             const spilt = level_str.split("_")
             if (spilt.length !== 3) continue;
             const song_id = spilt[0];
-            const song_type = spilt[1] as "standard" | "dx" | "utage";
+            const song_type = spilt[1] as SongType;
             const level_index = spilt[2];
             const song = SONG_MAP.get(Number(song_id)) as MaiMaiSong;
-            let score: LXNSScore = getScore(Number(song_id), song_type, Number(level_index))
+            let score = getScore(Number(song_id), song_type, Number(level_index))
             if (score) {
                 calcStatusBoard(score)
             } else {
@@ -431,7 +432,7 @@ const initStatus = () => {
         }
     }
 }
-const calcStatusBoard = (score: LXNSScore) => {
+const calcStatusBoard = (score: Score) => {
     statusBoard.rank_first.forEach(status => {
         if (score.achievements >= status.require) {
             status.current++;
@@ -455,30 +456,30 @@ const calcStatusBoard = (score: LXNSScore) => {
 }
 const statusBoard = reactive<StatusBoard>({
     rank_first: [
-        { icon: getAchievementIcon(ACHIEVEMENT.SSSP), current: 0, alt: "SSS+", require: ACHIEVEMENT.SSSP },
-        { icon: getAchievementIcon(ACHIEVEMENT.SSS), current: 0, alt: "SSS", require: ACHIEVEMENT.SSS },
-        { icon: getAchievementIcon(ACHIEVEMENT.SSP), current: 0, alt: "SS+", require: ACHIEVEMENT.SSP },
-        { icon: getAchievementIcon(ACHIEVEMENT.SS), current: 0, alt: "SS", require: ACHIEVEMENT.SS }
+        { icon: ACHIEVEMENT_ICON.SSSP, current: 0, alt: "SSS+", require: ACHIEVEMENT.SSSP },
+        { icon: ACHIEVEMENT_ICON.SSS, current: 0, alt: "SSS", require: ACHIEVEMENT.SSS },
+        { icon: ACHIEVEMENT_ICON.SSP, current: 0, alt: "SS+", require: ACHIEVEMENT.SSP },
+        { icon: ACHIEVEMENT_ICON.SS, current: 0, alt: "SS", require: ACHIEVEMENT.SS }
     ],
     rank_second: [
-        { icon: getAchievementIcon(ACHIEVEMENT.SP), current: 0, alt: "S+", require: ACHIEVEMENT.SP },
-        { icon: getAchievementIcon(ACHIEVEMENT.S), current: 0, alt: "S", require: ACHIEVEMENT.S },
-        { icon: getAchievementIcon(ACHIEVEMENT.AAA), current: 0, alt: "AAA", require: ACHIEVEMENT.AAA },
-        { icon: getAchievementIcon(ACHIEVEMENT.AA), current: 0, alt: "AA", require: ACHIEVEMENT.AA },
-        { icon: getAchievementIcon(ACHIEVEMENT.A), current: 0, alt: "A", require: ACHIEVEMENT.A }
+        { icon: ACHIEVEMENT_ICON.SP, current: 0, alt: "S+", require: ACHIEVEMENT.SP },
+        { icon: ACHIEVEMENT_ICON.S, current: 0, alt: "S", require: ACHIEVEMENT.S },
+        { icon: ACHIEVEMENT_ICON.AAA, current: 0, alt: "AAA", require: ACHIEVEMENT.AAA },
+        { icon: ACHIEVEMENT_ICON.AA, current: 0, alt: "AA", require: ACHIEVEMENT.AA },
+        { icon: ACHIEVEMENT_ICON.A, current: 0, alt: "A", require: ACHIEVEMENT.A }
     ],
     apfc: [
-        { icon: getFCFSIcon(PLAY_BONUS.APP), current: 0, alt: "AP+", require: PLAY_BONUS.APP },
-        { icon: getFCFSIcon(PLAY_BONUS.AP), current: 0, alt: "AP", require: PLAY_BONUS.AP },
-        { icon: getFCFSIcon(PLAY_BONUS.FCP), current: 0, alt: "FC+", require: PLAY_BONUS.FCP },
-        { icon: getFCFSIcon(PLAY_BONUS.FC), current: 0, alt: "FC", require: PLAY_BONUS.FC },
+        { icon: PLAY_BONUS_ICON.APP, current: 0, alt: "AP+", require: PLAY_BONUS.APP },
+        { icon: PLAY_BONUS_ICON.AP, current: 0, alt: "AP", require: PLAY_BONUS.AP },
+        { icon: PLAY_BONUS_ICON.FCP, current: 0, alt: "FC+", require: PLAY_BONUS.FCP },
+        { icon: PLAY_BONUS_ICON.FC, current: 0, alt: "FC", require: PLAY_BONUS.FC },
     ],
     fs: [
-        { icon: getFCFSIcon(PLAY_BONUS.FDXP), current: 0, alt: "FDX+", require: PLAY_BONUS.FDXP },
-        { icon: getFCFSIcon(PLAY_BONUS.FDX), current: 0, alt: "FDX", require: PLAY_BONUS.FDX },
-        { icon: getFCFSIcon(PLAY_BONUS.FSP), current: 0, alt: "FS+", require: PLAY_BONUS.FSP },
-        { icon: getFCFSIcon(PLAY_BONUS.FS), current: 0, alt: "FS", require: PLAY_BONUS.FS },
-        { icon: getFCFSIcon(PLAY_BONUS.SYNC), current: 0, alt: "Sync", require: PLAY_BONUS.SYNC }
+        { icon: PLAY_BONUS_ICON.FDXP, current: 0, alt: "FDX+", require: PLAY_BONUS.FDXP },
+        { icon: PLAY_BONUS_ICON.FDX, current: 0, alt: "FDX", require: PLAY_BONUS.FDX },
+        { icon: PLAY_BONUS_ICON.FSP, current: 0, alt: "FS+", require: PLAY_BONUS.FSP },
+        { icon: PLAY_BONUS_ICON.FS, current: 0, alt: "FS", require: PLAY_BONUS.FS },
+        { icon: PLAY_BONUS_ICON.SYNC, current: 0, alt: "Sync", require: PLAY_BONUS.SYNC }
     ],
     total: 0
 })

@@ -76,7 +76,7 @@ import {
   ComboboxList,
 } from "@/components/shadcn/ui/combobox";
 import ScrollArea from "./shadcn/ui/scroll-area/ScrollArea.vue";
-import { debounce } from "@/utils/functionUtil";
+import { debounce, toLXNSStyleId } from "@/utils/functionUtil";
 import { toHiragana } from 'wanakana';
 import type { MaiMaiSong } from "@/types/songs";
 import { getImageCoverUrl, rankingList } from "@/utils/urlUtils";
@@ -184,7 +184,7 @@ const filterByTag = (tagFilters: string[], _song?: MaiMaiSong) => {
 }
 const getFilteredSongs = computed(() => {
   const searchLower = search.value.toLowerCase();
-  const searchNumber = !isNaN(Number(search.value)) ? Number(search.value) : null;
+  const searchNumber = !isNaN(Number(search.value)) ? toLXNSStyleId(Number(search.value)) : null;
   const result: MaiMaiSong[] = [];
 
   for (const song of SONG_DATA.value) {

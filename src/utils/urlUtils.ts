@@ -28,7 +28,6 @@ export const rankingList = [
   { id: 'D', min: 0, max: 40 },
   { id: 'clean', min: 80, max: Infinity }
 ];
-
 export const ACHIEVEMENT = {
   SSSP: 100.5,
   SSS: 100,
@@ -45,11 +44,28 @@ export const ACHIEVEMENT = {
   C: 40,
   D: 0,
 } as const;
-export function getAchievementIcon(achievement: number) {
-  if (achievement < 0 || achievement > 202)
-    throw new Error('achievement out of range');
-  let rate = rankingList.find(r => achievement >= r.min && achievement < r.max);
-  return getImageAssertUrl(rate ? `UI_TTR_Rank_${rate.id}` : "FALLBACK")
+export const ACHIEVEMENT_ICON = {
+  SSSP: getAchievementIcon("SSSP"),
+  SSS: getAchievementIcon("SSS"),
+  SSP: getAchievementIcon("SSP"),
+  SS: getAchievementIcon("SS"),
+  SP: getAchievementIcon("Sp"),
+  S: getAchievementIcon("S"),
+  AAA: getAchievementIcon("AAA"),
+  AA: getAchievementIcon("AA"),
+  A: getAchievementIcon("A"),
+  BBB: getAchievementIcon("BBB"),
+  BB: getAchievementIcon("BB"),
+  B: getAchievementIcon("B"),
+  C: getAchievementIcon("C"),
+  D: getAchievementIcon("D"),
+} as const;
+export function getAchievementIcon(rate_type: string) {
+  let rate = "FALLBACK";
+  if (rate_type && typeof rate_type === "string") {
+    rate = rate_type.toUpperCase();
+  }
+  return getImageAssertUrl(`UI_TTR_Rank_${rate.replace("P", "p")}`)
 }
 export const PLAY_BONUS = {
   APP: "APp",
@@ -62,8 +78,19 @@ export const PLAY_BONUS = {
   FS: "FS",
   SYNC: "Sync",
 } as const
+export const PLAY_BONUS_ICON = {
+  APP: getFCFSIcon("APp"),
+  AP: getFCFSIcon("AP"),
+  FCP: getFCFSIcon("FCp"),
+  FC: getFCFSIcon("FC"),
+  FDXP: getFCFSIcon("FSDp"),
+  FDX: getFCFSIcon("FSD"),
+  FSP: getFCFSIcon("FSp"),
+  FS: getFCFSIcon("FS"),
+  SYNC: getFCFSIcon("Sync"),
+} as const
 export function getFCFSIcon(fcfs_name: string) {
   let name = fcfs_name;
-  if (!name) name = "Empty"
+  if (!name || name.length === 0) name = "Empty"
   return getImageAssertUrl(`UI_CHR_PlayBonus_${name}`)
 }
