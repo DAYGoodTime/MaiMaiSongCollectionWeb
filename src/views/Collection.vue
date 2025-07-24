@@ -65,9 +65,29 @@
         <!-- 成绩列表 -->
         <ScrollArea class="w-full max-h-screen overflow-auto my-8 rounded-xl border shadow hover:shadow-xl py-2">
             <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-2 p-2 justify-items-center">
-                <ScoreCard v-for="card in filteredScoreList" :key="card.score_id" :score="card"
-                    @on-delete="initScoreList"
-                    class="transition-shadow rounded-xl shadow hover:shadow-xl bg-white/90" />
+                <div v-for="card in filteredScoreList" :key="card.score_id">
+                    <ContextMenu>
+                        <ContextMenuTrigger>
+                            <ScoreCard :score="card"
+                                class="transition-shadow rounded-xl shadow hover:shadow-xl bg-white/90" />
+                        </ContextMenuTrigger>
+                        <ContextMenuContent>
+                            <ContextMenuItem class="text-red-600" @click="handelRemoveScore(card.score_id)">从合集中删除
+                            </ContextMenuItem>
+                            <ContextMenuSub>
+                                <ContextMenuSubTrigger>
+                                    添加至其它合集
+                                </ContextMenuSubTrigger>
+                                <ContextMenuSubContent>
+                                    <ContextMenuItem
+                                        @click="() => handelMoveToOtherCollection(coll.label, card.score_id)"
+                                        v-for="coll in getOtherCollections">{{ coll.label }}
+                                    </ContextMenuItem>
+                                </ContextMenuSubContent>
+                            </ContextMenuSub>
+                        </ContextMenuContent>
+                    </ContextMenu>
+                </div>
             </div>
             <p class="flex items-center text-center justify-center" v-if="isEmpty">暂无任何成绩捏~</p>
         </ScrollArea>
@@ -209,6 +229,15 @@ import { toHiragana } from 'wanakana';
 import { conventFcFsStr, getNoteDesigners, getSongDiff } from '@/utils/StrUtil';
 import { ACHIEVEMENT, PLAY_BONUS, ACHIEVEMENT_ICON, PLAY_BONUS_ICON } from '@/utils/urlUtils';
 import {
+    ContextMenu,
+    ContextMenuContent,
+    ContextMenuItem,
+    ContextMenuTrigger,
+    ContextMenuSub,
+    ContextMenuSubContent,
+    ContextMenuSubTrigger,
+} from '@/components/shadcn/ui/context-menu'
+import {
     Sheet,
     SheetClose,
     SheetContent,
@@ -220,7 +249,7 @@ import {
 import type { Score } from '@/types/datasource';
 const { route, backHome } = useRouterHelper()
 const { getScore, getSongListAsMap, getSongDataList } = useDataStore()
-const { getCollectionByLabel, UserCollectionList } = useCollectionStore()
+const { getCollectionByLabel, UserCollectionList, removeFromCollection, pushScoreToCollection } = useCollectionStore()
 const collectionStore = useCollectionStore()
 const rawCollection = ref<Collection>()
 const scoreList = shallowRef<ScoreExtend[]>([])
@@ -501,6 +530,23 @@ const lazy_master_13 = () => {
     if (UserCollectionList[coll_index]) {
         UserCollectionList[coll_index].list = result_score;
         toast.success("导入成功，请重新刷新页面")
+    }
+}
+//context menu
+const handelRemoveScore = (score_id: string) => {
+    if (removeFromCollection(score_id)) {
+        initScoreList();
+        toast.success("删除成功");
+    } else {
+        toast.error("删除失败");
+    }
+}
+const getOtherCollections = computed(() => UserCollectionList.filter(c => c.label !== route.query.label))
+const handelMoveToOtherCollection = (coll_label: string, score_id: string) => {
+    if (pushScoreToCollection(coll_label, score_id)) {
+        toast.success("添加成功")
+    } else {
+        toast.error("添加失败")
     }
 }
 </script>
