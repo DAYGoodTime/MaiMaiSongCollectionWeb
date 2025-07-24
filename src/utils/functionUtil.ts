@@ -114,3 +114,31 @@ function toLXNSType(type: string) {
     default: return type;
   }
 }
+/**
+ * 对数组进行分页处理
+ * @param array 需要分页的原始数组
+ * @param currentPage 当前页码（从1开始，默认值1）
+ * @param itemsPerPage 每页元素数量（默认值10）
+ * @returns 当前页对应的数据子集
+ */
+export function paginateArray<T>(
+  array: T[],
+  currentPage: number = 1,
+  itemsPerPage: number = 10
+): T[] {
+  // 参数有效性校验
+  if (!Number.isInteger(currentPage) || currentPage < 1) {
+    throw new Error("currentPage must be a positive integer")
+  }
+
+  if (!Number.isInteger(itemsPerPage) || itemsPerPage <= 0) {
+    throw new Error("itemsPerPage must be a positive integer")
+  }
+
+  // 计算分页边界
+  const startIndex = (currentPage - 1) * itemsPerPage
+  const endIndex = startIndex + itemsPerPage
+
+  // 返回分页结果
+  return array.slice(startIndex, endIndex)
+}

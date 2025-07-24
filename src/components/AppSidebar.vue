@@ -137,7 +137,7 @@ const handelCollectionJump = (coll: Collection) => {
                   </SidebarMenuButton>
                 </CollapsibleTrigger>
                 <CollapsibleContent>
-                  <SidebarMenuSub>
+                  <SidebarMenuSub class="mr-0 px-0">
                     <SidebarMenuSubItem v-for="(collection, index) in CollectionStore.UserCollectionList"
                       :key="collection.label">
                       <SidebarMenuSubButton class="cursor-pointer group/item relative"

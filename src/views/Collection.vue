@@ -63,7 +63,41 @@
             </Card>
         </div>
         <!-- 成绩列表 -->
-        <ScrollArea class="w-full max-h-screen overflow-auto my-8 rounded-xl border shadow hover:shadow-xl py-2">
+        <InfiniteScrollArea
+            class="px-0 w-full max-h-screen h-[32rem] overflow-auto my-8 rounded-xl border shadow hover:shadow-xl py-2"
+            :items="filteredScoreList" :page-size="60">
+            <template #default="{ items }">
+                <div
+                    class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-2 p-2 justify-items-center">
+                    <div v-for="card in items" :key="card.score_id">
+                        <ContextMenu>
+                            <ContextMenuTrigger>
+                                <ScoreCard :score="card"
+                                    class="transition-shadow rounded-xl shadow hover:shadow-xl bg-white/90" />
+                            </ContextMenuTrigger>
+                            <ContextMenuContent>
+                                <ContextMenuItem class="text-red-600" @click="handelRemoveScore(card.score_id)">从合集中删除
+                                </ContextMenuItem>
+                                <ContextMenuSub>
+                                    <ContextMenuSubTrigger>
+                                        添加至其它合集
+                                    </ContextMenuSubTrigger>
+                                    <ContextMenuSubContent>
+                                        <ContextMenuItem
+                                            @click="() => handelMoveToOtherCollection(coll.label, card.score_id)"
+                                            v-for="coll in getOtherCollections">{{ coll.label }}
+                                        </ContextMenuItem>
+                                    </ContextMenuSubContent>
+                                </ContextMenuSub>
+                            </ContextMenuContent>
+                        </ContextMenu>
+                    </div>
+                    <div ref="sentinel" class="h-px w-full" />
+                </div>
+            </template>
+        </InfiniteScrollArea>
+        <!-- <ScrollArea class="w-full max-h-screen overflow-auto my-8 rounded-xl border shadow hover:shadow-xl py-2"
+            ref="scrollArea">
             <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-2 p-2 justify-items-center">
                 <div v-for="card in filteredScoreList" :key="card.score_id">
                     <ContextMenu>
@@ -88,9 +122,10 @@
                         </ContextMenuContent>
                     </ContextMenu>
                 </div>
+                <div ref="sentinel" class="h-px w-full" />
             </div>
             <p class="flex items-center text-center justify-center" v-if="isEmpty">暂无任何成绩捏~</p>
-        </ScrollArea>
+        </ScrollArea> -->
         <!-- 统计卡片 -->
         <Card class="mx-auto mt-4 lg:w-[30rem] shadow hover:shadow-xl">
             <CardTitle>
@@ -222,7 +257,7 @@ import { Button } from '@/components/shadcn/ui/button';
 import { type Collection, useCollectionStore } from '@/store/collections';
 import { useDataStore } from '@/store/datasource';
 import type { MaiMaiSong, ScoreExtend, SongType } from '@/types/songs';
-import { debounce, toFishStyleId, useRouterHelper } from '@/utils/functionUtil';
+import { debounce, toFishStyleId, toLXNSStyleId, useRouterHelper, paginateArray } from '@/utils/functionUtil';
 import { computed, onMounted, reactive, ref, shallowRef, watch } from 'vue';
 import { toast } from 'vue-sonner';
 import { toHiragana } from 'wanakana';
@@ -247,6 +282,7 @@ import {
     SheetTitle,
 } from '@/components/shadcn/ui/sheet'
 import type { Score } from '@/types/datasource';
+import InfiniteScrollArea from '@/components/InfiniteScrollArea.vue';
 const { route, backHome } = useRouterHelper()
 const { getScore, getSongListAsMap, getSongDataList } = useDataStore()
 const { getCollectionByLabel, UserCollectionList, removeFromCollection, pushScoreToCollection } = useCollectionStore()
@@ -310,7 +346,7 @@ const filteredScoreList = computed(() => {
     //根据关键词搜索
     const hiragana = toHiragana(search.value).toLowerCase();
     const searchLower = search.value.toLowerCase();
-    const searchNumber = !isNaN(Number(search)) ? Number(search) : null;
+    const searchNumber = !isNaN(Number(search)) ? toLXNSStyleId(Number(search)) : null;
     for (const sc of scoreList.value) {
         if (searchNumber !== null && sc.song.id === searchNumber) {
             result.add(sc);
@@ -392,6 +428,7 @@ const createUnplayedScore = (song: MaiMaiSong, song_type: SongType, level_index:
         is_played: false
     }
 }
+
 const initScoreList = () => {
     initStatus();
     const coll = getCollectionByLabel(route.query.label as string)
@@ -405,6 +442,7 @@ const initScoreList = () => {
     if (rawCollection.value) {
         const level_list = rawCollection.value.list;
         let result: any[] = []
+        let quick_count = 0;
         for (const level_str of level_list) {
             const spilt = level_str.split("_")
             if (spilt.length !== 3) continue;
@@ -423,6 +461,7 @@ const initScoreList = () => {
                 song,
                 score_id: level_str
             })
+            quick_count++;
         }
         scoreList.value = result
     }
@@ -435,7 +474,7 @@ watch(
         initScoreList()
     }
 )
-onMounted(() => {
+onMounted(async () => {
     initScoreList();
 })
 //统计
