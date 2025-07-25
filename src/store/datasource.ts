@@ -32,7 +32,7 @@ const serializerMap = {
     update_time: v.update_time
   }),
 }
-function flatMapById(list: LXNSScore[] | FishScore[]): Map<number, Score[]> {
+export function flatMapById(list: LXNSScore[] | FishScore[]): Map<number, Score[]> {
   const map = new Map<number, Score[]>();
   for (const item of list) {
     //转换为通用类型
@@ -136,6 +136,7 @@ export const useDataStore = defineStore("datasource", () => {
   return {
     selectedSource,
     getSongDataList,
+    DivingFishSource,
     getDivingFishScoreList,
     updateDivingFishData,
     getLXNSScoreList,

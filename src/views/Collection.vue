@@ -92,7 +92,7 @@
                             </ContextMenuContent>
                         </ContextMenu>
                     </div>
-                    <div ref="sentinel" class="h-px w-full" />
+                    <p class="flex items-center text-center justify-center" v-if="isEmpty">暂无任何成绩捏~</p>
                 </div>
             </template>
         </InfiniteScrollArea>
@@ -248,7 +248,6 @@
 </template>
 <script setup lang="ts">
 import ScoreCard from '@/components/ScoreCard.vue';
-import { ScrollArea } from '@/components/shadcn/ui/scroll-area';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/shadcn/ui/card'
 import { Badge } from '@/components/shadcn/ui/badge';
 import { Search, X, ChevronDown, ChevronUp } from 'lucide-vue-next'
@@ -257,7 +256,7 @@ import { Button } from '@/components/shadcn/ui/button';
 import { type Collection, useCollectionStore } from '@/store/collections';
 import { useDataStore } from '@/store/datasource';
 import type { MaiMaiSong, ScoreExtend, SongType } from '@/types/songs';
-import { debounce, toFishStyleId, toLXNSStyleId, useRouterHelper, paginateArray } from '@/utils/functionUtil';
+import { debounce, toFishStyleId, toLXNSStyleId, useRouterHelper } from '@/utils/functionUtil';
 import { computed, onMounted, reactive, ref, shallowRef, watch } from 'vue';
 import { toast } from 'vue-sonner';
 import { toHiragana } from 'wanakana';
