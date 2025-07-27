@@ -1,5 +1,5 @@
 <template>
-  <Combobox v-model="value" class="max-w-2xl" :ignore-filter="true">
+  <Combobox v-model="selectedSong" class="max-w-2xl" :ignore-filter="true">
     <ComboboxAnchor class="w-full">
       <div class="relative items-center shadow-md rounded-xl bg-white border-2 border-blue-100">
         <ComboboxInput
@@ -86,6 +86,15 @@ import { ComboboxCancel } from "@/components/shadcn/ui/combobox";
 import { useDataStore } from "@/store/datasource";
 import type { Tag } from "./TagInputCombobox.vue";
 
+export interface SearchOptions {
+  selected_tags: Tag[],
+  bpm: {
+    enable: boolean,
+    range: number[]
+  }
+}
+const props = defineProps<SearchOptions>();
+const MAX_SEARCH_NUMBER = 100;//最大歌曲搜索上限
 const { getSongDataList, getScoreList } = useDataStore();
 
 // 预处理歌曲数据
@@ -104,17 +113,6 @@ const SONG_DATA = getSongDataList.list.map(song => {
     noteDesigners: getNoteDesigners(song)
   };
 });
-export interface SearchOptions {
-  selected_tags: Tag[],
-  bpm: {
-    enable: boolean,
-    range: number[]
-  }
-}
-
-const props = defineProps<SearchOptions>();
-const MAX_SEARCH_NUMBER = 100;
-
 const filterByTag = (tagFilters: string[], songs: MaiMaiSong[]) => {
   let count = 0;
   let result = []
@@ -218,15 +216,18 @@ const getFilteredSongs = computed(() => {
   }
   return result;
 });
+
+//on search handel
 const onSearch = debounce((val: string) => {
   search.value = String(val);
 }, 100);
 const search = ref("")
 const temp_search = ref("")
-const value = defineModel<MaiMaiSong>("selected");
+const selectedSong = defineModel<MaiMaiSong>("selected");
+
 const handelCleanSearch = (e: Event) => {
   e.preventDefault();
-  value.value = undefined;
+  selectedSong.value = undefined;
   search.value = ""
   temp_search.value = ""
 }

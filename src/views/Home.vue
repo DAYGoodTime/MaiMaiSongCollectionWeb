@@ -25,9 +25,7 @@ const bpmOption = reactive({
 })
 
 onMounted(() => {
-  setTimeout(() => {
-    loading.value = false;
-  }, 300);
+  setTimeout(() => loading.value = false, 100)
 })
 const SelectedType = ref<SongType>("standard")
 const getScoreList = computed(() => selectedSong.value?.difficulties[SelectedType.value] ?? []);
