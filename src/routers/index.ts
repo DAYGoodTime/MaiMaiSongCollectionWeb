@@ -1,4 +1,3 @@
-import NotFound from "@/views/NotFound.vue";
 import { createWebHistory, createRouter } from "vue-router";
 
 const routes = [
@@ -6,7 +5,7 @@ const routes = [
   { path: "/test", name: "Test", component: () => import("@/views/Test.vue") },
   { path: "/settings", name: "Settings", component: () => import("@/views/Settings.vue") },
   { path: "/collection", name: "Collection", component: () => import("@/views/Collection.vue") },
-  { path: "/:pathMatch(.*)", component: NotFound },
+  { path: "/:pathMatch(.*)", component: () => import("@/views/NotFound.vue") },
 ];
 
 export const router = createRouter({

@@ -5,7 +5,7 @@
                 <!-- 歌曲封面 -->
                 <div class="flex-shrink-0">
                     <img :src="getImageCoverUrl(song.id)" alt="歌曲封面"
-                        class="w-28 h-28 rounded-xl object-cover shadow-md border border-gray-200">
+                        class="w-28 h-28 rounded-xl object-cover shadow-md border border-gray-200" loading="lazy">
                 </div>
                 <!-- 歌曲详情 -->
                 <div class="flex-1 w-full">

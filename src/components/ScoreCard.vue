@@ -21,7 +21,7 @@
                                     </TooltipContent>
                                 </Tooltip>
                             </TooltipProvider>
-                            <img class="w-auto h-5" :src="cardData.typeIconUrl" alt="Song Type" />
+                            <img class="w-auto h-5" :src="cardData.typeIconUrl" alt="Song Type" loading="lazy" />
                         </div>
                         <div v-if="cardData.unplayed" class="font-bold text-xl text-left">
                             暂未游玩

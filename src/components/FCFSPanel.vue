@@ -1,6 +1,6 @@
 <template>
-    <img :class="cn('', props.class)" :src="getFCFSIcon(conventFcFsStr(props.fc))" />
-    <img :class="cn('', props.class)" :src="getFCFSIcon(conventFcFsStr(props.fs))" />
+    <img :class="cn('', props.class)" :src="getFCFSIcon(conventFcFsStr(props.fc))" loading="lazy" />
+    <img :class="cn('', props.class)" :src="getFCFSIcon(conventFcFsStr(props.fs))" loading="lazy" />
 </template>
 <script setup lang="ts">
 import { cn } from '@/lib/utils';

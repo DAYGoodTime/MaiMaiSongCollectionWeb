@@ -17,7 +17,7 @@
 
                 <div class="bg-black/20 rounded-lg p-3 mb-3" v-if="diff.score">
                     <div class="flex items-center gap-3 mb-2">
-                        <img class="w-20" :src="getAchievementIcon(diff.score.rate_type)" />
+                        <img class="w-20" :src="getAchievementIcon(diff.score.rate_type)" loading="lazy" />
                         <div class="flex-1">
                             <div class="text-sm text-gray-200">达成率</div>
                             <div class="text-xl font-bold">{{ `${diff.score.achievements.toFixed(4)}%` }}

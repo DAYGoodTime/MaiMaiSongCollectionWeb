@@ -196,7 +196,7 @@
                     <div class="space-y-2">
                         <div class="flex justify-between" v-for="ranking in statusBoard.rank_first">
                             <div class="flex items-center gap-2">
-                                <img :src="ranking.icon" :alt="ranking.alt" class="h-8" />
+                                <img :src="ranking.icon" :alt="ranking.alt" class="h-8" loading="lazy" />
                             </div>
                             <div>
                                 <span class="text-xl font-bold">{{ ranking.current }}</span>
@@ -208,7 +208,7 @@
                         <div class="space-y-2">
                             <div class="flex justify-between" v-for="ranking in statusBoard.rank_second">
                                 <div class="flex items-center gap-2">
-                                    <img :src="ranking.icon" :alt="ranking.alt" class="h-8" />
+                                    <img :src="ranking.icon" :alt="ranking.alt" class="h-8" loading="lazy" />
                                 </div>
                                 <div>
                                     <span class="text-xl font-bold">{{ ranking.current }}</span>
@@ -220,7 +220,7 @@
                             <div class="space-y-2">
                                 <div class="flex justify-between" v-for="ranking in statusBoard.apfc">
                                     <div class="flex items-center gap-2">
-                                        <img :src="ranking.icon" :alt="ranking.alt" class="h-8" />
+                                        <img :src="ranking.icon" :alt="ranking.alt" class="h-8" loading="lazy" />
                                     </div>
                                     <div>
                                         <span class="text-xl font-bold">{{ ranking.current }}</span>
@@ -231,7 +231,7 @@
                             <div class="space-y-2">
                                 <div class="flex justify-between" v-for="ranking in statusBoard.fs">
                                     <div class="flex items-center gap-2">
-                                        <img :src="ranking.icon" :alt="ranking.alt" class="h-8" />
+                                        <img :src="ranking.icon" :alt="ranking.alt" class="h-8" loading="lazy" />
                                     </div>
                                     <div>
                                         <span class="text-xl font-bold">{{ ranking.current }}</span>
