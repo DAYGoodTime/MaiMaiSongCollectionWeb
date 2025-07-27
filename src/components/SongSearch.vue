@@ -64,6 +64,7 @@
 import { DynamicScroller, DynamicScrollerItem } from 'vue-virtual-scroller'
 import 'vue-virtual-scroller/dist/vue-virtual-scroller.css'
 import { Check, X, Search } from "lucide-vue-next";
+import FlexSearch from 'flexsearch';
 import { computed, ref } from "vue";
 import {
   Combobox,
@@ -88,23 +89,41 @@ import type { Tag } from "./TagInputCombobox.vue";
 
 const { getSongDataList, getScoreList } = useDataStore();
 
-// 预处理歌曲数据以减少运行时计算
-const SONG_DATA = computed(() => getSongDataList.list.map(song => {
-  const titleLower = song.title.toLowerCase();
-  const artistLower = song.artist.toLowerCase();
-  const titleHiragana = toHiragana(song.title).toLowerCase();
-  const artistHiragana = toHiragana(song.artist).toLowerCase();
+// 1. One-time data setup
+const SONG_DATA = getSongDataList.list;
+const songMap = new Map(SONG_DATA.map(s => [s.id, s]));
 
-  return {
-    ...song,
-    titleLower,
-    artistLower,
-    titleHiragana,
-    artistHiragana,
+// 2. FlexSearch index setup
+const songIndex = new FlexSearch.Document({
+  document: {
+    id: 'id',
+    index: [
+      { field: 'title', tokenize: 'forward', priority: 10 },
+      { field: 'titleHiragana', tokenize: 'forward', priority: 9 },
+      { field: 'aliasesLower', tokenize: 'forward', priority: 8 },
+      { field: 'artist', tokenize: 'forward', priority: 5 },
+      { field: 'artistHiragana', tokenize: 'forward', priority: 4 },
+      { field: 'noteDesigners', tokenize: 'forward', priority: 1 }
+    ]
+  },
+});
+
+// 3. Populate the index once
+SONG_DATA.forEach(song => {
+  // Create a separate object for indexing to avoid type conflicts
+  const indexedDoc = {
+    id: song.id,
+    title: song.title,
+    artist: song.artist,
+    titleHiragana: toHiragana(song.title).toLowerCase(),
+    artistHiragana: toHiragana(song.artist).toLowerCase(),
     aliasesLower: song.aliases?.join(" ").toLowerCase() || "",
     noteDesigners: getNoteDesigners(song)
   };
-}));
+  songIndex.add(indexedDoc);
+});
+
+
 export interface SearchOptions {
   selected_tags: Tag[],
   bpm: {
@@ -115,16 +134,17 @@ export interface SearchOptions {
 
 const props = defineProps<SearchOptions>();
 const MAX_SEARCH_NUMBER = 100;
-const filterByTag = (tagFilters: string[], _song?: MaiMaiSong) => {
 
-  let songs = []
+const filterByTag = (tagFilters: string[], _song?: MaiMaiSong) => {
+  let songs: MaiMaiSong[] = []
   if (_song) {
     songs.push(_song)
   } else {
-    songs = SONG_DATA.value;
+    // Use the static SONG_DATA
+    songs = SONG_DATA;
   }
   let count = 0;
-  let result = []
+  let result: MaiMaiSong[] = []
   let success = false;
   for (const song of songs) {
     // 标签过滤
@@ -182,54 +202,73 @@ const filterByTag = (tagFilters: string[], _song?: MaiMaiSong) => {
     count
   }
 }
+
 const getFilteredSongs = computed(() => {
-  const searchLower = search.value.toLowerCase();
+  const searchLower = toHiragana(search.value.toLowerCase());
   const searchNumber = !isNaN(Number(search.value)) ? toLXNSStyleId(Number(search.value)) : null;
-  const result: MaiMaiSong[] = [];
 
-  for (const song of SONG_DATA.value) {
+  let songsToShow: MaiMaiSong[] = [];
 
-    // 限制搜索结果数量
-    if (result.length >= MAX_SEARCH_NUMBER) break;
-    // ID匹配（快速匹配）
-    if (searchNumber !== null && song.id === searchNumber) {
-      result.push(song as MaiMaiSong);
-      continue;
+  if (search.value.trim().length > 0) {
+    const searchResults = songIndex.search(searchLower, { limit: MAX_SEARCH_NUMBER });
+    const orderedIds: number[] = [];
+    const addedIds = new Set<number>();
+
+    searchResults.forEach(fieldResult => {
+      fieldResult.result.forEach(id => {
+        if (!addedIds.has(id as number)) {
+          orderedIds.push(id as number);
+          addedIds.add(id as number);
+        }
+      });
+    });
+    // Use the pre-computed songMap
+    songsToShow = orderedIds.map(id => songMap.get(id)).filter(Boolean) as MaiMaiSong[];
+  } else {
+    // Use the static SONG_DATA
+    songsToShow = SONG_DATA;
+  }
+
+  if (searchNumber !== null) {
+    // Use the pre-computed songMap
+    const songById = songMap.get(searchNumber);
+    if (songById) {
+      const existingIndex = songsToShow.findIndex(s => s.id === searchNumber);
+      if (existingIndex !== -1) {
+        songsToShow.splice(existingIndex, 1);
+      }
+      songsToShow.unshift(songById);
     }
-    //bpm过滤
+  }
+
+  const result: MaiMaiSong[] = [];
+  for (const song of songsToShow) {
+    if (result.length >= MAX_SEARCH_NUMBER) break;
+
     if (props.bpm.enable) {
       if (song.bpm > props.bpm.range[1] || song.bpm < props.bpm.range[0])
         continue;
     }
     const tagFilters = props.selected_tags.map(t => t.value);
-    const matchesTags = filterByTag(tagFilters, song).success;
-    // 如果没有匹配标签，跳过关键词检查
-    if (!matchesTags) continue;
-
-    // 关键词匹配（使用预处理的数据）
-    const matchesSearch = searchLower ? (
-      song.titleLower.includes(searchLower) ||
-      song.titleHiragana.includes(searchLower) ||
-      song.artistLower.includes(searchLower) ||
-      song.artistHiragana.includes(searchLower) ||
-      song.aliasesLower.includes(searchLower) ||
-      song.noteDesigners.includes(searchLower) ||
-      searchLower.trim().length === 0
-    ) : true;
-
-    if (matchesSearch) {
-      result.push(song as MaiMaiSong);
+    if (tagFilters.length > 0) {
+      const matchesTags = filterByTag(tagFilters, song).success;
+      if (!matchesTags) continue;
     }
+
+    result.push(song);
   }
 
   return result;
 });
+
 const onSearch = debounce((val: string) => {
   search.value = String(val);
 }, 100);
+
 const search = ref("")
 const temp_search = ref("")
 const value = defineModel<MaiMaiSong>("selected");
+
 const handelCleanSearch = (e: Event) => {
   e.preventDefault();
   value.value = undefined;
