@@ -59,6 +59,9 @@
                             <X />
                         </span>
                     </div>
+                    <div>
+                        <AdvanceFilter />
+                    </div>
                 </CardContent>
             </Card>
         </div>
@@ -282,6 +285,7 @@ import {
 } from '@/components/shadcn/ui/sheet'
 import type { Score } from '@/types/datasource';
 import InfiniteScrollArea from '@/components/InfiniteScrollArea.vue';
+import AdvanceFilter from '@/components/AdvanceFilter.vue';
 const { route, backHome } = useRouterHelper()
 const { getScore, getSongListAsMap, getSongDataList } = useDataStore()
 const { getCollectionByLabel, UserCollectionList, removeFromCollection, pushScoreToCollection } = useCollectionStore()
