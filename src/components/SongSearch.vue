@@ -88,13 +88,12 @@ import type { Tag } from "./TagInputCombobox.vue";
 
 const { getSongDataList, getScoreList } = useDataStore();
 
-// 预处理歌曲数据以减少运行时计算
-const SONG_DATA = computed(() => getSongDataList.list.map(song => {
+// 预处理歌曲数据
+const SONG_DATA = getSongDataList.list.map(song => {
   const titleLower = song.title.toLowerCase();
   const artistLower = song.artist.toLowerCase();
   const titleHiragana = toHiragana(song.title).toLowerCase();
   const artistHiragana = toHiragana(song.artist).toLowerCase();
-
   return {
     ...song,
     titleLower,
@@ -104,7 +103,7 @@ const SONG_DATA = computed(() => getSongDataList.list.map(song => {
     aliasesLower: song.aliases?.join(" ").toLowerCase() || "",
     noteDesigners: getNoteDesigners(song)
   };
-}));
+});
 export interface SearchOptions {
   selected_tags: Tag[],
   bpm: {
@@ -115,14 +114,8 @@ export interface SearchOptions {
 
 const props = defineProps<SearchOptions>();
 const MAX_SEARCH_NUMBER = 100;
-const filterByTag = (tagFilters: string[], _song?: MaiMaiSong) => {
 
-  let songs = []
-  if (_song) {
-    songs.push(_song)
-  } else {
-    songs = SONG_DATA.value;
-  }
+const filterByTag = (tagFilters: string[], songs: MaiMaiSong[]) => {
   let count = 0;
   let result = []
   let success = false;
@@ -136,8 +129,9 @@ const filterByTag = (tagFilters: string[], _song?: MaiMaiSong) => {
           const index_key = `level_${level_filter.level_index}` as keyof MaiMaiSong;
           const index_list = song[index_key];
           // 将level_value转换为数字类型进行匹配
-          const levelValue = Number(level_filter.level_value);
-          return Array.isArray(index_list) && !isNaN(levelValue) && index_list.includes(levelValue as never);
+          const numberValue = Number(level_filter.level_value);
+          const levelValue = isNaN(numberValue) ? level_filter.level_value : numberValue;
+          return Array.isArray(index_list) && index_list.includes(levelValue as never);
         }
       }
 
@@ -187,7 +181,7 @@ const getFilteredSongs = computed(() => {
   const searchNumber = !isNaN(Number(search.value)) ? toLXNSStyleId(Number(search.value)) : null;
   const result: MaiMaiSong[] = [];
 
-  for (const song of SONG_DATA.value) {
+  for (const song of SONG_DATA) {
 
     // 限制搜索结果数量
     if (result.length >= MAX_SEARCH_NUMBER) break;
@@ -201,8 +195,9 @@ const getFilteredSongs = computed(() => {
       if (song.bpm > props.bpm.range[1] || song.bpm < props.bpm.range[0])
         continue;
     }
+    //匹配标签
     const tagFilters = props.selected_tags.map(t => t.value);
-    const matchesTags = filterByTag(tagFilters, song).success;
+    const matchesTags = filterByTag(tagFilters, [song]).success;
     // 如果没有匹配标签，跳过关键词检查
     if (!matchesTags) continue;
 
@@ -221,7 +216,6 @@ const getFilteredSongs = computed(() => {
       result.push(song as MaiMaiSong);
     }
   }
-
   return result;
 });
 const onSearch = debounce((val: string) => {
