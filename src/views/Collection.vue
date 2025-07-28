@@ -329,6 +329,8 @@ const handleOrderStatus = (_order: OrderBadge, index: number) => {
     selectedOrder.value = OrderBadges.value[index];
 }
 //filtered score list
+
+
 const keyword = ref("")
 const search = ref("")
 const isEmpty = computed(() => filteredScoreList.value.length === 0)
@@ -408,6 +410,9 @@ const filteredScoreList = computed(() => {
     }
     return Array.from(result);
 })
+const conventScoreIndexObj = (sc: ScoreExtend) => {
+
+}
 //init
 const createUnplayedScore = (song: MaiMaiSong, song_type: SongType, level_index: number): Score => {
     const diff = song.difficulties[song_type].find(d => d.level_index === level_index);

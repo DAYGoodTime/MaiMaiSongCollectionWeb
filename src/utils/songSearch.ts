@@ -112,8 +112,9 @@ export const useSongSearch = () => {
                         const index_key = `level_${level_filter.level_index}` as keyof MaiMaiSong;
                         const index_list = song[index_key];
                         // 将level_value转换为数字类型进行匹配
-                        const levelValue = Number(level_filter.level_value);
-                        return Array.isArray(index_list) && !isNaN(levelValue) && index_list.includes(levelValue as never);
+                        const numberValue = Number(level_filter.level_value);
+                        const levelValue = isNaN(numberValue) ? level_filter.level_value : numberValue;
+                        return Array.isArray(index_list) && index_list.includes(levelValue as never);
                     }
                 }
 
