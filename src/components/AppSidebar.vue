@@ -1,7 +1,6 @@
 <script setup lang="ts">
 import {
   Search,
-  Inbox,
   Settings,
   Plus,
   ChevronDown,

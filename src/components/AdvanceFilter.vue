@@ -114,8 +114,8 @@
             <div class="flex items-center justify-between pt-4 border-t border-gray-200">
                 <div class="flex items-center space-x-3">
                     <Label class="flex items-center space-x-2 cursor-pointer">
-                        <Checkbox :checked="filters.showUnplayed"
-                            @update:checked="(checked: boolean) => updateFilters({ showUnplayed: checked })" />
+                        <Checkbox :model-value="filters.showUnplayed"
+                            @update:model-value="(checked: boolean | 'indeterminate') => updateFilters({ showUnplayed: checked === 'indeterminate' ? false : checked })" />
                         <span class="text-sm text-gray-700">显示未游玩谱面</span>
                     </Label>
                 </div>
@@ -130,7 +130,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, reactive, watch, computed } from 'vue'
+import { ref, reactive, watch } from 'vue'
 import { ChevronUp, ChevronDown, RotateCcw } from 'lucide-vue-next'
 import { Label } from '@/components/shadcn/ui/label'
 import { Button } from '@/components/shadcn/ui/button'
@@ -189,8 +189,8 @@ const difficultyOptions: FilterProps<number>[] = [{ label: 'BASIC', value: 0 }, 
 const musicCategoryOptions: FilterProps<string>[] = SongGenreList
 const versionOptions: FilterProps<string>[] = SongVersionList
 const mapCategoryOptions: FilterProps<string>[] = SongMapList
-const fullComboOptions: FilterProps<string>[] = [{ label: '无', value: 'None' }, { label: 'FC', value: 'fc' }, { label: 'FC+', value: 'fcp' }, { label: 'AP', value: 'ap' }, { label: 'AP+', value: 'app' }]
-const fullSyncOptions: FilterProps<string>[] = [{ label: '无', value: 'None' }, { label: 'Sync', value: 'sync' }, { label: 'FS', value: 'fs' }, { label: 'FS+', value: 'fsp' }, { label: 'FDX', value: 'fsd' }, { label: 'FDX+', value: 'fsdp' }]
+const fullComboOptions: FilterProps<string>[] = [{ label: 'FC', value: 'fc' }, { label: 'FC+', value: 'fcp' }, { label: 'AP', value: 'ap' }, { label: 'AP+', value: 'app' }]
+const fullSyncOptions: FilterProps<string>[] = [{ label: 'Sync', value: 'sync' }, { label: 'FS', value: 'fs' }, { label: 'FS+', value: 'fsp' }, { label: 'FDX', value: 'fsd' }, { label: 'FDX+', value: 'fsdp' }]
 const TypeOptions: FilterProps<string>[] = [{ label: '标准', value: 'standard' }, { label: 'DX', value: 'dx' }]
 
 // 更新筛选条件

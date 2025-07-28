@@ -41,11 +41,11 @@ function removeOption(option: FilterProps<any>) {
   <div class="space-y-2">
     <div v-if="props.selected.length > 0" class="flex flex-wrap gap-2">
       <template v-for="item in props.selected" :key="item">
-        <Badge variant="secondary" class="inline-flex items-center gap-1 px-2 py-1 bg-blue-100 text-blue-800">
+        <Badge variant="secondary" class="inline-flex items-center gap-1 px-2 py-1 bg-border font-normal">
           <slot name="selected-item" :item="item" :remove-option="removeOption">
             {{ item.label }}
           </slot>
-          <button class="hover:bg-blue-200 rounded-full p-0.5" @click="removeOption(item)">
+          <button class="hover:opacity-70 rounded-full p-0.5" @click="removeOption(item)">
             <X :size="12" />
           </button>
         </Badge>

@@ -66,7 +66,7 @@ const tickPositions = computed(() => {
           <SliderRange class="absolute h-full data-[orientation=vertical]:w-full bg-primary" />
         </SliderTrack>
         <TooltipProvider>
-          <template v-for="(value, index) in currentValues" :key="index">
+          <template v-for="(value, _index) in currentValues" :key="_index">
             <Tooltip :open="isDragging">
               <TooltipTrigger as-child>
                 <SliderThumb

@@ -29,12 +29,12 @@
                             <Search class="size-6 text-muted-foreground" />
                         </span>
                         <span class="absolute end-0 inset-y-0 flex items-center justify-center px-3 cursor-pointer"
-                            @click="keyword = ''">
+                            @click="onReset">
                             <X />
                         </span>
                     </div>
                     <div>
-                        <AdvanceFilter :model-value="AdvanceFilterForm" />
+                        <AdvanceFilter :model-value="{}" @update:model-value="onFilterUpdate" />
                     </div>
                 </CardContent>
             </Card>
@@ -86,11 +86,10 @@ import { Button } from '@/components/shadcn/ui/button';
 import { type Collection, useCollectionStore } from '@/store/collections';
 import { useDataStore } from '@/store/datasource';
 import type { MaiMaiSong, ScoreExtend, SongType } from '@/types/songs';
-import { debounce, toFishStyleId, toLXNSStyleId, useRouterHelper } from '@/utils/functionUtil';
-import { computed, onBeforeMount, onMounted, reactive, ref, shallowRef, watch } from 'vue';
+import { debounce, toFishStyleId, useRouterHelper } from '@/utils/functionUtil';
+import { computed, onBeforeMount, reactive, ref, shallowRef, watch } from 'vue';
 import { toast } from 'vue-sonner';
-import { toHiragana } from 'wanakana';
-import { conventFcFsStr, getNoteDesigners, getSongDiff } from '@/utils/StrUtil';
+import { conventFcFsStr } from '@/utils/StrUtil';
 import { ACHIEVEMENT, PLAY_BONUS, ACHIEVEMENT_ICON, PLAY_BONUS_ICON } from '@/utils/urlUtils';
 import {
     ContextMenu,
@@ -153,32 +152,26 @@ const handleOrderStatus = (_order: OrderBadge, index: number) => {
     selectedOrder.value = OrderBadges.value[index];
 }
 //filtered score list
-const { updateIndex, searchScore, orderBy } = useScoreSearch()
+const { updateIndex, searchScore, orderBy, advanceFilter } = useScoreSearch()
 const keyword = ref("")
 const search = ref("")
 const isEmpty = computed(() => filteredScoreList.value.length === 0)
+const onReset = () => {
+    keyword.value = ""
+    search.value = ""
+}
 const onSearch = debounce((val: string | number) => {
     search.value = String(val)
 }, 200);
 const filteredScoreList = computed(() => {
-    const result = searchScore(search.value)
+    let result = searchScore(search.value)
+    //advanced filter
+    result = advanceFilter(AdvanceFilterForm.value, result)
     //order
     if (selectedOrder.value.status_index !== 0) {
         return orderBy(result, selectedOrder.value);
     }
     return Array.from(result);
-})
-//advance filter
-const AdvanceFilterForm = reactive<AdvanceFilterFilters>({
-    difficulty: [],
-    musicCategories: [],
-    version: [],
-    mapCategories: [],
-    difficultyRange: [1.0, 15.0],
-    fullCombo: [],
-    fullSync: [],
-    Type: [],
-    showUnplayed: false
 })
 //init
 const createUnplayedScore = (song: MaiMaiSong, song_type: SongType, level_index: number): Score => {
@@ -189,6 +182,7 @@ const createUnplayedScore = (song: MaiMaiSong, song_type: SongType, level_index:
         song_name: song.title,
         level: diff ? diff.level : "0",
         level_index,
+        level_value: diff ? diff.level_value : 1.0,
         achievements: 0,
         fc: null,
         fs: null,
@@ -309,7 +303,21 @@ const statusBoard = reactive<StatusBoard>({
     total: 0
 })
 //advance feature
+const AdvanceFilterForm = ref<AdvanceFilterFilters>({
+    difficulty: [],
+    musicCategories: [],
+    version: [],
+    mapCategories: [],
+    difficultyRange: [1.0, 15.0],
+    fullCombo: [],
+    fullSync: [],
+    Type: [],
+    showUnplayed: false
+})
 const showAdvanced = ref(false)
+const onFilterUpdate = (filter: AdvanceFilterFilters) => {
+    AdvanceFilterForm.value = filter;
+}
 //context menu
 const handelRemoveScore = (score_id: string) => {
     if (removeFromCollection(score_id)) {

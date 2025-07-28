@@ -7,6 +7,7 @@ import { toHiragana } from "wanakana";
 import type { MaiMaiSong, ScoreExtend } from "@/types/songs";
 import { ref } from "vue";
 import { useDataStore } from "@/store/datasource";
+import type { AdvanceFilterFilters } from "@/types/component";
 
 export interface OrderBadge {
     label: string,
@@ -262,10 +263,62 @@ export const useScoreSearch = () => {
         }
         return ordered;
     }
+    const advanceFilter = (filter: AdvanceFilterFilters, list: ScoreExtend[]): ScoreExtend[] => {
+        let result = list;
+        //level
+        const level_filter = filter.difficulty.map(f => f.value);
+        if (level_filter.length > 0) {
+            result = result.filter(s => level_filter.includes(s.score.level_index))
+        }
+        //categories
+        const category_filter = filter.musicCategories.map(f => f.value)
+        if (category_filter.length > 0) {
+            result = result.filter(s => category_filter.includes(s.song.genre ?? ""))
+        }
+        //version
+        const version_filter = filter.version.map(f => f.value)
+        if (version_filter.length > 0) {
+            result = result.filter(s => version_filter.includes(s.song.version))
+        }
+        //map
+        const map_filter = filter.mapCategories.map(f => f.value);
+        if (map_filter.length > 0) {
+            result = result.filter(s => map_filter.includes(s.song.map ?? ""))
+        }
+        //level_value_rang
+        result = result.filter(s => {
+            //非宴谱才可以计算
+            if (s.score.type !== "utage" && s.score.level_value) {
+                return s.score.level_value >= filter.difficultyRange[0] && s.score.level_value <= filter.difficultyRange[1]
+            }
+            return false;
+        })
+        //fc
+        const fc_filter = filter.fullCombo.map(f => f.value);
+        if (fc_filter.length > 0) {
+            result = result.filter(s => fc_filter.includes(s.score.fc ?? "NAN"))
+        }
+        //fs
+        const fs_filter = filter.fullSync.map(f => f.value);
+        if (fs_filter.length > 0) {
+            result = result.filter(s => fs_filter.includes(s.score.fs ?? "NAN"))
+        }
+        //type
+        const type_filter = filter.Type.map(f => f.value);
+        if (type_filter.length == 1) {
+            result = result.filter(s => type_filter.includes(s.score.type))
+        }
+        //unplayed
+        if (!filter.showUnplayed) {
+            result = result.filter(s => s.score.is_played !== false)
+        }
+        return result;
+    }
     return {
         searchScore,
         updateIndex,
-        orderBy
+        orderBy,
+        advanceFilter
     }
 }
 
