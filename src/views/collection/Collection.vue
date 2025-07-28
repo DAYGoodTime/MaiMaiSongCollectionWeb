@@ -1,31 +1,5 @@
 <template>
-    <Sheet v-model:open="showAdvanced">
-        <SheetContent>
-            <SheetHeader>
-                <SheetTitle>高级选项</SheetTitle>
-                <SheetDescription>
-                    这里有一些自动化操作，未来可能会逐步添加
-                </SheetDescription>
-            </SheetHeader>
-            <div class="flex-1 my-4">
-                <div>
-                    <p class="font-semibold">自动导入</p>
-                    <span class="text-sm text-gray-600">根据预先设定的逻辑进行成绩的筛选导入</span><span
-                        class="text-sm text-red-600">且会覆盖合集原来的数据</span>
-                    <div class="flex justify-center gap-4 mt-2">
-                        <Button @click="lazy_master_13">全13</Button>
-                    </div>
-                </div>
-            </div>
-            <SheetFooter>
-                <SheetClose as-child>
-                    <Button type="submit">
-                        关闭
-                    </Button>
-                </SheetClose>
-            </SheetFooter>
-        </SheetContent>
-    </Sheet>
+    <AdvanceFeature :open="showAdvanced" />
     <div class="container mx-auto px-4 py-4">
         <div class="flex justify-center">
             <Card class="w-full lg:w-1/2">
@@ -127,23 +101,16 @@ import {
     ContextMenuSubContent,
     ContextMenuSubTrigger,
 } from '@/components/shadcn/ui/context-menu'
-import {
-    Sheet,
-    SheetClose,
-    SheetContent,
-    SheetDescription,
-    SheetFooter,
-    SheetHeader,
-    SheetTitle,
-} from '@/components/shadcn/ui/sheet'
+
 import type { Score } from '@/types/datasource';
 import InfiniteScrollArea from '@/components/InfiniteScrollArea.vue';
 import AdvanceFilter from '@/components/AdvanceFilter.vue';
 import type { AdvanceFilterFilters } from '@/types/component';
-import type { StatusBoard, StatusValue } from '@/components/ScoreStatisticsCard.vue';
-import ScoreStatisticsCard from '@/components/ScoreStatisticsCard.vue';
+import type { StatusBoard, StatusValue } from '@/views/collection/component/ScoreStatisticsCard.vue';
+import ScoreStatisticsCard from '@/views/collection/component/ScoreStatisticsCard.vue';
+import AdvanceFeature from './component/AdvanceFeature.vue';
 const { route, backHome } = useRouterHelper()
-const { getScore, getSongListAsMap, getSongDataList } = useDataStore()
+const { getScore, getSongListAsMap } = useDataStore()
 const { getCollectionByLabel, UserCollectionList, removeFromCollection, pushScoreToCollection } = useCollectionStore()
 const collectionStore = useCollectionStore()
 const rawCollection = ref<Collection>()
@@ -189,8 +156,6 @@ const handleOrderStatus = (_order: OrderBadge, index: number) => {
     selectedOrder.value = OrderBadges.value[index];
 }
 //filtered score list
-
-
 const keyword = ref("")
 const search = ref("")
 const isEmpty = computed(() => filteredScoreList.value.length === 0)
@@ -301,7 +266,6 @@ const createUnplayedScore = (song: MaiMaiSong, song_type: SongType, level_index:
         is_played: false
     }
 }
-
 const initScoreList = () => {
     initStatus();
     const coll = getCollectionByLabel(route.query.label as string)
@@ -412,24 +376,6 @@ const statusBoard = reactive<StatusBoard>({
 })
 //advance feature
 const showAdvanced = ref(false)
-//auto import
-const lazy_master_13 = () => {
-    const song_list = getSongDataList.list;
-    const result_score = new Set<string>([])
-    const coll_index = UserCollectionList.findIndex(c => c.label == collectionStore.CurrentCollectionLabel);
-    for (const song of song_list) {
-        const difficulties = [...song.difficulties.standard, ...song.difficulties.dx];
-        for (const diff of difficulties) {
-            if (diff.level === "13") {
-                result_score.add(`${song.id}_${diff.type}_${diff.level_index}`)
-            }
-        }
-    }
-    if (UserCollectionList[coll_index]) {
-        UserCollectionList[coll_index].list = result_score;
-        toast.success("导入成功，请重新刷新页面")
-    }
-}
 //context menu
 const handelRemoveScore = (score_id: string) => {
     if (removeFromCollection(score_id)) {
