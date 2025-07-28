@@ -1,5 +1,5 @@
 import type { Score } from "@/types/datasource";
-import type { MaiMaiSong, SongDifficulty } from "@/types/songs";
+import type { MaiMaiSong, ScoreExtend, SongDifficulty } from "@/types/songs";
 
 export const LEVEL_MATCH_PATTEN =
   /^[绿黄红紫白](?:(?:1[0-5]|[1-9])\+|(?:1[0-5]|[1-9])(?:\.\d)?)$/;
@@ -96,6 +96,11 @@ export function getNoteDesigners(song: MaiMaiSong) {
       return d.note_designer.toLowerCase();
     } else return ""
   }).join(" ")
+}
+export const getLevelValue = (sc: ScoreExtend) => {
+  const diff = getSongDiff(sc.song, sc.score);
+  if (diff) return diff.level_value;
+  return 0
 }
 export function conventFcFsStr(fcfs: string | null | undefined) {
   switch (fcfs) {

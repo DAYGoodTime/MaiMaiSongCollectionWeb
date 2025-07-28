@@ -1,15 +1,20 @@
 import FlexSearch, { Document, type DocumentData } from "flexsearch";
-import { conventLevelPrefix, conventLevelTag, LEVEL_MATCH_PATTEN, RANKING_MATCH_PATTEN, getNoteDesigners } from "@/utils/StrUtil";
+import { conventLevelPrefix, conventLevelTag, LEVEL_MATCH_PATTEN, RANKING_MATCH_PATTEN, getNoteDesigners, getLevelValue } from "@/utils/StrUtil";
 import { isAllFinal, versionList } from "@/utils/version";
 import { toLXNSStyleId } from "@/utils/functionUtil";
 import { rankingList } from "@/utils/urlUtils";
 import { toHiragana } from "wanakana";
-import type { MaiMaiSong } from "@/types/songs";
+import type { MaiMaiSong, ScoreExtend } from "@/types/songs";
 import { ref } from "vue";
 import { useDataStore } from "@/store/datasource";
 
+export interface OrderBadge {
+    label: string,
+    value: string,
+    status_index: number
+}
+
 export const MAX_SEARCH_NUMBER = 100;
-// 在模块作用域创建一次，这是实现单例的关键
 let songIndex: Document<DocumentData, boolean, boolean> | null = null;
 const isIndexing = ref(false);
 let SONG_DATA: MaiMaiSong[] = []
@@ -163,6 +168,104 @@ export const useSongSearch = () => {
         filterByTag,
         MAX_SEARCH_NUMBER,
         SONG_DATA
+    }
+}
+export const useScoreSearch = () => {
+
+    let scoreIndex: Document<DocumentData, boolean, boolean> | null = null;
+    let scoreMap = new Map<string, ScoreExtend>();
+
+    const updateIndex = (scoreList: ScoreExtend[]) => {
+        scoreMap = new Map<string, ScoreExtend>(scoreList.map(s => [s.score_id, s]));
+        scoreIndex = new FlexSearch.Document({
+            document: {
+                id: 'score_id',
+                index: [
+                    { field: 'title', tokenize: 'forward', priority: 10 },
+                    { field: 'titleHiragana', tokenize: 'forward', priority: 9 },
+                    { field: 'aliasesLower', tokenize: 'forward', priority: 8 },
+                    { field: 'artist', tokenize: 'forward', priority: 5 },
+                    { field: 'artistHiragana', tokenize: 'forward', priority: 4 },
+                    { field: 'noteDesigners', tokenize: 'forward', priority: 1 }
+                ]
+            },
+        });
+        scoreList.forEach(item => {
+            const { song, score_id } = item;
+            const indexedDoc = {
+                score_id: score_id,
+                title: song.title,
+                artist: song.artist,
+                titleHiragana: toHiragana(song.title).toLowerCase(),
+                artistHiragana: toHiragana(song.artist).toLowerCase(),
+                aliasesLower: song.aliases?.join(" ").toLowerCase() || "",
+                noteDesigners: getNoteDesigners(song)
+            };
+            (scoreIndex as Document).add(indexedDoc);
+        });
+    }
+
+    const searchScore = (keyword: string) => {
+        if (!scoreIndex || !keyword) return Array.from(scoreMap.values());
+        const searchLower = toHiragana(keyword.toLowerCase());
+        let scoresToShow: ScoreExtend[] = [];
+
+        if (searchLower.trim().length > 0) {
+            const searchResults = (scoreIndex as Document).search(searchLower);
+            const orderedIds: string[] = [];
+            const addedIds = new Set<string>();
+
+            searchResults.forEach(fieldResult => {
+                fieldResult.result.forEach(id => {
+                    if (!addedIds.has(id as string)) {
+                        orderedIds.push(id as string);
+                        addedIds.add(id as string);
+                    }
+                });
+            });
+            scoresToShow = orderedIds.map(id => scoreMap.get(id)).filter(Boolean) as ScoreExtend[];
+        } else {
+            scoresToShow = Array.from(scoreMap.values());
+        }
+        return scoresToShow;
+    }
+    const orderBy = (list: ScoreExtend[], orderBy: OrderBadge) => {
+        let ordered = [...list];
+        switch (orderBy.value) {
+            case 'achievement':
+                ordered = ordered.sort((a, b) => {
+                    if (orderBy.status_index == 2) {
+                        return a.score.achievements - b.score.achievements
+                    } else {
+                        return b.score.achievements - a.score.achievements
+                    }
+                });
+                break;
+            case 'dx_rating':
+                ordered = ordered.sort((a, b) => {
+                    if (orderBy.status_index == 2) {
+                        return a.score.dx_rating - b.score.dx_rating
+                    } else {
+                        return b.score.dx_rating - a.score.dx_rating
+                    }
+                });
+                break;
+            case 'level':
+                ordered = ordered.sort((a, b) => {
+                    if (orderBy.status_index == 2) {
+                        return getLevelValue(a) - getLevelValue(b)
+                    } else {
+                        return getLevelValue(b) - getLevelValue(a)
+                    }
+                });
+                break;
+        }
+        return ordered;
+    }
+    return {
+        searchScore,
+        updateIndex,
+        orderBy
     }
 }
 

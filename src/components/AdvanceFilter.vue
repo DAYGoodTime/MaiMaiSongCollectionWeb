@@ -150,7 +150,7 @@ const props = defineProps<AdvanceFilterProps>()
 const emit = defineEmits<AdvanceFilterEmits>()
 
 // 响应式数据
-const isExpanded = ref(true)
+const isExpanded = ref(false)
 
 // 默认值
 const defaultFilters: AdvanceFilterFilters = {

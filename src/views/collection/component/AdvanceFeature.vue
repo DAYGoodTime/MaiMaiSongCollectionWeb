@@ -1,5 +1,5 @@
 <template>
-    <Sheet v-model:open="open">
+    <Sheet v-model:open="showOpen">
         <SheetContent>
             <SheetHeader>
                 <SheetTitle>高级选项</SheetTitle>
@@ -37,12 +37,11 @@ import {
     SheetHeader,
     SheetTitle,
 } from '@/components/shadcn/ui/sheet'
+import { Button } from '@/components/shadcn/ui/button';
 import { useCollectionStore } from '@/store/collections';
 import { useDataStore } from '@/store/datasource';
 import { toast } from 'vue-sonner';
-const { open } = defineProps<{
-    open: boolean
-}>();
+const showOpen = defineModel<boolean>('open')
 //advance feature
 
 //auto import

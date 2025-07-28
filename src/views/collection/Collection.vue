@@ -1,5 +1,5 @@
 <template>
-    <AdvanceFeature :open="showAdvanced" />
+    <AdvanceFeature v-model:open="showAdvanced" />
     <div class="container mx-auto px-4 py-4">
         <div class="flex justify-center">
             <Card class="w-full lg:w-1/2">
@@ -87,7 +87,7 @@ import { type Collection, useCollectionStore } from '@/store/collections';
 import { useDataStore } from '@/store/datasource';
 import type { MaiMaiSong, ScoreExtend, SongType } from '@/types/songs';
 import { debounce, toFishStyleId, toLXNSStyleId, useRouterHelper } from '@/utils/functionUtil';
-import { computed, onMounted, reactive, ref, shallowRef, watch } from 'vue';
+import { computed, onBeforeMount, onMounted, reactive, ref, shallowRef, watch } from 'vue';
 import { toast } from 'vue-sonner';
 import { toHiragana } from 'wanakana';
 import { conventFcFsStr, getNoteDesigners, getSongDiff } from '@/utils/StrUtil';
@@ -109,6 +109,7 @@ import type { AdvanceFilterFilters } from '@/types/component';
 import type { StatusBoard, StatusValue } from '@/views/collection/component/ScoreStatisticsCard.vue';
 import ScoreStatisticsCard from '@/views/collection/component/ScoreStatisticsCard.vue';
 import AdvanceFeature from './component/AdvanceFeature.vue';
+import { useScoreSearch, type OrderBadge } from '@/utils/songSearch';
 const { route, backHome } = useRouterHelper()
 const { getScore, getSongListAsMap } = useDataStore()
 const { getCollectionByLabel, UserCollectionList, removeFromCollection, pushScoreToCollection } = useCollectionStore()
@@ -117,11 +118,7 @@ const rawCollection = ref<Collection>()
 const scoreList = shallowRef<ScoreExtend[]>([])
 const SONG_MAP = getSongListAsMap();
 
-interface OrderBadge {
-    label: string,
-    value: string,
-    status_index: number
-}
+
 //order
 const OrderBadges = ref([
     {
@@ -156,82 +153,18 @@ const handleOrderStatus = (_order: OrderBadge, index: number) => {
     selectedOrder.value = OrderBadges.value[index];
 }
 //filtered score list
+const { updateIndex, searchScore, orderBy } = useScoreSearch()
 const keyword = ref("")
 const search = ref("")
 const isEmpty = computed(() => filteredScoreList.value.length === 0)
 const onSearch = debounce((val: string | number) => {
     search.value = String(val)
 }, 200);
-const getLevelValue = (sc: ScoreExtend) => {
-    const diff = getSongDiff(sc.song, sc.score);
-    if (diff) return diff.level_value;
-    return 0
-}
 const filteredScoreList = computed(() => {
-    const result = new Set<ScoreExtend>();
-    //根据关键词搜索
-    const hiragana = toHiragana(search.value).toLowerCase();
-    const searchLower = search.value.toLowerCase();
-    const searchNumber = !isNaN(Number(search)) ? toLXNSStyleId(Number(search)) : null;
-    for (const sc of scoreList.value) {
-        if (searchNumber !== null && sc.song.id === searchNumber) {
-            result.add(sc);
-            continue;
-        }
-        const titleLower = sc.song.title.toLowerCase();
-        const artistLower = sc.song.artist.toLowerCase();
-        const noteDesigners = getNoteDesigners(sc.song);
-        const titleHiragana = toHiragana(sc.song.title).toLowerCase();
-        const artistHiragana = toHiragana(sc.song.artist).toLowerCase();
-        let ailas = "";
-        if (sc.song.aliases) {
-            ailas = sc.song.aliases.join(" ").toLowerCase();
-        }
-        if (
-            titleLower.includes(searchLower) ||
-            titleHiragana.includes(hiragana) ||
-            artistLower.includes(searchLower) ||
-            artistHiragana.includes(hiragana) ||
-            ailas.includes(searchLower) ||
-            noteDesigners.includes(searchLower) ||
-            search.value.length === 0
-        ) {
-            result.add(sc)
-        }
-    }
+    const result = searchScore(search.value)
     //order
     if (selectedOrder.value.status_index !== 0) {
-        let ordered = [...result];
-        switch (selectedOrder.value.value) {
-            case 'achievement':
-                ordered = ordered.sort((a, b) => {
-                    if (selectedOrder.value?.status_index == 2) {
-                        return a.score.achievements - b.score.achievements
-                    } else {
-                        return b.score.achievements - a.score.achievements
-                    }
-                });
-                break;
-            case 'dx_rating':
-                ordered = ordered.sort((a, b) => {
-                    if (selectedOrder.value?.status_index == 2) {
-                        return a.score.dx_rating - b.score.dx_rating
-                    } else {
-                        return b.score.dx_rating - a.score.dx_rating
-                    }
-                });
-                break;
-            case 'level':
-                ordered = ordered.sort((a, b) => {
-                    if (selectedOrder.value?.status_index == 2) {
-                        return getLevelValue(a) - getLevelValue(b)
-                    } else {
-                        return getLevelValue(b) - getLevelValue(a)
-                    }
-                });
-                break;
-        }
-        return ordered;
+        return orderBy(result, selectedOrder.value);
     }
     return Array.from(result);
 })
@@ -304,6 +237,7 @@ const initScoreList = () => {
     }
     //统计总数
     statusBoard.total = scoreList.value.length
+    updateIndex(scoreList.value)
 }
 watch(
     () => route.query.label,
@@ -311,7 +245,7 @@ watch(
         initScoreList()
     }
 )
-onMounted(async () => {
+onBeforeMount(() => {
     initScoreList();
 })
 //统计
