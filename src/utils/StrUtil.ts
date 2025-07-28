@@ -1,4 +1,6 @@
 import type { Score } from "@/types/datasource";
+import type { FishScore } from "@/types/divingfish";
+import type { LXNSScore } from "@/types/lxns";
 import type { MaiMaiSong, ScoreExtend, SongDifficulty } from "@/types/songs";
 
 export const LEVEL_MATCH_PATTEN =
@@ -79,7 +81,7 @@ export function formatLevelValue(level_value: number | undefined) {
   }
   return "NAN"
 }
-export const getSongDiff = (song: MaiMaiSong, score: Score) => {
+export const getSongDiff = (song: MaiMaiSong, score: Score | FishScore | LXNSScore) => {
   if (song.difficulties) {
     return song.difficulties[score.type as keyof {
       standard: SongDifficulty[];

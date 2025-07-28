@@ -6,15 +6,20 @@ import type { MaiMaiSong, SongType } from "@/types/songs";
 import type { LXNSScore } from "@/types/lxns";
 import { formatDate } from "@/utils/StrUtil";
 import { useLocalStorage } from "@vueuse/core";
-import { conventToScore, exportFile } from "@/utils/functionUtil";
+import { conventToScore, exportFile, toLXNSStyleId } from "@/utils/functionUtil";
 import type { FishScore } from "@/types/divingfish";
 import { toast } from "vue-sonner";
 
 export type DataSourceType = "divingfish" | "lxns";
 
+const CURRENT_SONG_VERSION = 2
+
+const CURRENT_SCORE_VERSION = 3
+
 const DEFAULT_DS = {
   list: new Map<number, Score[]>(),
-  update_time: '从未获取'
+  update_time: '从未获取',
+  version: CURRENT_SCORE_VERSION
 }
 const serializerMap = {
   read: (v: string): DataSource<Map<number, Score[]>> => {
@@ -22,27 +27,34 @@ const serializerMap = {
       const obj = JSON.parse(v);
       return {
         list: new Map<number, Score[]>(obj.list),
-        update_time: obj.update_time
+        update_time: obj.update_time,
+        version: obj.version
       }
     }
     return DEFAULT_DS;
   },
   write: (v: DataSource<Map<number, Score[]>>) => JSON.stringify({
     list: [...v.list],
-    update_time: v.update_time
+    update_time: v.update_time,
+    version: v.version
   }),
 }
-export function flatMapById(list: LXNSScore[] | FishScore[]): Map<number, Score[]> {
+export function flatMapById(list: LXNSScore[] | FishScore[], songMap: Map<number, MaiMaiSong>): Map<number, Score[]> {
   const map = new Map<number, Score[]>();
   for (const item of list) {
     //转换为通用类型
-    const score = conventToScore(item);
-    if (map.has(score.id)) {
-      map.get(score.id)?.push(score);
+    const song_id = ("song_id" in item) ? toLXNSStyleId(item.song_id) : item.id;
+    if (songMap.has(song_id)) {
+      const score = conventToScore(item, songMap.get(song_id) as MaiMaiSong);
+      if (map.has(score.id)) {
+        map.get(score.id)?.push(score);
+      } else {
+        map.set(score.id, [score]);
+      }
     } else {
-      map.set(score.id, [score]);
+      //不存在与数据源的歌曲通常为删除曲，则该成绩舍去。
+      continue;
     }
-
   }
   return map;
 }
@@ -51,16 +63,17 @@ export const useDataStore = defineStore("datasource", () => {
   const getSongDataList = computed(() => {
     const source: DataSource<MaiMaiSong[]> = {
       list: SONG_DATA as MaiMaiSong[],
-      update_time: "2025-07-20 23:00:00"
+      update_time: "2025-07-20 23:00:00",
+      version: CURRENT_SONG_VERSION
     }
     return source;
   })
+  const SONG_MAP = new Map<number, MaiMaiSong>();
+  SONG_DATA.forEach(song => {
+    SONG_MAP.set(song.id, song as MaiMaiSong)
+  })
   const getSongListAsMap = () => {
-    const map = new Map<number, MaiMaiSong>();
-    SONG_DATA.forEach(song => {
-      map.set(song.id, song as MaiMaiSong)
-    })
-    return map;
+    return SONG_MAP;
   }
   //DivingFish
   const DivingFishSource: Ref<DataSource<Map<number, Score[]>>> = useLocalStorage('fish_local_ds', DEFAULT_DS, {
@@ -71,8 +84,9 @@ export const useDataStore = defineStore("datasource", () => {
   })
   const updateDivingFishData = (data: FishScore[]) => {
     const source = {
-      list: flatMapById(data),
-      update_time: formatDate(new Date())
+      list: flatMapById(data, SONG_MAP),
+      update_time: formatDate(new Date()),
+      version: CURRENT_SCORE_VERSION
     };
     DivingFishSource.value = source;
   }
@@ -94,8 +108,9 @@ export const useDataStore = defineStore("datasource", () => {
   })
   const updateLXNSData = (data: LXNSScore[]) => {
     const source = {
-      list: flatMapById(data),
-      update_time: formatDate(new Date())
+      list: flatMapById(data, SONG_MAP),
+      update_time: formatDate(new Date()),
+      version: CURRENT_SCORE_VERSION
     };
     LXNSSource.value = source
   }
@@ -133,6 +148,14 @@ export const useDataStore = defineStore("datasource", () => {
     if (!scoreList || scoreList.length === 0) return null;
     return scoreList.find(s => s.type === type && s.level_index === level_index)
   }
+  const ClearDataSource = (type: DataSourceType) => {
+    if (type === "lxns") {
+      LXNSSource.value = DEFAULT_DS;
+    }
+    if (type === "divingfish") {
+      DivingFishSource.value = DEFAULT_DS;
+    }
+  }
   return {
     selectedSource,
     getSongDataList,
@@ -151,6 +174,9 @@ export const useDataStore = defineStore("datasource", () => {
     getScoreList,
     LXNSSource,
     getSongListAsMap,
-    switchDataSource
+    switchDataSource,
+    CURRENT_SCORE_VERSION,
+    CURRENT_SONG_VERSION,
+    ClearDataSource
   };
 });

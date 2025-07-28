@@ -1,9 +1,11 @@
-import type { Score } from "@/types/datasource";
+import type { Score, SongType } from "@/types/datasource";
 import type { FishScore } from "@/types/divingfish";
 import type { LXNSScore } from "@/types/lxns";
 import { useClipboard, usePermission } from "@vueuse/core";
 import { useRoute, useRouter, type RouteLocationRaw } from "vue-router";
 import { toast } from "vue-sonner";
+import { getSongDiff } from "./StrUtil";
+import type { MaiMaiSong } from "@/types/songs";
 
 type DebouncedFunction<T extends any[]> = (...args: T) => void;
 
@@ -64,7 +66,7 @@ export function useCopyHelper() {
   }
   return { handelCopy }
 }
-export function conventToScore(score: LXNSScore | FishScore): Score {
+export function conventToScore(score: LXNSScore | FishScore, song: MaiMaiSong): Score {
   return {
     id: ("song_id" in score) ? toLXNSStyleId(score.song_id) : score.id,
     fish_id: ("song_id" in score) ? score.song_id : toFishStyleId(score.id),
@@ -74,10 +76,11 @@ export function conventToScore(score: LXNSScore | FishScore): Score {
     fs: score.fs,
     level: score.level,
     level_index: score.level_index,
+    level_value: ("ds" in score) ? score.ds : getSongDiff(song, score)?.level_value,
     rate_type: ("rate" in score) ? score.rate : score.rate_type,
     dx_score: ("dxScore" in score) ? score.dxScore : score.dx_score,
     dx_rating: ("ra" in score) ? score.ra : score.dx_rating,
-    type: toLXNSType(score.type)
+    type: toLXNSType(score.type) as SongType
   }
 }
 export function toFishStyleId(id: number) {

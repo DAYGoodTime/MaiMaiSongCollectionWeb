@@ -1,7 +1,9 @@
 export interface DataSource<T> {
     list: T,
-    update_time: Date | string
+    update_time: Date | string,
+    version: number
 }
+export type SongType = "standard" | "dx" | "utage"
 export interface Score {
     /** 曲目 ID */
     id: number;
@@ -27,8 +29,8 @@ export interface Score {
     dx_score: number;
     /** DX rating */
     dx_rating: number;
-    /** 谱面类型 例如 dx stander utage */
-    type: string;
+    /** 谱面类型 例如 dx standard utage */
+    type: SongType;
     /** 是否有拥有成绩（用于构建未游玩难度） */
     is_played?: boolean
 }
