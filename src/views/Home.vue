@@ -1,8 +1,9 @@
 <script setup lang="ts">
 import { reactive, ref, onMounted, computed } from "vue";
-import { Filter, Search } from 'lucide-vue-next'
+import { Filter, Search, CircleQuestionMark } from 'lucide-vue-next'
 import SongSearch from "@/components/SongSearch.vue";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/shadcn/ui/accordion'
+import { HoverCard, HoverCardContent, HoverCardTrigger } from "@/components/shadcn/ui/hover-card";
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/shadcn/ui/card'
 import { Slider } from "@/components/shadcn/ui/slider";
 import { Checkbox } from "@/components/shadcn/ui/checkbox";
@@ -46,13 +47,22 @@ const getScoreList = computed(() => selectedSong.value?.difficulties[SelectedTyp
             <AccordionContent class="px-6 pt-4">
               <div class="grid gap-6 sm:grid-cols-2">
                 <div class="space-y-2">
+                  标签筛选:
+                  <HoverCard :open-delay="10">
+                    <HoverCardTrigger>
+                      <CircleQuestionMark class="inline w-4 h-4" />
+                    </HoverCardTrigger>
+                    <HoverCardContent>
+                      <div class="flex flex-col gap-2">
+                        <p>通过标签来筛选需要搜索的歌曲范围:</p>
+                        <p>版本: 任意maimai版本</p>
+                        <p>铺面难度: 例如："红13"、"紫12"</p>
+                        <p>达成率: 例如："红鸟加"、"白鸟"</p>
+                      </div>
+                    </HoverCardContent>
+                  </HoverCard>
                   <Label>
-                    <div class="flex flex-col gap-2">
-                      <p>标签筛选 支持:</p>
-                      <p>版本: 任意maimai版本</p>
-                      <p>铺面难度: 例如："红13"、"紫12"</p>
-                      <p>达成率: 例如："红鸟加"、"白鸟"</p>
-                    </div>
+
                   </Label>
                   <TagInputCombobox v-model:tags="tags" />
                 </div>
