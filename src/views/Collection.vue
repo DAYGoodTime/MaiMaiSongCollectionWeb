@@ -60,7 +60,7 @@
                         </span>
                     </div>
                     <div>
-                        <AdvanceFilter />
+                        <AdvanceFilter :model-value="AdvanceFilterForm" />
                     </div>
                 </CardContent>
             </Card>
@@ -99,155 +99,8 @@
                 </div>
             </template>
         </InfiniteScrollArea>
-        <!-- <ScrollArea class="w-full max-h-screen overflow-auto my-8 rounded-xl border shadow hover:shadow-xl py-2"
-            ref="scrollArea">
-            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-2 p-2 justify-items-center">
-                <div v-for="card in filteredScoreList" :key="card.score_id">
-                    <ContextMenu>
-                        <ContextMenuTrigger>
-                            <ScoreCard :score="card"
-                                class="transition-shadow rounded-xl shadow hover:shadow-xl bg-white/90" />
-                        </ContextMenuTrigger>
-                        <ContextMenuContent>
-                            <ContextMenuItem class="text-red-600" @click="handelRemoveScore(card.score_id)">从合集中删除
-                            </ContextMenuItem>
-                            <ContextMenuSub>
-                                <ContextMenuSubTrigger>
-                                    添加至其它合集
-                                </ContextMenuSubTrigger>
-                                <ContextMenuSubContent>
-                                    <ContextMenuItem
-                                        @click="() => handelMoveToOtherCollection(coll.label, card.score_id)"
-                                        v-for="coll in getOtherCollections">{{ coll.label }}
-                                    </ContextMenuItem>
-                                </ContextMenuSubContent>
-                            </ContextMenuSub>
-                        </ContextMenuContent>
-                    </ContextMenu>
-                </div>
-                <div ref="sentinel" class="h-px w-full" />
-            </div>
-            <p class="flex items-center text-center justify-center" v-if="isEmpty">暂无任何成绩捏~</p>
-        </ScrollArea> -->
-        <!-- 统计卡片 -->
-        <Card class="mx-auto mt-4 lg:w-[30rem] shadow hover:shadow-xl">
-            <CardTitle>
-                <div class="flex justify-between items-center mb-4">
-                    <div></div>
-                    <Button variant="ghost" class="mt-1 mr-1" @click="showDetailStats = !showDetailStats">
-                        <span class="text-sm text-muted-foreground">{{ showDetailStats ? '收起' : '显示详细统计信息' }}</span>
-                        <ChevronDown v-if="!showDetailStats" class="ml-1 h-4 w-4" />
-                        <ChevronUp v-if="showDetailStats" class="ml-1 h-4 w-4" />
-                    </Button>
-                </div>
-            </CardTitle>
-            <CardContent>
-                <!-- PC Layout -->
-                <div class="hidden lg:block">
-                    <div class="lg:grid lg:grid-cols-2 gap-2">
-                        <div class="flex-1 space-y-2">
-                            <div class="flex justify-between" v-for="ranking in statusBoard.rank_first">
-                                <div class="flex items-center gap-2">
-                                    <img :src="ranking.icon" :alt="ranking.alt" class="h-8" />
-                                </div>
-                                <div>
-                                    <span class="text-xl font-bold">{{ ranking.current }}</span>
-                                    <span class="text-sm text-muted-foreground">/ {{ statusBoard.total }}</span>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="flex-1 space-y-2">
-                            <div class="flex justify-between" v-for="ranking in statusBoard.apfc">
-                                <div class="flex items-center gap-2">
-                                    <img :src="ranking.icon" :alt="ranking.alt" class="h-8" />
-                                </div>
-                                <div>
-                                    <span class="text-xl font-bold">{{ ranking.current }}</span>
-                                    <span class="text-sm text-muted-foreground">/ {{ statusBoard.total }}</span>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                    <!-- 展开后的详细统计 -->
-                    <div v-show="showDetailStats" class="grid grid-cols-2 gap-2 pt-2">
-                        <div class="flex-1 space-y-2">
-                            <div class="flex justify-between" v-for="ranking in statusBoard.rank_second">
-                                <div class="flex items-center gap-2">
-                                    <img :src="ranking.icon" :alt="ranking.alt" class="h-8" />
-                                </div>
-                                <div>
-                                    <span class="text-xl font-bold">{{ ranking.current }}</span>
-                                    <span class="text-sm text-muted-foreground">/ {{ statusBoard.total }}</span>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="flex-1 space-y-2 mt-4">
-                            <div class="flex justify-between" v-for="ranking in statusBoard.fs">
-                                <div class="flex items-center gap-2">
-                                    <img :src="ranking.icon" :alt="ranking.alt" class="h-8" />
-                                </div>
-                                <div>
-                                    <span class="text-xl font-bold">{{ ranking.current }}</span>
-                                    <span class="text-sm text-muted-foreground">/ {{ statusBoard.total }}</span>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                <!-- Mobile Layout -->
-                <div class="block lg:hidden">
-                    <div class="space-y-2">
-                        <div class="flex justify-between" v-for="ranking in statusBoard.rank_first">
-                            <div class="flex items-center gap-2">
-                                <img :src="ranking.icon" :alt="ranking.alt" class="h-8" loading="lazy" />
-                            </div>
-                            <div>
-                                <span class="text-xl font-bold">{{ ranking.current }}</span>
-                                <span class="text-sm text-muted-foreground">/ {{ statusBoard.total }}</span>
-                            </div>
-                        </div>
-                    </div>
-                    <div v-if="showDetailStats" class="space-y-4">
-                        <div class="space-y-2">
-                            <div class="flex justify-between" v-for="ranking in statusBoard.rank_second">
-                                <div class="flex items-center gap-2">
-                                    <img :src="ranking.icon" :alt="ranking.alt" class="h-8" loading="lazy" />
-                                </div>
-                                <div>
-                                    <span class="text-xl font-bold">{{ ranking.current }}</span>
-                                    <span class="text-sm text-muted-foreground">/ {{ statusBoard.total }}</span>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="grid grid-cols-2 gap-2 pt-2">
-                            <div class="space-y-2">
-                                <div class="flex justify-between" v-for="ranking in statusBoard.apfc">
-                                    <div class="flex items-center gap-2">
-                                        <img :src="ranking.icon" :alt="ranking.alt" class="h-8" loading="lazy" />
-                                    </div>
-                                    <div>
-                                        <span class="text-xl font-bold">{{ ranking.current }}</span>
-                                        <span class="text-sm text-muted-foreground">/ {{ statusBoard.total }}</span>
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="space-y-2">
-                                <div class="flex justify-between" v-for="ranking in statusBoard.fs">
-                                    <div class="flex items-center gap-2">
-                                        <img :src="ranking.icon" :alt="ranking.alt" class="h-8" loading="lazy" />
-                                    </div>
-                                    <div>
-                                        <span class="text-xl font-bold">{{ ranking.current }}</span>
-                                        <span class="text-sm text-muted-foreground">/ {{ statusBoard.total }}</span>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </CardContent>
-        </Card>
     </div>
+    <ScoreStatisticsCard :status-board="statusBoard" />
 </template>
 <script setup lang="ts">
 import ScoreCard from '@/components/ScoreCard.vue';
@@ -286,6 +139,9 @@ import {
 import type { Score } from '@/types/datasource';
 import InfiniteScrollArea from '@/components/InfiniteScrollArea.vue';
 import AdvanceFilter from '@/components/AdvanceFilter.vue';
+import type { AdvanceFilterFilters } from '@/types/component';
+import type { StatusBoard, StatusValue } from '@/components/ScoreStatisticsCard.vue';
+import ScoreStatisticsCard from '@/components/ScoreStatisticsCard.vue';
 const { route, backHome } = useRouterHelper()
 const { getScore, getSongListAsMap, getSongDataList } = useDataStore()
 const { getCollectionByLabel, UserCollectionList, removeFromCollection, pushScoreToCollection } = useCollectionStore()
@@ -414,9 +270,18 @@ const filteredScoreList = computed(() => {
     }
     return Array.from(result);
 })
-const conventScoreIndexObj = (sc: ScoreExtend) => {
-
-}
+//advance filter
+const AdvanceFilterForm = reactive<AdvanceFilterFilters>({
+    difficulty: [],
+    musicCategories: [],
+    version: [],
+    mapCategories: [],
+    difficultyRange: [1.0, 15.0],
+    fullCombo: [],
+    fullSync: [],
+    Type: [],
+    showUnplayed: false
+})
 //init
 const createUnplayedScore = (song: MaiMaiSong, song_type: SongType, level_index: number): Score => {
     const diff = song.difficulties[song_type].find(d => d.level_index === level_index);
@@ -486,20 +351,6 @@ onMounted(async () => {
     initScoreList();
 })
 //统计
-interface StatusValue {
-    icon: string,
-    current: number,
-    alt: string,
-    require: any
-}
-interface StatusBoard {
-    rank_first: StatusValue[],
-    rank_second: StatusValue[],
-    apfc: StatusValue[],
-    fs: StatusValue[],
-    total: number,
-}
-const showDetailStats = ref(false)
 const initStatus = () => {
     for (const key of Object.keys(statusBoard)) {
         if (key === "total") statusBoard.total = 0;

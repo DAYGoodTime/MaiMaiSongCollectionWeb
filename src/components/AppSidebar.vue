@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import {
-  Home,
+  Search,
   Inbox,
   Settings,
   Plus,
@@ -42,14 +42,9 @@ import { computed, ref } from "vue";
 // Menu items.
 const items = [
   {
-    title: "首页",
+    title: "歌曲搜索",
     url: "Home",
-    icon: Home,
-  },
-  {
-    title: "Test",
-    url: "Test",
-    icon: Inbox,
+    icon: Search,
   },
   {
     title: "设置",
@@ -120,7 +115,7 @@ const handelCollectionJump = (coll: Collection) => {
         <SidebarGroupContent>
           <SidebarMenu>
             <SidebarMenuItem v-for="item in items" :key="item.title">
-              <SidebarMenuButton asChild>
+              <SidebarMenuButton asChild class="cursor-pointer">
                 <a @click="e => JumpToFromEvent(e, { name: item.url })">
                   <component :is="item.icon" />
                   <span>{{ item.title }}</span>
@@ -162,7 +157,7 @@ const handelCollectionJump = (coll: Collection) => {
                       </SidebarMenuSubButton>
                     </SidebarMenuSubItem>
                     <SidebarMenuSubItem>
-                      <SidebarMenuSubButton @click="handelDialogOpen('add')">
+                      <SidebarMenuSubButton class="cursor-pointer" @click="handelDialogOpen('add')">
                         <div class="flex w-full items-center text-center">
                           <Plus />添加合集
                         </div>
