@@ -76,15 +76,12 @@ import {
   ComboboxList,
 } from "@/components/shadcn/ui/combobox";
 import ScrollArea from "./shadcn/ui/scroll-area/ScrollArea.vue";
-import { debounce, toLXNSStyleId } from "@/utils/functionUtil";
-import { toHiragana } from 'wanakana';
+import { debounce } from "@/utils/functionUtil";
 import type { MaiMaiSong } from "@/types/songs";
-import { getImageCoverUrl, rankingList } from "@/utils/urlUtils";
-import { conventLevelPrefix, conventLevelTag, getNoteDesigners, LEVEL_MATCH_PATTEN, RANKING_MATCH_PATTEN } from "@/utils/StrUtil";
-import { isAllFinal, versionList } from "@/utils/version";
+import { getImageCoverUrl } from "@/utils/urlUtils";
 import { ComboboxCancel } from "@/components/shadcn/ui/combobox";
-import { useDataStore } from "@/store/datasource";
 import type { Tag } from "./TagInputCombobox.vue";
+import { useSongSearch } from '@/utils/songSearch';
 
 export interface SearchOptions {
   selected_tags: Tag[],
@@ -94,137 +91,34 @@ export interface SearchOptions {
   }
 }
 const props = defineProps<SearchOptions>();
-const MAX_SEARCH_NUMBER = 100;//最大歌曲搜索上限
-const { getSongDataList, getScoreList } = useDataStore();
 
-// 预处理歌曲数据
-const SONG_DATA = getSongDataList.list.map(song => {
-  const titleLower = song.title.toLowerCase();
-  const artistLower = song.artist.toLowerCase();
-  const titleHiragana = toHiragana(song.title).toLowerCase();
-  const artistHiragana = toHiragana(song.artist).toLowerCase();
-  return {
-    ...song,
-    titleLower,
-    artistLower,
-    titleHiragana,
-    artistHiragana,
-    aliasesLower: song.aliases?.join(" ").toLowerCase() || "",
-    noteDesigners: getNoteDesigners(song)
-  };
-});
-const filterByTag = (tagFilters: string[], songs: MaiMaiSong[]) => {
-  let count = 0;
-  let result = []
-  let success = false;
-  for (const song of songs) {
-    // 标签过滤
-    const matchesTags = tagFilters.length === 0 ? true : tagFilters.every(tag => {
-      // 定数tag过滤
-      if (LEVEL_MATCH_PATTEN.test(tag)) {
-        const level_filter = conventLevelTag(tag);
-        if (level_filter) {
-          const index_key = `level_${level_filter.level_index}` as keyof MaiMaiSong;
-          const index_list = song[index_key];
-          // 将level_value转换为数字类型进行匹配
-          const numberValue = Number(level_filter.level_value);
-          const levelValue = isNaN(numberValue) ? level_filter.level_value : numberValue;
-          return Array.isArray(index_list) && index_list.includes(levelValue as never);
-        }
-      }
-
-      // 成绩标签过滤
-      if (RANKING_MATCH_PATTEN.test(tag)) {
-        const splits = tag.split("_");
-        if (splits.length === 2) {
-          const level_index_tag = conventLevelPrefix(splits[0]);
-          const ranking_target = rankingList.find(r => r.id === splits[1]);
-          if (ranking_target) {
-            const scoreList = getScoreList(song.id);
-            return scoreList.some(
-              s => s.level_index === level_index_tag &&
-                s.achievements > ranking_target.min &&
-                s.achievements < ranking_target.max
-            );
-          }
-        }
-      }
-
-      // 旧框版本特判
-      if (tag === "ALL FiNALE") {
-        return isAllFinal(song.version);
-      }
-      // 版本标签过滤
-      const versionMatch = versionList.find(v => v.id === tag);
-      if (versionMatch) {
-        return song.version === tag;
-      }
-
-      return false;
-    });
-    if (matchesTags) {
-      success = true;
-      count++;
-      result.push(song)
-    }
-  }
-  return {
-    success,
-    result,
-    count
-  }
-}
+const selectedSong = defineModel<MaiMaiSong>("selected");
+const { searchSong, MAX_SEARCH_NUMBER, filterByTag } = useSongSearch()
+//filter and search
+const search = ref("")
+const temp_search = ref("")
+const onSearch = debounce((val: string) => {
+  search.value = String(val);
+}, 100);
 const getFilteredSongs = computed(() => {
-  const searchLower = search.value.toLowerCase();
-  const searchNumber = !isNaN(Number(search.value)) ? toLXNSStyleId(Number(search.value)) : null;
+  const songsToShow = searchSong(search.value)
   const result: MaiMaiSong[] = [];
-
-  for (const song of SONG_DATA) {
-
-    // 限制搜索结果数量
+  for (const song of songsToShow) {
     if (result.length >= MAX_SEARCH_NUMBER) break;
-    // ID匹配（快速匹配）
-    if (searchNumber !== null && song.id === searchNumber) {
-      result.push(song as MaiMaiSong);
-      continue;
-    }
-    //bpm过滤
     if (props.bpm.enable) {
       if (song.bpm > props.bpm.range[1] || song.bpm < props.bpm.range[0])
         continue;
     }
     //匹配标签
     const tagFilters = props.selected_tags.map(t => t.value);
-    const matchesTags = filterByTag(tagFilters, [song]).success;
-    // 如果没有匹配标签，跳过关键词检查
-    if (!matchesTags) continue;
-
-    // 关键词匹配（使用预处理的数据）
-    const matchesSearch = searchLower ? (
-      song.titleLower.includes(searchLower) ||
-      song.titleHiragana.includes(searchLower) ||
-      song.artistLower.includes(searchLower) ||
-      song.artistHiragana.includes(searchLower) ||
-      song.aliasesLower.includes(searchLower) ||
-      song.noteDesigners.includes(searchLower) ||
-      searchLower.trim().length === 0
-    ) : true;
-
-    if (matchesSearch) {
-      result.push(song as MaiMaiSong);
+    if (tagFilters.length > 0) {
+      const matchesTags = filterByTag(tagFilters, song).success;
+      if (!matchesTags) continue;
     }
+    result.push(song);
   }
   return result;
 });
-
-//on search handel
-const onSearch = debounce((val: string) => {
-  search.value = String(val);
-}, 100);
-const search = ref("")
-const temp_search = ref("")
-const selectedSong = defineModel<MaiMaiSong>("selected");
-
 const handelCleanSearch = (e: Event) => {
   e.preventDefault();
   selectedSong.value = undefined;
