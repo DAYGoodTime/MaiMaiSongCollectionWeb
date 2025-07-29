@@ -38,25 +38,39 @@
                     </div>
                 </div>
                 <!-- 展开后的详细统计 -->
-                <div v-show="showDetailStats" class="grid grid-cols-2 gap-2 pt-2">
-                    <div class="flex-1 space-y-2">
-                        <div class="flex justify-between" v-for="ranking in statusBoard.rank_second">
-                            <div class="flex items-center gap-2">
-                                <img :src="ranking.icon" :alt="ranking.alt" class="h-8" />
+                <div v-show="showDetailStats" class="">
+                    <div class="grid grid-cols-2 gap-2 pt-2">
+                        <div class="flex-1 space-y-2">
+                            <div class="flex justify-between" v-for="ranking in statusBoard.rank_second">
+                                <div class="flex items-center gap-2">
+                                    <img :src="ranking.icon" :alt="ranking.alt" class="h-8" />
+                                </div>
+                                <div>
+                                    <span class="text-xl font-bold">{{ ranking.current }}</span>
+                                    <span class="text-sm text-muted-foreground">/ {{ statusBoard.total }}</span>
+                                </div>
                             </div>
-                            <div>
-                                <span class="text-xl font-bold">{{ ranking.current }}</span>
-                                <span class="text-sm text-muted-foreground">/ {{ statusBoard.total }}</span>
+                        </div>
+                        <div class="flex-1 space-y-2 mt-4">
+                            <div class="flex justify-between" v-for="ranking in statusBoard.fs">
+                                <div class="flex items-center gap-2">
+                                    <img :src="ranking.icon" :alt="ranking.alt" class="h-8" />
+                                </div>
+                                <div>
+                                    <span class="text-xl font-bold">{{ ranking.current }}</span>
+                                    <span class="text-sm text-muted-foreground">/ {{ statusBoard.total }}</span>
+                                </div>
                             </div>
                         </div>
                     </div>
-                    <div class="flex-1 space-y-2 mt-4">
-                        <div class="flex justify-between" v-for="ranking in statusBoard.fs">
+                    <p class="font-bold">谱师统计:</p>
+                    <div class="grid grid-cols-2 gap-2 mt-2">
+                        <div class="flex justify-between" v-for="arr in getOrderedNoteDesigner">
                             <div class="flex items-center gap-2">
-                                <img :src="ranking.icon" :alt="ranking.alt" class="h-8" />
+                                <span class="text-sm truncate">{{ arr[0] }}</span>
                             </div>
                             <div>
-                                <span class="text-xl font-bold">{{ ranking.current }}</span>
+                                <span class="text-xl font-bold">{{ arr[1] }}</span>
                                 <span class="text-sm text-muted-foreground">/ {{ statusBoard.total }}</span>
                             </div>
                         </div>
@@ -112,6 +126,18 @@
                             </div>
                         </div>
                     </div>
+                    <p class="font-bold">谱师统计:</p>
+                    <div class="grid grid-cols-2 gap-2 mt-2">
+                        <div class="flex justify-between" v-for="arr in getOrderedNoteDesigner">
+                            <div class="flex items-center gap-2">
+                                <span class="text-sm truncate">{{ arr[0] }}</span>
+                            </div>
+                            <div>
+                                <span class="text-xl font-bold">{{ arr[1] }}</span>
+                                <span class="text-sm text-muted-foreground">/ {{ statusBoard.total }}</span>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </div>
         </CardContent>
@@ -121,7 +147,7 @@
 import { Card, CardContent, CardTitle } from '@/components/shadcn/ui/card'
 import { Button } from '@/components/shadcn/ui/button';
 import { ChevronDown, ChevronUp } from 'lucide-vue-next'
-import { ref } from 'vue';
+import { computed, ref } from 'vue';
 const showDetailStats = ref(false)
 
 export interface StatusValue {
@@ -135,9 +161,18 @@ export interface StatusBoard {
     rank_second: StatusValue[],
     apfc: StatusValue[],
     fs: StatusValue[],
+    noteDesigners: Map<string, number>,
     total: number,
 }
 const { statusBoard } = defineProps<{
     statusBoard: StatusBoard
 }>()
+const getOrderedNoteDesigner = computed(() => {
+    const list = []
+    const itr = statusBoard.noteDesigners.entries();
+    for (const value of itr) {
+        list.push([value[0], value[1]])
+    }
+    return list.sort((s1, s2) => (s2[1] as number) - (s1[1] as number))
+})
 </script>

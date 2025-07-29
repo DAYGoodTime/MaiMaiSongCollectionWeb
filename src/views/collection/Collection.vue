@@ -34,7 +34,8 @@
                         </span>
                     </div>
                     <div>
-                        <AdvanceFilter :model-value="{}" @update:model-value="onFilterUpdate" />
+                        <AdvanceFilter :model-value="{}"
+                            @update:model-value="(filter) => onFilterUpdate(filter as AdvanceFilterFilters)" />
                     </div>
                 </CardContent>
             </Card>
@@ -89,7 +90,7 @@ import type { MaiMaiSong, ScoreExtend, SongType } from '@/types/songs';
 import { debounce, toFishStyleId, useRouterHelper } from '@/utils/functionUtil';
 import { computed, onBeforeMount, reactive, ref, shallowRef, watch } from 'vue';
 import { toast } from 'vue-sonner';
-import { conventFcFsStr } from '@/utils/StrUtil';
+import { conventFcFsStr, getSongDiff } from '@/utils/StrUtil';
 import { ACHIEVEMENT, PLAY_BONUS, ACHIEVEMENT_ICON, PLAY_BONUS_ICON } from '@/utils/urlUtils';
 import {
     ContextMenu,
@@ -164,6 +165,8 @@ const onSearch = debounce((val: string | number) => {
     search.value = String(val)
 }, 200);
 const filteredScoreList = computed(() => {
+    //reset Status
+    initStatus();
     let result = searchScore(search.value)
     //advanced filter
     result = advanceFilter(AdvanceFilterForm.value, result)
@@ -171,6 +174,13 @@ const filteredScoreList = computed(() => {
     if (selectedOrder.value.status_index !== 0) {
         return orderBy(result, selectedOrder.value);
     }
+    //async calStatus
+    setTimeout(() => {
+        result.forEach(score => {
+            calcStatusBoard(score.score, score.song)
+        });
+    }, 1)
+    statusBoard.total = result.length
     return Array.from(result);
 })
 //init
@@ -216,7 +226,7 @@ const initScoreList = () => {
             const song = SONG_MAP.get(Number(song_id)) as MaiMaiSong;
             let score = getScore(Number(song_id), song_type, Number(level_index))
             if (score) {
-                calcStatusBoard(score)
+                calcStatusBoard(score, song)
             } else {
                 score = createUnplayedScore(song, song_type, Number(level_index))
             }
@@ -246,12 +256,13 @@ onBeforeMount(() => {
 const initStatus = () => {
     for (const key of Object.keys(statusBoard)) {
         if (key === "total") statusBoard.total = 0;
+        else if (key === "noteDesigners") statusBoard.noteDesigners.clear();
         else {
             (statusBoard[key as keyof StatusBoard] as StatusValue[]).forEach(s => s.current = 0)
         }
     }
 }
-const calcStatusBoard = (score: Score) => {
+const calcStatusBoard = (score: Score, song: MaiMaiSong) => {
     statusBoard.rank_first.forEach(status => {
         if (score.achievements >= status.require) {
             status.current++;
@@ -272,6 +283,16 @@ const calcStatusBoard = (score: Score) => {
             status.current++;
         }
     })
+    const diff = getSongDiff(song, score)
+    const noteDesigner = diff ? diff.note_designer : ""
+    const map = statusBoard.noteDesigners;
+    if (noteDesigner.length > 1) {
+        if (map.has(noteDesigner)) {
+            map.set(noteDesigner, map.get(noteDesigner) as number + 1)
+        } else {
+            map.set(noteDesigner, 1)
+        }
+    }
 }
 const statusBoard = reactive<StatusBoard>({
     rank_first: [
@@ -300,6 +321,7 @@ const statusBoard = reactive<StatusBoard>({
         { icon: PLAY_BONUS_ICON.FS, current: 0, alt: "FS", require: PLAY_BONUS.FS },
         { icon: PLAY_BONUS_ICON.SYNC, current: 0, alt: "Sync", require: PLAY_BONUS.SYNC }
     ],
+    noteDesigners: new Map<string, number>(),
     total: 0
 })
 //advance feature
