@@ -25,8 +25,9 @@ const serializerMap = {
   read: (v: string): DataSource<Map<number, Score[]>> => {
     if (v) {
       const obj = JSON.parse(v);
+      let list = Array.isArray(obj.list) ? obj.list : []
       return {
-        list: new Map<number, Score[]>(obj.list),
+        list: new Map<number, Score[]>(list),
         update_time: obj.update_time,
         version: obj.version
       }

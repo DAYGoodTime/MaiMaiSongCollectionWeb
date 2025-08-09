@@ -169,10 +169,17 @@ const { statusBoard } = defineProps<{
 }>()
 const getOrderedNoteDesigner = computed(() => {
     const list = []
+    const other: [string, number] = ["其它(<=1)", 0]
     const itr = statusBoard.noteDesigners.entries();
     for (const value of itr) {
-        list.push([value[0], value[1]])
+        if (value[1] <= 1) {
+            other[1]++;
+        } else {
+            list.push([value[0], value[1]])
+        }
     }
-    return list.sort((s1, s2) => (s2[1] as number) - (s1[1] as number))
+    const sorted = list.sort((s1, s2) => (s2[1] as number) - (s1[1] as number));
+    sorted.push(other)
+    return sorted;
 })
 </script>

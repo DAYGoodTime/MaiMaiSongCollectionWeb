@@ -88,7 +88,7 @@ import { type Collection, useCollectionStore } from '@/store/collections';
 import { useDataStore } from '@/store/datasource';
 import type { MaiMaiSong, ScoreExtend, SongType } from '@/types/songs';
 import { debounce, toFishStyleId, useRouterHelper } from '@/utils/functionUtil';
-import { computed, onBeforeMount, reactive, ref, shallowRef, watch } from 'vue';
+import { computed, reactive, ref, shallowRef, watch } from 'vue';
 import { toast } from 'vue-sonner';
 import { conventFcFsStr, getSongDiff } from '@/utils/StrUtil';
 import { ACHIEVEMENT, PLAY_BONUS, ACHIEVEMENT_ICON, PLAY_BONUS_ICON } from '@/utils/urlUtils';
@@ -110,190 +110,45 @@ import type { StatusBoard, StatusValue } from '@/views/collection/component/Scor
 import ScoreStatisticsCard from '@/views/collection/component/ScoreStatisticsCard.vue';
 import AdvanceFeature from './component/AdvanceFeature.vue';
 import { useScoreSearch, type OrderBadge } from '@/utils/songSearch';
+
+
 const { route, backHome } = useRouterHelper()
 const { getScore, getSongListAsMap } = useDataStore()
 const { getCollectionByLabel, UserCollectionList, removeFromCollection, pushScoreToCollection } = useCollectionStore()
 const collectionStore = useCollectionStore()
-const rawCollection = ref<Collection>()
-const scoreList = shallowRef<ScoreExtend[]>([])
+const { updateIndex, searchScore, orderBy, advanceFilter } = useScoreSearch()
+
 const SONG_MAP = getSongListAsMap();
 
-
-//order
-const OrderBadges = ref([
-    {
-        label: "达成率",
-        value: "achievement",
-        status_index: 0
-    },
-    {
-        label: "Dx Rating",
-        value: "dx_rating",
-        status_index: 0
-    },
-    {
-        label: "定数",
-        value: "level",
-        status_index: 0
-    }
-])
-const selectedOrder = ref<OrderBadge>(OrderBadges.value[0])
-const handleOrderStatus = (_order: OrderBadge, index: number) => {
-    OrderBadges.value.forEach((o, i) => {
-        if (i != index) {
-            o.status_index = 0
-        } else {
-            if (o.status_index == 2) {
-                o.status_index = 0;
-            } else {
-                o.status_index++;
-            }
-        }
-    })
-    selectedOrder.value = OrderBadges.value[index];
-}
-//filtered score list
-const { updateIndex, searchScore, orderBy, advanceFilter } = useScoreSearch()
+//状态
+const rawCollection = ref<Collection>()
 const keyword = ref("")
 const search = ref("")
-const isEmpty = computed(() => filteredScoreList.value.length === 0)
-const onReset = () => {
-    keyword.value = ""
-    search.value = ""
-}
-const onSearch = debounce((val: string | number) => {
-    search.value = String(val)
-}, 200);
-const filteredScoreList = computed(() => {
-    //reset Status
-    initStatus();
-    let result = searchScore(search.value)
-    //advanced filter
-    result = advanceFilter(AdvanceFilterForm.value, result)
-    //order
-    if (selectedOrder.value.status_index !== 0) {
-        return orderBy(result, selectedOrder.value);
-    }
-    //async calStatus
-    setTimeout(() => {
-        result.forEach(score => {
-            calcStatusBoard(score.score, score.song)
-        });
-    }, 1)
-    statusBoard.total = result.length
-    return Array.from(result);
+const showAdvanced = ref(false)
+const listVersion = ref(0)
+
+//排序
+const OrderBadges = ref<OrderBadge[]>([
+    { label: "达成率", value: "achievement", status_index: 2 },
+    { label: "Dx Rating", value: "dx_rating", status_index: 0 },
+    { label: "定数", value: "level", status_index: 0 }
+])
+const selectedOrder = ref<OrderBadge>(OrderBadges.value[0])
+
+//高级过滤
+const AdvanceFilterForm = ref<AdvanceFilterFilters>({
+    difficulty: [],
+    musicCategories: [],
+    version: [],
+    mapCategories: [],
+    difficultyRange: [1.0, 15.0],
+    fullCombo: [],
+    fullSync: [],
+    Type: [],
+    showUnplayed: false
 })
-//init
-const createUnplayedScore = (song: MaiMaiSong, song_type: SongType, level_index: number): Score => {
-    const diff = song.difficulties[song_type].find(d => d.level_index === level_index);
-    return {
-        id: song.id,
-        fish_id: toFishStyleId(song.id),
-        song_name: song.title,
-        level: diff ? diff.level : "0",
-        level_index,
-        level_value: diff ? diff.level_value : 1.0,
-        achievements: 0,
-        fc: null,
-        fs: null,
-        dx_score: 0,
-        dx_rating: 0,
-        rate_type: '',
-        type: song_type,
-        is_played: false
-    }
-}
-const initScoreList = () => {
-    initStatus();
-    const coll = getCollectionByLabel(route.query.label as string)
-    if (!coll) {
-        toast.error("合集不存在", { position: "top-center" })
-        backHome()
-        return;
-    }
-    collectionStore.CurrentCollectionLabel = coll.label
-    rawCollection.value = coll;
-    if (rawCollection.value) {
-        const level_list = rawCollection.value.list;
-        let result: any[] = []
-        let quick_count = 0;
-        for (const level_str of level_list) {
-            const spilt = level_str.split("_")
-            if (spilt.length !== 3) continue;
-            const song_id = spilt[0];
-            const song_type = spilt[1] as SongType;
-            const level_index = spilt[2];
-            const song = SONG_MAP.get(Number(song_id)) as MaiMaiSong;
-            let score = getScore(Number(song_id), song_type, Number(level_index))
-            if (score) {
-                calcStatusBoard(score, song)
-            } else {
-                score = createUnplayedScore(song, song_type, Number(level_index))
-            }
-            result.push({
-                score,
-                song,
-                score_id: level_str
-            })
-            quick_count++;
-        }
-        scoreList.value = result
-    }
-    //统计总数
-    statusBoard.total = scoreList.value.length
-    updateIndex(scoreList.value)
-}
-watch(
-    () => route.query.label,
-    (_val, _preVal) => {
-        initScoreList()
-    }
-)
-onBeforeMount(() => {
-    initScoreList();
-})
+
 //统计
-const initStatus = () => {
-    for (const key of Object.keys(statusBoard)) {
-        if (key === "total") statusBoard.total = 0;
-        else if (key === "noteDesigners") statusBoard.noteDesigners.clear();
-        else {
-            (statusBoard[key as keyof StatusBoard] as StatusValue[]).forEach(s => s.current = 0)
-        }
-    }
-}
-const calcStatusBoard = (score: Score, song: MaiMaiSong) => {
-    statusBoard.rank_first.forEach(status => {
-        if (score.achievements >= status.require) {
-            status.current++;
-        }
-    })
-    statusBoard.rank_second.forEach(status => {
-        if (score.achievements >= status.require) {
-            status.current++;
-        }
-    })
-    statusBoard.apfc.forEach(status => {
-        if (conventFcFsStr(score.fc) === status.require) {
-            status.current++;
-        }
-    })
-    statusBoard.fs.forEach(status => {
-        if (conventFcFsStr(score.fs) === status.require) {
-            status.current++;
-        }
-    })
-    const diff = getSongDiff(song, score)
-    const noteDesigner = diff ? diff.note_designer : ""
-    const map = statusBoard.noteDesigners;
-    if (noteDesigner.length > 1) {
-        if (map.has(noteDesigner)) {
-            map.set(noteDesigner, map.get(noteDesigner) as number + 1)
-        } else {
-            map.set(noteDesigner, 1)
-        }
-    }
-}
 const statusBoard = reactive<StatusBoard>({
     rank_first: [
         { icon: ACHIEVEMENT_ICON.SSSP, current: 0, alt: "SSS+", require: ACHIEVEMENT.SSSP },
@@ -324,23 +179,41 @@ const statusBoard = reactive<StatusBoard>({
     noteDesigners: new Map<string, number>(),
     total: 0
 })
-//advance feature
-const AdvanceFilterForm = ref<AdvanceFilterFilters>({
-    difficulty: [],
-    musicCategories: [],
-    version: [],
-    mapCategories: [],
-    difficultyRange: [1.0, 15.0],
-    fullCombo: [],
-    fullSync: [],
-    Type: [],
-    showUnplayed: false
-})
-const showAdvanced = ref(false)
+const calcStatusBoard = (score: Score, song: MaiMaiSong) => {
+    statusBoard.rank_first.forEach(status => { if (score.achievements >= status.require) status.current++; });
+    statusBoard.rank_second.forEach(status => { if (score.achievements >= status.require) status.current++; });
+    statusBoard.apfc.forEach(status => { if (conventFcFsStr(score.fc) === status.require) status.current++; });
+    statusBoard.fs.forEach(status => { if (conventFcFsStr(score.fs) === status.require) status.current++; });
+
+    const diff = getSongDiff(song, score);
+    const noteDesigner = diff ? diff.note_designer : "";
+    if (noteDesigner.length > 1) {
+        const map = statusBoard.noteDesigners;
+        map.set(noteDesigner, (map.get(noteDesigner) || 0) + 1);
+    }
+}
+
+//handler
+const onSearch = debounce((val: string | number) => {
+    search.value = String(val)
+}, 200);
+
+const onReset = () => {
+    keyword.value = ""
+    search.value = ""
+}
+
+const handleOrderStatus = (_order: OrderBadge, index: number) => {
+    OrderBadges.value.forEach((o, i) => {
+        o.status_index = (i === index) ? (o.status_index === 2 ? 1 : o.status_index + 1) : 0;
+    });
+    selectedOrder.value = OrderBadges.value[index];
+}
+
 const onFilterUpdate = (filter: AdvanceFilterFilters) => {
     AdvanceFilterForm.value = filter;
 }
-//context menu
+
 const handelRemoveScore = (score_id: string) => {
     if (removeFromCollection(score_id)) {
         initScoreList();
@@ -349,7 +222,7 @@ const handelRemoveScore = (score_id: string) => {
         toast.error("删除失败");
     }
 }
-const getOtherCollections = computed(() => UserCollectionList.filter(c => c.label !== route.query.label))
+
 const handelMoveToOtherCollection = (coll_label: string, score_id: string) => {
     if (pushScoreToCollection(coll_label, score_id)) {
         toast.success("添加成功")
@@ -357,4 +230,95 @@ const handelMoveToOtherCollection = (coll_label: string, score_id: string) => {
         toast.error("添加失败")
     }
 }
+//init
+const initStatus = () => {
+    for (const key of Object.keys(statusBoard)) {
+        if (key === "total") statusBoard.total = 0;
+        else if (key === "noteDesigners") statusBoard.noteDesigners.clear();
+        else {
+            (statusBoard[key as keyof StatusBoard] as StatusValue[]).forEach(s => s.current = 0)
+        }
+    }
+}
+const createUnplayedScore = (song: MaiMaiSong, song_type: SongType, level_index: number): Score => {
+    const diff = song.difficulties[song_type].find(d => d.level_index === level_index);
+    return {
+        id: song.id,
+        fish_id: toFishStyleId(song.id),
+        song_name: song.title,
+        level: diff ? diff.level : "0",
+        level_index,
+        level_value: diff ? diff.level_value : 1.0,
+        achievements: 0,
+        fc: null,
+        fs: null,
+        dx_score: 0,
+        dx_rating: 0,
+        rate_type: '',
+        type: song_type,
+        is_played: false
+    }
+}
+const initScoreList = () => {
+    initStatus();
+    const coll = getCollectionByLabel(route.query.label as string)
+    if (!coll) {
+        toast.error("合集不存在", { position: "top-center" })
+        backHome()
+        return;
+    }
+    collectionStore.CurrentCollectionLabel = coll.label
+    rawCollection.value = coll;
+
+    if (rawCollection.value) {
+        const result: ScoreExtend[] = [];
+        for (const level_str of rawCollection.value.list) {
+            const [song_id, song_type, level_index_str] = level_str.split("_");
+            if (!song_id || !song_type || !level_index_str) continue;
+
+            const song = SONG_MAP.get(Number(song_id));
+            if (!song) continue;
+
+            const level_index = Number(level_index_str);
+            let score = getScore(Number(song_id), song_type as SongType, level_index);
+            if (score) {
+                calcStatusBoard(score, song);
+            } else {
+                score = createUnplayedScore(song, song_type as SongType, level_index);
+            }
+            result.push({ score, song, score_id: level_str });
+        }
+        updateIndex(result);
+        statusBoard.total = result.length;
+        listVersion.value++;
+    }
+}
+initScoreList();//立马进行初始化
+
+// computed
+const getOtherCollections = computed(() => UserCollectionList.filter(c => c.label !== route.query.label))
+
+const filteredScoreList = computed(() => {
+    listVersion.value;
+    let result = searchScore(search.value);
+    result = advanceFilter(AdvanceFilterForm.value, result);
+    if (selectedOrder.value.status_index !== 0) {
+        return orderBy(result, selectedOrder.value);
+    }
+    return Array.from(result);
+});
+const isEmpty = computed(() => filteredScoreList.value.length === 0)
+
+//hooks
+watch(() => filteredScoreList.value, (newList) => {
+    initStatus();
+    newList.forEach(item => {
+        calcStatusBoard(item.score, item.song)
+    });
+    statusBoard.total = newList.length
+})
+
+watch(() => route.query.label, () => {
+    initScoreList();
+})
 </script>
