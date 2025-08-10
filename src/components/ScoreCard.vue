@@ -63,12 +63,11 @@
 import SongInfo from './SongInfo.vue';
 import type { ScoreExtend } from '@/types/songs';
 import { getAchievementIcon, getImageAssertUrl, getImageCoverUrl } from '@/utils/urlUtils';
-import { ref, computed } from 'vue';
+import { ref, computed, defineAsyncComponent } from 'vue';
 import { Textarea } from './shadcn/ui/textarea';
 import { formatAchievement, formatDxRating, formatLevelValue, getSongDiff } from '@/utils/StrUtil';
 import { useCollectionStore } from '@/store/collections';
 import { debounce, toFishStyleId, useCopyHelper } from '@/utils/functionUtil';
-import FCFSPanel from './FCFSPanel.vue';
 import {
     Dialog,
     DialogContent,
@@ -78,6 +77,8 @@ import {
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/shadcn/ui/tooltip';
 import { onClickOutside } from '@vueuse/core';
 import { useDataStore } from '@/store/datasource';
+
+const FCFSPanel = defineAsyncComponent(() => import('./FCFSPanel.vue'));
 
 const props = defineProps<{
     score: ScoreExtend

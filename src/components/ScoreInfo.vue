@@ -76,7 +76,8 @@ import { computed } from 'vue';
 import { useDataStore } from '@/store/datasource';
 import { useCollectionStore } from '@/store/collections';
 import { toast } from 'vue-sonner';
-import FCFSPanel from './FCFSPanel.vue';
+import { defineAsyncComponent } from 'vue';
+const FCFSPanel = defineAsyncComponent(() => import('./FCFSPanel.vue'));
 
 const props = defineProps<{
     song: MaiMaiSong,
