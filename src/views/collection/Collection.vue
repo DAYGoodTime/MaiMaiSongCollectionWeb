@@ -88,7 +88,7 @@ import { type Collection, useCollectionStore } from '@/store/collections';
 import { useDataStore } from '@/store/datasource';
 import type { MaiMaiSong, ScoreExtend, SongType } from '@/types/songs';
 import { debounce, toFishStyleId, useRouterHelper } from '@/utils/functionUtil';
-import { computed, reactive, ref, shallowRef, watch } from 'vue';
+import { computed, reactive, ref, watch } from 'vue';
 import { toast } from 'vue-sonner';
 import { conventFcFsStr, getSongDiff } from '@/utils/StrUtil';
 import { ACHIEVEMENT, PLAY_BONUS, ACHIEVEMENT_ICON, PLAY_BONUS_ICON } from '@/utils/urlUtils';
