@@ -192,7 +192,9 @@ const handelLXNSDialog = async () => {
     }
 }
 const submitOAuthCode = async () => {
+    DataSourceUpdating.value = true;
     const b = await refreshLXNSToken(lnxsCredentials.value, 'query');
+    DataSourceUpdating.value = false;
     if (!b) return;
     lnxsCredentials.value = `Bearer ${LXNSOAuth.access_token}`
     toast.info("使用OAuth更新中~", { position: "top-center" })
