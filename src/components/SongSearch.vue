@@ -22,7 +22,7 @@
       <ComboboxEmpty class="mx-8"> 没有找到符合的歌曲 </ComboboxEmpty>
       <ComboboxGroup class="max-h-[70dvh] md:max-h-96 overflow-y-auto">
         <ComboboxVirtualizer v-slot="{ option }" :options="getFilteredSongs" :text-content="(x) => x.title"
-          :estimate-size="96">
+          :estimate-size="96" :overscan="10">
           <ComboboxItem :value="option" class="hover:bg-blue-50 transition-colors rounded-lg py-2 w-full">
             <div class="flex items-center gap-3 p-3 w-full overflow-hidden">
               <div class="shrink-0">
@@ -116,5 +116,4 @@ const handelCleanSearch = (e: Event) => {
   search.value = ""
   temp_search.value = ""
 }
-const searchDisable = ref(false)
 </script>

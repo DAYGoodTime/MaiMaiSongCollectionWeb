@@ -166,7 +166,7 @@ const onTagDelete = (item: Tag) => {
 </script>
 
 <template>
-  <Combobox v-model="modelValue" v-model:open="open" :ignore-filter="true">
+  <Combobox v-model="modelValue" v-model:open="open" :ignore-filter="true" :open-on-click="true">
     <ComboboxAnchor as-child>
       <TagsInput v-model="modelValue" class="px-2 gap-2 w-full flex-wrap">
         <div class="flex gap-2 flex-wrap items-center">
@@ -186,8 +186,8 @@ const onTagDelete = (item: Tag) => {
       </TagsInput>
 
       <ComboboxList class="w-[var(--radix-combobox-trigger-width)]">
-        <ComboboxEmpty class="py-4">
-          <div class="flex items-center text-center px-2 mx-2 h-8 border rounded-xl hover:bg-gray-200">没有符合的标签</div>
+        <ComboboxEmpty class="py-4 mx-8">
+          没有符合的标签
         </ComboboxEmpty>
         <ComboboxGroup>
           <ScrollArea>
