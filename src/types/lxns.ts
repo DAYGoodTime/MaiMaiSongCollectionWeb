@@ -28,3 +28,21 @@ export interface LXNSScore {
   /** 是否有拥有成绩（用于构建未游玩难度） */
   is_played?: boolean
 }
+export interface LXNSOAuth {
+  access_token: string,
+  access_token_expired: number,
+  refresh_token: string,
+  refresh_token_expired: number
+}
+export interface LXNSOAuthResponse {
+  //访问令牌，用于访问用户数据
+  access_token: string,
+  //令牌类型，通常为 Bearer
+  token_type: string,
+  //访问令牌的有效期，单位为秒
+  expires_in: number,
+  //刷新令牌，用于获取新的访问令牌
+  refresh_token: string,
+  //授权范围，表示应用可以访问的权限
+  scope: string,
+}

@@ -23,8 +23,9 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
-
+OPTIMIZATION_CHECKLIST.md
 
 test.js
+.env
 .vercel
 compressed
