@@ -1,5 +1,5 @@
 <template>
-  <Combobox v-model="selectedSong" class="max-w-2xl" :ignore-filter="true">
+  <Combobox v-model="selectedSong" class="max-w-2xl" :ignore-filter="true" :open-on-click="true">
     <ComboboxAnchor class="w-full">
       <div class="relative items-center shadow-md rounded-xl bg-white border-2 border-blue-100">
         <ComboboxInput
@@ -20,48 +20,39 @@
 
     <ComboboxList class="w-[var(--reka-combobox-trigger-width)]">
       <ComboboxEmpty class="mx-8"> 没有找到符合的歌曲 </ComboboxEmpty>
-      <ComboboxGroup>
-        <ScrollArea v-if="getFilteredSongs.length != 0">
-          <div class="max-h-72 w-full">
-            <DynamicScroller :items="getFilteredSongs" :min-item-size="72" class="w-full" key-field="id">
-              <template #default="{ item, index }">
-                <DynamicScrollerItem :item="item" :active="true" :index="index" :key="item.id">
-                  <ComboboxItem :value="item" class="hover:bg-blue-50 transition-colors rounded-lg py-2 w-full">
-                    <div class="flex items-center gap-3 p-3 w-full overflow-hidden">
-                      <div class="shrink-0">
-                        <img :src="getImageCoverUrl(item.id)"
-                          class="w-14 h-14 rounded-lg object-cover border border-gray-200" loading="lazy"
-                          :alt="item.title" />
-                      </div>
-                      <div class="flex-1 min-w-0 overflow-hidden">
-                        <p class="text-lg font-semibold truncate text-gray-900">
-                          {{ item.title }}
-                        </p>
-                        <p class="truncate text-gray-600 text-sm mt-1">
-                          {{ item.artist }}
-                        </p>
-                      </div>
-                    </div>
-                    <ComboboxItemIndicator class="text-blue-600">
-                      <Check class="size-5 font-bold" />
-                    </ComboboxItemIndicator>
-                  </ComboboxItem>
-                </DynamicScrollerItem>
-              </template>
-            </DynamicScroller>
-            <ComboboxItem :value="null" class="hover:bg-gray-50 py-2">
-              <div class="w-full text-center text-sm font-medium text-blue-600">
-                清空选择
+      <ComboboxGroup class="max-h-[70dvh] md:max-h-96 overflow-y-auto">
+        <ComboboxVirtualizer v-slot="{ option }" :options="getFilteredSongs" :text-content="(x) => x.title"
+          :estimate-size="96">
+          <ComboboxItem :value="option" class="hover:bg-blue-50 transition-colors rounded-lg py-2 w-full">
+            <div class="flex items-center gap-3 p-3 w-full overflow-hidden">
+              <div class="shrink-0">
+                <img :src="getImageCoverUrl(option.id)" class="w-14 h-14 rounded-lg object-cover border border-gray-200"
+                  loading="lazy" :alt="option.title" />
               </div>
-            </ComboboxItem>
+              <div class="flex-1 min-w-0 overflow-hidden">
+                <p class="text-lg font-semibold truncate text-gray-900">
+                  {{ option.title }}
+                </p>
+                <p class="truncate text-gray-600 text-sm mt-1">
+                  {{ option.artist }}
+                </p>
+              </div>
+            </div>
+            <ComboboxItemIndicator class="text-blue-600">
+              <Check class="size-5 font-bold" />
+            </ComboboxItemIndicator>
+          </ComboboxItem>
+        </ComboboxVirtualizer>
+        <!-- <ComboboxItem :value="null" class="hover:bg-gray-50 py-2">
+          <div class="w-full text-center text-sm font-medium text-blue-600">
+            清空选择
           </div>
-        </ScrollArea>
+        </ComboboxItem> -->
       </ComboboxGroup>
     </ComboboxList>
   </Combobox>
 </template>
 <script setup lang="ts">
-import { DynamicScroller, DynamicScrollerItem } from 'vue-virtual-scroller'
 import 'vue-virtual-scroller/dist/vue-virtual-scroller.css'
 import { Check, X, Search } from "lucide-vue-next";
 import { computed, ref } from "vue";
@@ -74,8 +65,8 @@ import {
   ComboboxItem,
   ComboboxItemIndicator,
   ComboboxList,
+  ComboboxVirtualizer
 } from "@/components/shadcn/ui/combobox";
-import ScrollArea from "./shadcn/ui/scroll-area/ScrollArea.vue";
 import { debounce } from "@/utils/functionUtil";
 import type { MaiMaiSong } from "@/types/songs";
 import { getImageCoverUrl } from "@/utils/urlUtils";
@@ -125,4 +116,5 @@ const handelCleanSearch = (e: Event) => {
   search.value = ""
   temp_search.value = ""
 }
+const searchDisable = ref(false)
 </script>
