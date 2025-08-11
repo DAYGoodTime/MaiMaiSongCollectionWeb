@@ -1,7 +1,7 @@
 {
   "name": "songcollections",
   "private": true,
-  "version": "0.1.2-oauth-test",
+  "version": "0.1.3-oauth-test",
   "type": "module",
   "scripts": {
     "dev": "vite",
