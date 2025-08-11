@@ -16,11 +16,11 @@ export interface OrderBadge {
 }
 
 export const MAX_SEARCH_NUMBER = 100;
-let songIndex: Document<DocumentData, boolean, boolean> | null = null;
 const isIndexing = ref(false);
 let SONG_DATA: MaiMaiSong[] = []
 
 export const useSongSearch = () => {
+    let songIndex: Document<DocumentData, boolean, boolean> | null = null;
     let songMap = new Map();
     const { getSongDataList, getScoreList } = useDataStore()
     if (!songIndex && !isIndexing.value) {
