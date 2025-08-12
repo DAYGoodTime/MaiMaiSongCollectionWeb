@@ -18,6 +18,7 @@ import {
   SidebarMenuSub,
   SidebarMenuSubButton,
   SidebarMenuSubItem,
+  useSidebar,
 } from "@/components/shadcn/ui/sidebar";
 import {
   DropdownMenu,
@@ -38,6 +39,8 @@ import { toast } from 'vue-sonner'
 import { useRouterHelper } from "@/utils/functionUtil";
 import { useCollectionStore, type Collection } from "@/store/collections";
 import { computed, ref } from "vue";
+import type { RouteLocationRaw } from "vue-router";
+import { Capacitor } from '@capacitor/core';
 // Menu items.
 const items = [
   {
@@ -95,15 +98,27 @@ const handelDialogSubmit = () => {
     dialogInput.value = ""
   }
 }
+const { toggleSidebar } = useSidebar()
 const handelCollectionJump = (coll: Collection) => {
   JumpTo({
     name: "Collection",
     query: {
       label: coll.label
     }
+  }).then((_result) => {
+    if (Capacitor.getPlatform() !== "web") {
+      toggleSidebar()
+    }
+
   })
 }
-
+const handelPageJump = (e: Event, route: RouteLocationRaw) => {
+  JumpToFromEvent(e, route).then((_result) => {
+    if (Capacitor.getPlatform() !== "web") {
+      toggleSidebar()
+    }
+  })
+}
 </script>
 
 <template>
@@ -115,7 +130,7 @@ const handelCollectionJump = (coll: Collection) => {
           <SidebarMenu>
             <SidebarMenuItem v-for="item in items" :key="item.title">
               <SidebarMenuButton asChild class="cursor-pointer">
-                <a @click="e => JumpToFromEvent(e, { name: item.url })">
+                <a @click="e => handelPageJump(e, { name: item.url })">
                   <component :is="item.icon" />
                   <span>{{ item.title }}</span>
                 </a>

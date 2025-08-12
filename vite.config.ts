@@ -31,6 +31,7 @@ export default defineConfig({
     port: 11753,
   },
   build: {
+    sourcemap: true,
     rollupOptions: {
       output: {
         manualChunks(id) {
@@ -63,5 +64,5 @@ export default defineConfig({
         },
       },
     },
-  },
+  }
 });

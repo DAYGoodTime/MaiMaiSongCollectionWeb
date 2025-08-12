@@ -63,14 +63,14 @@
                     </Button>
                 </div>
                 <div class="flex items-center gap-2">
-                    <Select :disabled="getSelectableSource.length === 0" :model-value="DataSourceStore.selectedSource">
+                    <Select :disabled="getSelectableSource.length === 0" :model-value="DataSourceStore.selectedSource"
+                        @update:model-value="handelDataSourceSwitch">
                         <SelectTrigger class="w-36">
                             <SelectValue placeholder="成绩数据源" />
                         </SelectTrigger>
                         <SelectContent>
                             <SelectLabel>成绩数据源选择</SelectLabel>
-                            <SelectItem :value="ds" v-for="ds in getSelectableSource" :key="ds"
-                                @click="() => switchDataSource(ds)">
+                            <SelectItem :value="ds" v-for="ds in getSelectableSource" :key="ds">
                                 {{ ds }}
                             </SelectItem>
                         </SelectContent>
@@ -89,8 +89,9 @@ import { getImageCoverUrl } from '@/utils/urlUtils'
 import type { MaiMaiSong, SongType } from '@/types/songs'
 import { onMounted, reactive, ref, watch } from 'vue'
 import { SelectItem, SelectLabel, SelectTrigger, Select, SelectValue, SelectContent } from './shadcn/ui/select'
-import { useDataStore } from '@/store/datasource'
+import { useDataStore, type DataSourceType } from '@/store/datasource'
 import { toFishStyleId, useCopyHelper } from '@/utils/functionUtil'
+import type { AcceptableValue } from 'reka-ui'
 
 const { getSelectableSource, switchDataSource } = useDataStore();
 const DataSourceStore = useDataStore();
@@ -118,6 +119,9 @@ const isSelectedType = (type: TypeValue) => {
 const showCurrentStyleId = (id: number) => {
     if (DataSourceStore.selectedSource === 'lxns') return id;
     else return toFishStyleId(id)
+}
+const handelDataSourceSwitch = (ds: AcceptableValue) => {
+    switchDataSource(ds as DataSourceType);
 }
 
 const init = () => {
