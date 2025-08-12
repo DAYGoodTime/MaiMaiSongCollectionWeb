@@ -46,3 +46,29 @@ export interface LXNSOAuthResponse {
   //授权范围，表示应用可以访问的权限
   scope: string,
 }
+export interface LXNSResponse<T> {
+  code: number,
+  success: boolean,
+  data: T
+}
+export interface LXNSOAuthRequest {
+  //应用 ID
+  client_id: string,
+  //应用密钥
+  client_secret: string,
+  //授权类型，固定为 authorization_code
+  grant_type: string,
+  //从回调地址获取的授权码
+  code: string,
+  //回调地址，必须与创建应用时一致
+  redirect_uri: string
+}
+export interface LXNSOAuthRefresh {
+  //应用 ID
+  client_id: string,
+  //应用密钥
+  client_secret: string,
+  //授权类型，固定为 authorization_code
+  grant_type: string,
+  refresh_token: string
+}

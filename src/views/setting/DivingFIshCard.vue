@@ -74,11 +74,11 @@ import { Input } from '@/components/shadcn/ui/input'
 import { Label } from '@/components/shadcn/ui/label'
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/shadcn/ui/dialog'
 import { Fish, RefreshCw } from 'lucide-vue-next'
-import type { FishRecordResponse } from '@/types/divingfish'
 import { formatDate } from '@/utils/StrUtil';
 import { useDataStore } from '@/store/datasource'
 import { ref } from 'vue'
 import { toast } from 'vue-sonner'
+import { queryFishUserScores } from '@/api/fish'
 const {
     getDivingFishScoreList,
     updateDivingFishData,
@@ -90,39 +90,30 @@ const {
 const DataSourceUpdating = ref(false)
 const showFishDialog = ref(false)
 const fishCredentials = ref('')
-const ENV_HOST = import.meta.env.VITE_API_BASE_URL
+
 // 更新水鱼数据源
 const updateFishDataSource = async () => {
     if (!fishCredentials.value) {
         toast.error('请填写水鱼成绩导入Token')
         return
     }
-
     DataSourceUpdating.value = true
-
     try {
-        let response = await fetch(`${ENV_HOST}/maimai/fish`, {
-            method: "GET",
-            headers: {
-                "authorization": fishCredentials.value
-            }
-        })
-        if (!response.ok) {
-            toast.error('请求水鱼数据源更新失败')
+        const response = await queryFishUserScores(fishCredentials.value)
+        if (!response.success) {
+            toast.error('请求水鱼数据源更新失败' + response.message, { position: "top-center" })
             return;
         }
-        const result = await response.json()
-        if (!result.success) {
-            toast.error(`水鱼数据源更新失败: ${result.message}`)
-            return;
-        }
+        const result = response.response
         // 关闭对话框
         showFishDialog.value = false
         // 清空表单
         fishCredentials.value = ''
-        updateDivingFishData((result.data as FishRecordResponse).records)
-        // 显示成功提示
-        toast.success('水鱼数据源更新成功！')
+        if (result) {
+            updateDivingFishData(result.records)
+            // 显示成功提示
+            toast.success('水鱼数据源更新成功！')
+        }
     } catch (error) {
         toast.error('水鱼数据源更新失败，请查看控制台输出')
         console.error(error);

@@ -110,12 +110,12 @@ import { toast } from 'vue-sonner';
 import { formatDate } from '@/utils/StrUtil';
 import { useOAuthStore } from '@/store/oauth';
 import { useCopyHelper } from '@/utils/functionUtil';
+import { queryDataFromLXNS, type LXNSAuthType } from '@/api/lxns'
 const DataSourceUpdating = ref(false)
 const showLxnsDialog = ref(false)
 const showLxnsOAuthDialog = ref(false)
 const lnxsCredentials = ref("")
 const LXNS_OAUTH_URI = import.meta.env.VITE_LXNS_OAUTH_URI
-const ENV_HOST = import.meta.env.VITE_API_BASE_URL
 const {
     getLXNSScoreList,
     exportLXNSData,
@@ -124,45 +124,38 @@ const {
     selectedSource,
     updateLXNSData
 } = useDataStore();
-const { hasLXNSOAuth, isAccessTokenExpired, isRefreshTokenExpired, LXNSOAuth, refreshLXNSToken } = useOAuthStore();
+const { hasLXNSOAuth, isAccessTokenExpired, isRefreshTokenExpired, LXNSOAuth, getLXNSToken } = useOAuthStore();
 const { handelCopy } = useCopyHelper()
 
-type AuthType = 'Token' | 'OAuth'
+
 // 更新落雪数据源
-const updateLXNSDataSource = async (type: AuthType = 'Token') => {
+const updateLXNSDataSource = async (type: LXNSAuthType = 'Token') => {
     if (!lnxsCredentials.value) {
         toast.error(`请填写您的落雪${type === 'Token' ? '账号个人 API 密钥' : 'OAuth授权码'}`)
         return
     }
     DataSourceUpdating.value = true
     try {
-        let response = await fetch(`${ENV_HOST}/maimai/lxns`, {
-            method: "GET",
-            headers: {
-                "authorization": lnxsCredentials.value
-            }
-        })
-        if (!response.ok) {
-            toast.error('请求落雪数据源更新失败')
-            return;
-        }
-        const result = await response.json()
+        const result: any = await queryDataFromLXNS(lnxsCredentials.value, type)
         if (!result.success) {
             toast.error(`落雪数据源更新失败: ${result.message}`)
             return;
         }
-
         // 关闭对话框
         showLxnsDialog.value = false
         showLxnsOAuthDialog.value = false
         // 清空表单
         lnxsCredentials.value = ''
         //存入数据
-        updateLXNSData(result.data.data)
+        updateLXNSData(result.data)
         // 显示成功提示
         toast.success('落雪数据源更新成功！')
-    } catch (error) {
-        toast.error('落雪数据源更新失败，请查看控制台输出')
+    } catch (error: any) {
+        if (error.detail) {
+            toast.error(`落雪数据源更新失败 : ${error.detail}`, { position: "top-center" })
+        } else {
+            toast.error('落雪数据源更新失败，请查看控制台输出')
+        }
         console.error(error);
     } finally {
         DataSourceUpdating.value = false
@@ -172,16 +165,18 @@ const updateLXNSDataSource = async (type: AuthType = 'Token') => {
 const handelLXNSDialog = async () => {
     //如果有OAuth则尝试通过OAuth更新
     if (hasLXNSOAuth) {
+        DataSourceUpdating.value = true
         //check acc expire
         if (isAccessTokenExpired()) {
             if (isRefreshTokenExpired()) {
                 toast.error("OAuth已过期，请用token更新或者重新申请", { position: "top-center" })
                 showLxnsDialog.value = true
+                DataSourceUpdating.value = false;
                 return;
             }
             //refresh token
-            const b = await refreshLXNSToken(lnxsCredentials.value);
-            if (!b) return;
+            const b = await getLXNSToken(lnxsCredentials.value);
+            if (!b) { DataSourceUpdating.value = false; return; }
         }
         //update with oauth
         lnxsCredentials.value = `Bearer ${LXNSOAuth.access_token}`
@@ -192,8 +187,9 @@ const handelLXNSDialog = async () => {
     }
 }
 const submitOAuthCode = async () => {
-    const b = await refreshLXNSToken(lnxsCredentials.value, 'query');
-    if (!b) return;
+    DataSourceUpdating.value = true
+    const b = await getLXNSToken(lnxsCredentials.value, 'query');
+    if (!b) { DataSourceUpdating.value = false; return };
     lnxsCredentials.value = `Bearer ${LXNSOAuth.access_token}`
     toast.info("使用OAuth更新中~", { position: "top-center" })
     await updateLXNSDataSource('OAuth')
