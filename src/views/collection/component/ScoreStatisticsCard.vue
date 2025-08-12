@@ -172,7 +172,7 @@ const getOrderedNoteDesigner = computed(() => {
     const other: [string, number] = ["其它(<=1)", 0]
     const itr = statusBoard.noteDesigners.entries();
     for (const value of itr) {
-        if (value[1] <= 1) {
+        if (value[1] <= 1 && statusBoard.noteDesigners.size > 10) {
             other[1]++;
         } else {
             list.push([value[0], value[1]])
