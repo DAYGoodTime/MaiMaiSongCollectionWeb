@@ -1,7 +1,7 @@
 import type { Score, SongType } from "@/types/datasource";
 import type { FishScore } from "@/types/divingfish";
 import type { LXNSScore } from "@/types/lxns";
-import { useClipboard, usePermission } from "@vueuse/core";
+import { Clipboard } from "@capacitor/clipboard"
 import { useRoute, useRouter, type RouteLocationRaw } from "vue-router";
 import { toast } from "vue-sonner";
 import { getSongDiff } from "./StrUtil";
@@ -25,11 +25,11 @@ export function useRouterHelper() {
   const router = useRouter();
   const route = useRoute();
   const JumpTo = (to: RouteLocationRaw) => {
-    router.push(to)
+    return router.push(to)
   }
   const JumpToFromEvent = (e: Event, to: RouteLocationRaw) => {
     e.preventDefault();
-    router.push(to)
+    return router.push(to)
   }
   const backHome = () => {
     router.push({
@@ -49,19 +49,17 @@ export function exportFile(content: any, fileName: string, type: string = "appli
   document.body.removeChild(a)
   URL.revokeObjectURL(url)
 }
-const copyWireAccess = usePermission('clipboard-write')
 export function useCopyHelper() {
-  const { copy } = useClipboard({ legacy: true })
   const handelCopy = (title: string, message: string) => {
-    console.log("copy", copyWireAccess.value);
-
-    if (copyWireAccess.value === 'granted') {
-      copy(title)
-        .then(() => {
-          toast.success(message, { position: "top-center" })
-        })
-    } else {
-      toast.error("请允许剪切板操作，否则不可复制", { position: "top-center" })
+    try {
+      Clipboard.write({
+        string: title
+      })
+      toast.success(message, { position: "top-center" })
+    } catch (error) {
+      const message = `无法复制到剪切板中 ${error instanceof Error ? ':' + error.message : ''}`
+      toast.error(message, { position: "top-center" })
+      console.error(error);
     }
   }
   return { handelCopy }
