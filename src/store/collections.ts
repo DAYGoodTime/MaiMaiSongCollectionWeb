@@ -4,6 +4,7 @@ import { formatDate } from "@/utils/StrUtil";
 import { useLocalStorage, type RemovableRef } from "@vueuse/core";
 import { defineStore } from "pinia";
 import { computed, ref, type Ref } from "vue";
+import { toast } from "vue-sonner";
 //test
 const DEFAULT_LIST = [
   {
@@ -97,22 +98,33 @@ export const useCollectionStore = defineStore("collections", () => {
         list: [...c.list]
       })
     })
-    if (await putToStorage(`${name}${KEY_COLL_PATTEN}`, JSON.stringify({
-      colls: arr,
-      messages: CollectionMessageMap.value
-    }))) {
-      return true;
-    } else {
+    try {
+      if (await putToStorage(`${name}${KEY_COLL_PATTEN}`, JSON.stringify({
+        colls: arr,
+        messages: CollectionMessageMap.value
+      }))) {
+        return true;
+      } else {
+        return false;
+      }
+    } catch (error) {
+      console.error(error);
+      toast.error("网络不佳，使用该功能需要加速器", { position: "top-center" })
       return false;
     }
   }
   const downloadCollectionData = async (name: string) => {
-    const data = await getFromKey(`${name}${KEY_COLL_PATTEN}`)
-    if (data) {
-      CollectionMessageMap.value = data.messages
-      UserCollectionList.value = CollectionSerializer.read(JSON.stringify(data.colls))
-      return true;
-    } else return false;
+    try {
+      const data = await getFromKey(`${name}${KEY_COLL_PATTEN}`)
+      if (data) {
+        CollectionMessageMap.value = data.messages
+        UserCollectionList.value = CollectionSerializer.read(JSON.stringify(data.colls))
+        return true;
+      } else return false;
+    } catch (error) {
+      toast.error("网络不佳，使用该功能需要加速器", { position: "top-center" })
+      return false;
+    }
   }
   //
   const CollectionMessageMap: RemovableRef<ScoreMessage> = useLocalStorage("user_score_message", {})

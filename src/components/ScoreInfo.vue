@@ -37,7 +37,10 @@
                     <div class="flex flex-wrap gap-x-6 gap-y-2 text-sm">
                         <div v-if="diff.difficulty.note_designer && diff.difficulty.note_designer !== '-'">
                             <span class="mr-2">谱师:</span>
-                            <span class="font-semibold">{{ diff.difficulty.note_designer }}</span>
+                            <span class="font-semibold cursor-pointer hover:opacity-50"
+                                @click="handelCopy(diff.difficulty.note_designer, '已成功复制谱师到剪切板中')">{{
+                                    diff.difficulty.note_designer
+                                }}</span>
                         </div>
                         <div>
                             <span class="mr-2">版本:</span>
@@ -77,6 +80,8 @@ import { useDataStore } from '@/store/datasource';
 import { useCollectionStore } from '@/store/collections';
 import { toast } from 'vue-sonner';
 import { defineAsyncComponent } from 'vue';
+import { useCopyHelper } from '@/utils/functionUtil';
+const { handelCopy } = useCopyHelper()
 const FCFSPanel = defineAsyncComponent(() => import('./FCFSPanel.vue'));
 
 const props = defineProps<{

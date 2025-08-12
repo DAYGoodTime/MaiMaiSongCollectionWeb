@@ -174,6 +174,7 @@ const updateName = () => {
     toast.success("用户名更新为:" + tempUserName.value.trim());
     showSetNameDialog.value = false;
     tempUserName.value = ""
+    newNameSet.value = true
 }
 const uploadCollData = async () => {
     if (!appStore.hasUserName) {
@@ -193,10 +194,10 @@ const uploadCollData = async () => {
 const nameCallback = ref({
     callback: () => { }
 })
+const newNameSet = ref(false)
 const handelDownloadCollData = () => {
     if (appStore.hasUserName) {
         tempUserName.value = appStore.UserName;
-        showNameConfirmDialog.value = true;
         nameCallback.value = {
             callback: async () => {
                 if (tempUserName.value.trim().length === 0) {
@@ -221,6 +222,12 @@ const handelDownloadCollData = () => {
                     toast.error("同步失败，请确认该用户名是否有数据")
                 }
             }
+        }
+        //new name not need to confirm
+        if (newNameSet.value) {
+            nameCallback.value.callback();
+        } else {
+            showNameConfirmDialog.value = true;
         }
     } else {
         toast.error("请先设置名称再进行上传", {

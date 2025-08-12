@@ -99,6 +99,11 @@ export function getNoteDesigners(song: MaiMaiSong) {
     } else return ""
   }).join(" ")
 }
+export function getNoteDesigner(diff: SongDifficulty) {
+  if (diff.note_designer && diff.note_designer !== '-') {
+    return diff.note_designer
+  } else return ""
+}
 export const getLevelValue = (sc: ScoreExtend) => {
   const diff = getSongDiff(sc.song, sc.score);
   if (diff) return diff.level_value;

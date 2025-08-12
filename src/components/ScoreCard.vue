@@ -51,7 +51,14 @@
         <Dialog v-model:open="SongInfoModalOpen">
             <DialogContent class="lg:w-full">
                 <DialogHeader>
-                    <DialogTitle>歌曲信息</DialogTitle>
+                    <DialogTitle>
+                        <p>歌曲信息</p>
+                        <p class="mt-4" v-if="cardData.noteDesigner">该难度谱师: <span
+                                class="cursor-pointer hover:opacity-50"
+                                @click="handelCopy(cardData.noteDesigner, '已成功复制谱师到剪切板中')">{{ cardData.noteDesigner
+                                }}</span>
+                        </p>
+                    </DialogTitle>
                 </DialogHeader>
                 <SongInfo :song="props.score.song" :infoOnly="true" />
             </DialogContent>
@@ -65,7 +72,7 @@ import type { ScoreExtend } from '@/types/songs';
 import { getAchievementIcon, getImageAssertUrl, getImageCoverUrl } from '@/utils/urlUtils';
 import { ref, computed, defineAsyncComponent } from 'vue';
 import { Textarea } from './shadcn/ui/textarea';
-import { formatAchievement, formatDxRating, formatLevelValue, getSongDiff } from '@/utils/StrUtil';
+import { formatAchievement, formatDxRating, formatLevelValue, getNoteDesigner, getSongDiff } from '@/utils/StrUtil';
 import { useCollectionStore } from '@/store/collections';
 import { debounce, toFishStyleId, useCopyHelper } from '@/utils/functionUtil';
 import {
@@ -115,6 +122,7 @@ const cardData = computed(() => {
     const diff = getSongDiff(props.score.song, props.score.score);
     const levelValue = diff ? formatLevelValue(diff.level_value) : '';
     const unplayed = props.score.score.is_played === undefined ? false : !props.score.score.is_played
+    const noteDesigner = diff ? (getNoteDesigner(diff)) : ""
     return {
         cardClass,
         coverUrl: getImageCoverUrl(props.score.song.id ?? 0),
@@ -122,6 +130,7 @@ const cardData = computed(() => {
         achievementFormatted: formatAchievement(props.score.score.achievements),
         achievementIconUrl: getAchievementIcon(props.score.score.rate_type),
         details: `#${showCurrentStyleId(props.score.song.id)} ${levelValue} → ${formatDxRating(props.score.score.dx_rating)}`,
+        noteDesigner,
         unplayed,
     }
 });
