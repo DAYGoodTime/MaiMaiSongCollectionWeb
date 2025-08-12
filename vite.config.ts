@@ -1,26 +1,26 @@
 import { defineConfig } from "vite";
 import vue from "@vitejs/plugin-vue";
 import path from "node:path";
-import { visualizer } from "rollup-plugin-visualizer";
-import viteCompression from "vite-plugin-compression";
-
+// import { visualizer } from "rollup-plugin-visualizer";
+// import viteCompression from "vite-plugin-compression";
+// cap not support gzip compressed file
 // https://vite.dev/config/
 export default defineConfig({
   plugins: [
     vue(),
-    visualizer({
-      open: true, // 在默认浏览器中自动打开报告
-      gzipSize: true, // 显示 Gzip 压缩后的大小
-      brotliSize: true, // 显示 Brotli 压缩后的大小
-      filename: "stats.html", // 分析报告的文件名
-    }),
-    viteCompression({
-      verbose: true,
-      disable: false,
-      threshold: 10240, // 只对大于 10kb 的文件进行压缩
-      algorithm: "gzip",
-      ext: ".gz",
-    }),
+    // visualizer({
+    //   open: true, // 在默认浏览器中自动打开报告
+    //   gzipSize: true, // 显示 Gzip 压缩后的大小
+    //   brotliSize: true, // 显示 Brotli 压缩后的大小
+    //   filename: "stats.html", // 分析报告的文件名
+    // }),
+    // viteCompression({
+    //   verbose: true,
+    //   disable: false,
+    //   threshold: 10240, // 只对大于 10kb 的文件进行压缩
+    //   algorithm: "gzip",
+    //   ext: ".gz",
+    // }),
   ],
   resolve: {
     alias: {
