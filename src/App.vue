@@ -17,6 +17,8 @@ import { useDataStore } from './store/datasource';
 
 onMounted(() => {
   checkDataSource();
+  const userAgent = navigator.userAgent;
+  console.log("User Agent:", userAgent);
 })
 const DataSourceStore = useDataStore();
 const showReSyncDialog = ref(false)
@@ -42,8 +44,8 @@ const checkDataSource = () => {
   <nav>
     <SidebarProvider>
       <AppSidebar />
-      <main class="w-full">
-        <SidebarTrigger />
+      <main class="w-full" style="padding-top: env(safe-area-inset-top);">
+        <SidebarTrigger class="m-2" />
         <RouterView />
       </main>
     </SidebarProvider>

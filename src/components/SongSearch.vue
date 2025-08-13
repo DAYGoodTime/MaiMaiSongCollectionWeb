@@ -18,7 +18,7 @@
       </div>
     </ComboboxAnchor>
 
-    <ComboboxList class="w-[var(--reka-combobox-trigger-width)] max-h-[70svh] lg:max-h-[50dvh] overflow-y-auto">
+    <ComboboxList class="w-[var(--reka-combobox-trigger-width)] max-h-60svh lg:max-h-50svh overflow-y-auto">
       <ComboboxEmpty class="mx-8"> 没有找到符合的歌曲 </ComboboxEmpty>
       <ComboboxGroup>
         <ComboboxVirtualizer v-slot="{ option }" :options="getFilteredSongs" :text-content="(x) => x.title"

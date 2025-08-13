@@ -2,7 +2,7 @@ import type { CapacitorConfig } from '@capacitor/cli';
 
 const config: CapacitorConfig = {
   appId: 'com.day.maimai.collection',
-  appName: 'songcollections',
+  appName: 'MaiMai查歌器🐖',
   webDir: 'dist',
   plugins: {
     CapacitorHttp: {

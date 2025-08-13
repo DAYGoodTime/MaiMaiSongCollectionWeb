@@ -86,7 +86,7 @@ interface Slots<T> {
 }
 
 const props = withDefaults(defineProps<Props<T>>(), {
-    pageSize: 40,
+    pageSize: 20,
     threshold: 100
 })
 

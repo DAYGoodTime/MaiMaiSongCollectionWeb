@@ -7,7 +7,13 @@ import path from "node:path";
 // https://vite.dev/config/
 export default defineConfig({
   plugins: [
-    vue(),
+    vue({
+      template: {
+        compilerOptions: {
+          isCustomElement: tag => tag.startsWith('md-'),
+        },
+      },
+    }),
     // visualizer({
     //   open: true, // 在默认浏览器中自动打开报告
     //   gzipSize: true, // 显示 Gzip 压缩后的大小
