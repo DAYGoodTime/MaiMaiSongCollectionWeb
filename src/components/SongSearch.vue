@@ -1,5 +1,6 @@
 <template>
-  <Combobox v-model="selectedSong" class="max-w-2xl" :ignore-filter="true" :open-on-click="true">
+  <Combobox v-model="selectedSong" v-model:open="appStore.ComboboxOpen" class="max-w-2xl" :ignore-filter="true"
+    :open-on-click="true">
     <ComboboxAnchor class="w-full">
       <div class="relative items-center shadow-md rounded-xl bg-white border-2 border-blue-100">
         <ComboboxInput
@@ -18,7 +19,8 @@
       </div>
     </ComboboxAnchor>
 
-    <ComboboxList class="w-[var(--reka-combobox-trigger-width)] max-h-60svh lg:max-h-50svh overflow-y-auto">
+    <ComboboxList class="w-[var(--reka-combobox-trigger-width)] max-h-60svh lg:max-h-50svh overflow-y-auto"
+      @interact-outside="handelInteractOutSide">
       <ComboboxEmpty class="mx-8"> 没有找到符合的歌曲 </ComboboxEmpty>
       <ComboboxGroup>
         <ComboboxVirtualizer v-slot="{ option }" :options="getFilteredSongs" :text-content="(x) => x.title"
@@ -73,6 +75,7 @@ import { getImageCoverUrl } from "@/utils/urlUtils";
 import { ComboboxCancel } from "@/components/shadcn/ui/combobox";
 import type { Tag } from "./TagInputCombobox.vue";
 import { useSongSearch } from '@/utils/songSearch';
+import { useAppStore } from '@/store/appStore';
 
 export interface SearchOptions {
   selected_tags: Tag[],
@@ -82,7 +85,7 @@ export interface SearchOptions {
   }
 }
 const props = defineProps<SearchOptions>();
-
+const appStore = useAppStore();
 const selectedSong = defineModel<MaiMaiSong>("selected");
 const { searchSong, MAX_SEARCH_NUMBER, filterByTag } = useSongSearch()
 //filter and search
@@ -115,5 +118,9 @@ const handelCleanSearch = (e: Event) => {
   selectedSong.value = undefined;
   search.value = ""
   temp_search.value = ""
+}
+const handelInteractOutSide = (event: Event) => {
+  event.preventDefault();
+  appStore.ComboboxOpen = false
 }
 </script>

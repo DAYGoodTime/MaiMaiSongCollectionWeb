@@ -1,8 +1,9 @@
 <script setup lang="ts">
 import type { SidebarProps } from '.'
 import { cn } from '@/lib/utils'
-import { Sheet, SheetContent } from '@/components/shadcn/ui/sheet'
+import { Sheet, SheetContent, SheetTitle, SheetHeader, SheetDescription } from '@/components/shadcn/ui/sheet'
 import { SIDEBAR_WIDTH_MOBILE, useSidebar } from './utils'
+import { VisuallyHidden } from 'reka-ui'
 
 defineOptions({
   inheritAttrs: false,
@@ -25,10 +26,19 @@ const { isMobile, state, openMobile, setOpenMobile } = useSidebar()
   </div>
 
   <Sheet v-else-if="isMobile" :open="openMobile" v-bind="$attrs" @update:open="setOpenMobile">
+
     <SheetContent data-sidebar="sidebar" data-mobile="true" :side="side"
       class="w-[--sidebar-width] bg-sidebar p-0 text-sidebar-foreground [&>button]:hidden" :style="{
         '--sidebar-width': SIDEBAR_WIDTH_MOBILE,
       }">
+      <SheetHeader>
+        <VisuallyHidden asChild>
+          <SheetTitle>Menu</SheetTitle>
+        </VisuallyHidden>
+        <VisuallyHidden asChild>
+          <SheetDescription>Menu</SheetDescription>
+        </VisuallyHidden>
+      </SheetHeader>
       <div class="flex h-full w-full flex-col">
         <slot />
       </div>
