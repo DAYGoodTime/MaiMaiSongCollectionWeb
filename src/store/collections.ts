@@ -1,9 +1,10 @@
-import { exportFile } from "@/utils/functionUtil";
+import { exportFile, useRouterHelper } from "@/utils/functionUtil";
 import { getFromKey, putToStorage } from "@/utils/storage";
 import { formatDate } from "@/utils/StrUtil";
 import { useLocalStorage, type RemovableRef } from "@vueuse/core";
 import { defineStore } from "pinia";
 import { computed, ref, type Ref } from "vue";
+import { useRoute, useRouter } from "vue-router";
 import { toast } from "vue-sonner";
 //test
 const DEFAULT_LIST = [
@@ -40,32 +41,63 @@ const CollectionSerializer = {
     return JSON.stringify(list);
   }
 }
+const MAX_LABEL_LENGTH = 30
 export const useCollectionStore = defineStore("collections", () => {
   const UserCollectionList: Ref<Collection[]> = useLocalStorage("user_collections", DEFAULT_LIST, {
     serializer: CollectionSerializer
   })
   const CurrentCollectionLabel = ref("")
+  const route = useRoute()
+  const routerHelper = useRouterHelper()
   const getCollectionNames = computed(() => {
     return UserCollectionList.value.map(c => c.label);
   })
   const getCollectionByLabel = (label: string) => {
     return UserCollectionList.value.find(c => c.label === label)
   }
-  const EditCollectionName = (index: number, name: string): boolean => {
-    if (index >= UserCollectionList.value.length) return false;
+  const EditCollectionName = (index: number, name: string): { success: boolean, message: string } => {
+    if (index >= UserCollectionList.value.length) return { success: false, message: "合集不存在" };
+    if (hasCollection(name)) {
+      return { success: false, message: "该合集已存在" }
+    }
+    if (name.length >= MAX_LABEL_LENGTH) {
+      return { success: false, message: "合集名字过长" }
+    }
     UserCollectionList.value[index].label = name;
-    return true;
+    if (route.query.label == CurrentCollectionLabel.value) {
+      routerHelper.JumpTo({
+        name: "Collection",
+        query: {
+          label: name
+        }
+      })
+    }
+    toast.success("修改成功")
+    return { success: true, message: "OK" };
   }
-  const DeleteCollection = (index: number) => {
-    if (index >= UserCollectionList.value.length) return false;
+  const DeleteCollection = (index: number): { success: boolean, message: string } => {
+    if (index >= UserCollectionList.value.length) return { success: false, message: "合集不存在" };
     UserCollectionList.value.splice(index, 1)
-    return true;
+    if (route.query.label == CurrentCollectionLabel.value) {
+      routerHelper.backHome();
+      toast.info("当前合集被删除，已为你跳转回主页")
+    }
+    toast.success("删除成功")
+    return { success: true, message: "OK" };
   }
-  const newCollection = (label: string) => {
+  const newCollection = (label: string): { success: boolean, message: string } => {
+    if (hasCollection(label)) {
+      return { success: false, message: "该合集已存在" }
+    }
+    if (label.length >= MAX_LABEL_LENGTH) {
+      return { success: false, message: "合集名字过长" }
+    }
     UserCollectionList.value.push({
       label,
       list: new Set<string>()
     })
+    toast.success("添加成功")
+    return { success: true, message: "OK" }
   }
   const hasCollection = (name: string) => {
     return UserCollectionList.value.findIndex(c => c.label === name) !== -1

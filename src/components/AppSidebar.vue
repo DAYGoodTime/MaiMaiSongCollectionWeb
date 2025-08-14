@@ -38,7 +38,7 @@ import { Label } from '@/components/shadcn/ui/label'
 import { toast } from 'vue-sonner'
 import { useRouterHelper } from "@/utils/functionUtil";
 import { useCollectionStore, type Collection } from "@/store/collections";
-import { computed, ref } from "vue";
+import { computed, ref, watch } from "vue";
 import type { RouteLocationRaw } from "vue-router";
 import { Capacitor } from '@capacitor/core';
 // Menu items.
@@ -59,7 +59,11 @@ const { EditCollectionName, DeleteCollection, newCollection } = useCollectionSto
 const CollectionStore = useCollectionStore();
 //Dialog
 const DialogStatus = ref<"none" | "add" | "edit" | "delete">("none")
-const showDialog = computed(() => DialogStatus.value !== 'none');
+const showDialogCompute = computed(() => DialogStatus.value !== 'none');
+const showDialog = ref(false)
+watch(() => showDialogCompute.value, () => {
+  showDialog.value = showDialogCompute.value
+})
 const getCardInfo = computed(() => {
   switch (DialogStatus.value) {
     case "add":
@@ -76,27 +80,31 @@ const dialogInput = ref("");
 const targetIndex = ref(-1);
 const handelDialogOpen = (type: "add" | "edit" | "delete", index?: number) => {
   DialogStatus.value = type;
-  if (index) targetIndex.value = index;
+  dialogInput.value = ""
+  if (index || index === 0) targetIndex.value = index
+  showDialog.value = true
 }
 const handelDialogSubmit = () => {
   if (targetIndex.value === -1 && DialogStatus.value !== 'add') return;
   if (dialogInput.value.trim().length === 0 && DialogStatus.value !== 'delete') toast("请输入合集名称")
-  let success = true;
+  let result = { success: false, message: "修改失败" };
   switch (DialogStatus.value) {
     case "add":
-      newCollection(dialogInput.value); break;
+      result = newCollection(dialogInput.value); break;
     case "edit":
-      success = EditCollectionName(targetIndex.value, dialogInput.value); break;
+      result = EditCollectionName(targetIndex.value, dialogInput.value); break;
     case "delete":
-      success = DeleteCollection(targetIndex.value); break;
+      result = DeleteCollection(targetIndex.value); break;
   }
-  if (!success) {
-    toast("修改失败")
-  } {
+  if (!result.success) {
+    toast.error(result.message)
+  } else {
     DialogStatus.value = 'none'
     targetIndex.value = -1;
     dialogInput.value = ""
+    showDialog.value = false
   }
+
 }
 const { toggleSidebar } = useSidebar()
 const handelCollectionJump = (coll: Collection) => {
@@ -151,7 +159,7 @@ const handelPageJump = (e: Event, route: RouteLocationRaw) => {
                       :key="collection.label">
                       <SidebarMenuSubButton class="cursor-pointer group/item relative"
                         @click="handelCollectionJump(collection)">
-                        <span>{{ collection.label }}</span>
+                        <span class="truncate">{{ collection.label }}</span>
                         <DropdownMenu>
                           <DropdownMenuTrigger asChild>
                             <button @click.stop
