@@ -4,7 +4,7 @@ import { formatDate } from "@/utils/StrUtil";
 import { useLocalStorage, type RemovableRef } from "@vueuse/core";
 import { defineStore } from "pinia";
 import { computed, ref, type Ref } from "vue";
-import { useRoute, useRouter } from "vue-router";
+import { useRoute } from "vue-router";
 import { toast } from "vue-sonner";
 //test
 const DEFAULT_LIST = [

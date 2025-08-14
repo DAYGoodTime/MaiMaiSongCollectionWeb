@@ -5,6 +5,8 @@
                 <DialogTitle>自动导入对应定数</DialogTitle>
                 <DialogDescription>
                     可以选择定数范围，自动导入定速范围内的成绩。
+                    <p v-if="getSelectableSource.length == 0" class="text-red-600 font-bold">
+                        注意:你没有添加任何查分器，所有导入的成绩都是'未游玩'状态，默认不会进行显示！</p>
                 </DialogDescription>
             </DialogHeader>
             <div class="flex flex-col gap-4">
@@ -65,7 +67,7 @@ interface LevelRange {
 }
 const showOpen = defineModel<boolean>("open")
 const levelRange = ref([1.0, 15.0])
-const { getSongDataList } = useDataStore()
+const { getSongDataList, getSelectableSource } = useDataStore()
 const { UserCollectionList, CurrentCollectionLabel } = useCollectionStore();
 const commonLevelOptions: FilterProps<LevelRange>[] =
     [

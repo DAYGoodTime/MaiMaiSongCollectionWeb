@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { reactive, ref, onMounted, computed } from "vue";
+import { reactive, ref, computed } from "vue";
 import { Filter, Search, CircleQuestionMark } from 'lucide-vue-next'
 import SongSearch from "@/components/SongSearch.vue";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/shadcn/ui/accordion'
@@ -12,10 +12,7 @@ import TagInputCombobox from "@/components/TagInputCombobox.vue";
 import type { Tag } from "@/components/TagInputCombobox.vue";
 import type { MaiMaiSong, SongType } from "@/types/songs";
 import SongInfo from "@/components/SongInfo.vue";
-import Loading from "@/components/Loading.vue";
 import ScoreInfo from "@/components/ScoreInfo.vue";
-
-const loading = ref(true);
 const bpmRangeValue = ref([0, 300]);
 const enableBpmFilter = ref(false);
 const tags = ref<Tag[]>([]);
@@ -25,15 +22,11 @@ const bpmOption = reactive({
   range: bpmRangeValue
 })
 
-onMounted(() => {
-  setTimeout(() => loading.value = false, 100)
-})
 const SelectedType = ref<SongType>("standard")
 const getScoreList = computed(() => selectedSong.value?.difficulties[SelectedType.value] ?? []);
 </script>
 <template>
-  <Loading v-if="loading" />
-  <div v-else class="container mx-auto px-4 py-2">
+  <div class="container mx-auto px-4 py-2">
     <div class="space-y-6 lg:mx-32">
       <Card>
         <Accordion type="single" collapsible class="w-full">

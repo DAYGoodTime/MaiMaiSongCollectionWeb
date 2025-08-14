@@ -5,9 +5,9 @@ import { toLXNSStyleId } from "@/utils/functionUtil";
 import { rankingList } from "@/utils/urlUtils";
 import { toHiragana } from "wanakana";
 import type { MaiMaiSong, ScoreExtend } from "@/types/songs";
-import { ref } from "vue";
 import { useDataStore } from "@/store/datasource";
 import type { AdvanceFilterFilters } from "@/types/component";
+import { useAppStore } from "@/store/appStore";
 
 export interface OrderBadge {
     label: string,
@@ -16,50 +16,15 @@ export interface OrderBadge {
 }
 
 export const MAX_SEARCH_NUMBER = 100;
-const isIndexing = ref(false);
+
 let SONG_DATA: MaiMaiSong[] = []
 
 export const useSongSearch = () => {
-    let songIndex: Document<DocumentData, boolean, boolean> | null = null;
+    const appStore = useAppStore();
     let songMap = new Map();
     const { getSongDataList, getScoreList } = useDataStore()
-    if (!songIndex && !isIndexing.value) {
-        isIndexing.value = true;
-        SONG_DATA = getSongDataList.list
-        songMap = new Map<number, MaiMaiSong>(SONG_DATA.map(s => [s.id, s]))
-        const promise = new Promise<Document<DocumentData, boolean, boolean>>((resolve) => {
-            //歌曲索引
-            let songIndex = new FlexSearch.Document({
-                document: {
-                    id: 'id',
-                    index: [
-                        { field: 'title', tokenize: 'forward', priority: 10 },
-                        { field: 'titleHiragana', tokenize: 'forward', priority: 9 },
-                        { field: 'aliasesLower', tokenize: 'forward', priority: 8 },
-                        { field: 'artist', tokenize: 'forward', priority: 5 },
-                        { field: 'artistHiragana', tokenize: 'forward', priority: 4 },
-                        { field: 'noteDesigners', tokenize: 'forward', priority: 1 }
-                    ]
-                },
-            });
-            //添加索引
-            SONG_DATA.forEach(song => {
-                const indexedDoc = {
-                    id: song.id,
-                    title: song.title,
-                    artist: song.artist,
-                    titleHiragana: toHiragana(song.title).toLowerCase(),
-                    artistHiragana: toHiragana(song.artist).toLowerCase(),
-                    aliasesLower: song.aliases?.join(" ").toLowerCase() || "",
-                    noteDesigners: getNoteDesigners(song)
-                };
-                songIndex.add(indexedDoc);
-            });
-            isIndexing.value = false
-            resolve(songIndex)
-        })
-        promise.then(index => songIndex = index)
-    }
+    SONG_DATA = getSongDataList.list
+    songMap = new Map<number, MaiMaiSong>(SONG_DATA.map(s => [s.id, s]))
     const searchSong = (keyword: string) => {
         const searchLower = toHiragana(keyword.toLowerCase());
         const searchNumber = !isNaN(Number(keyword)) ? toLXNSStyleId(Number(keyword)) : null;
@@ -76,8 +41,8 @@ export const useSongSearch = () => {
                 return songsToShow;
             }
         }
-        if (searchLower.trim().length > 0 && songIndex) {
-            const searchResults = (songIndex as Document).search(searchLower, { limit: MAX_SEARCH_NUMBER });
+        if (searchLower.trim().length > 0 && appStore.SongIndex) {
+            const searchResults = appStore.SongIndex.search(searchLower, { limit: MAX_SEARCH_NUMBER });
             const orderedIds: number[] = [];
             const addedIds = new Set<number>();
 
@@ -172,7 +137,6 @@ export const useSongSearch = () => {
     }
 }
 export const useScoreSearch = () => {
-
     let scoreIndex: Document<DocumentData, boolean, boolean> | null = null;
     let scoreMap = new Map<string, ScoreExtend>();
 
