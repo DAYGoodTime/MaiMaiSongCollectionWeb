@@ -1,5 +1,5 @@
 <template>
-    <AdvanceFeature v-model:open="showAdvanced" />
+    <AdvanceFeature v-model:open="showAdvanced" @on-score-list-changed="initScoreList" />
     <div class="container mx-auto px-4 py-4">
         <div class="flex justify-center">
             <Card class="w-full lg:w-1/2">
