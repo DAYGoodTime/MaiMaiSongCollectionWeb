@@ -12,6 +12,11 @@
     max-height: 50vh;
     max-height: 50svh;
   }
+
+  .h-vh {
+    max-height: 100dvh;
+    max-height: 100vh;
+  }
 }
 
 @layer base {

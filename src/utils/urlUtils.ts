@@ -5,11 +5,11 @@ export function getImageCoverUrl(id: number) {
   if (id > 100000) {
     id -= 110000
   }
-  return new URL(`../assets/cover/${id ?? "0"}.webp`, import.meta.url).href;
+  return `/cover/${id ?? "0"}.webp`;
 }
 
 export function getImageAssertUrl(name: string) {
-  return new URL(`../assets/resource/${name ?? "FALLBACK"}.png`, import.meta.url).href;
+  return `/resource/${name ?? "FALLBACK"}.png`;
 }
 export const rankingList = [
   { id: 'SSSp', min: 100.5, max: Infinity },

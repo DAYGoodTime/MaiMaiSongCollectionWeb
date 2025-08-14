@@ -42,7 +42,7 @@
         </div>
         <!-- 成绩列表 -->
         <InfiniteScrollArea
-            class="px-0 w-full max-h-screen h-[32rem] overflow-auto my-8 rounded-xl border shadow hover:shadow-xl py-2"
+            class="px-0 w-full max-h-screen h-[100vh] my-8 rounded-xl border shadow hover:shadow-xl py-2"
             :items="filteredScoreList" :page-size="60">
             <template #default="{ items }">
                 <div

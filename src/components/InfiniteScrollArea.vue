@@ -1,5 +1,5 @@
 <template>
-    <ScrollArea class="w-full rounded-md border p-4" ref="scrollAreaRef">
+    <ScrollArea :class="cn('w-full rounded-md border p-4', props.class)" ref="scrollAreaRef">
         <!-- 使用 slot 渲染已加载的内容 -->
         <div class="space-y-4">
             <slot name="default" :items="bufferItems" :loading="loading" :has-more="hasMore" :error="error">
@@ -56,12 +56,14 @@
 import { ref, onMounted, onUnmounted, nextTick, computed, watchEffect } from 'vue'
 import { ScrollArea } from '@/components/shadcn/ui/scroll-area'
 import { Skeleton } from '@/components/shadcn/ui/skeleton'
+import { cn } from '@/lib/utils';
 
 // 组件属性
 interface Props<T> {
     items: T[],
     pageSize?: number
     threshold?: number // 距离底部多少像素时触发加载
+    class: string
 }
 
 // 定义 slots 的类型

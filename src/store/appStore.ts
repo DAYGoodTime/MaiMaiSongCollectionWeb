@@ -1,5 +1,5 @@
 import { useLocalStorage } from "@vueuse/core";
-import FlexSearch, { Document } from "flexsearch";
+import FlexSearch from "flexsearch";
 import { defineStore } from "pinia";
 import { computed, ref } from "vue";
 import { useDataStore } from "./datasource";
