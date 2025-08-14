@@ -26,7 +26,7 @@
             </SheetFooter>
         </SheetContent>
     </Sheet>
-    <ImportLevel v-model:open="levelImportDialog" />
+    <ImportLevel v-model:open="levelImportDialog" @on-score-list-changed="emit('onScoreListChanged')" />
 </template>
 <script setup lang="ts">
 import {
@@ -44,4 +44,5 @@ import { ref } from 'vue';
 const showOpen = defineModel<boolean>('open')
 //advance feature
 const levelImportDialog = ref(false);
+const emit = defineEmits(["onScoreListChanged"])
 </script>

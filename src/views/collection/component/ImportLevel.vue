@@ -14,7 +14,7 @@
                 <div class="flex items-center space-x-4 pt-2">
                     <Input type="number" :step="0.1" :min="1.0" :max="levelRange[1]"
                         class="w-12 text-center h-8 text-xs pr-0 pl-1" :model-value="levelRange[0].toFixed(1)" />
-                    <Slider v-model:model-value="levelRange" :min="1.0" :max="15.0" :step="0.1" :show-min-max="false"
+                    <Slider v-model:model-value="levelRange" :min="12.0" :max="15.0" :step="0.1" :show-min-max="false"
                         :show-ticks="true" class="flex-1" />
                     <Input type="number" :step="0.1" :min="levelRange[0]" :max="15.0"
                         class="w-12 text-center h-8 text-xs pr-0 pl-1" :model-value="levelRange[1].toFixed(1)" />
@@ -64,8 +64,10 @@ const handelImportByLevel = () => {
     }
     if (UserCollectionList[coll_index]) {
         UserCollectionList[coll_index].list = result_score;
-        toast.success("导入成功，请重新刷新页面")
+        toast.success("导入成功，正在重新加载")
+        emit("onScoreListChanged")
     }
     showOpen.value = false
 }
+const emit = defineEmits(["onScoreListChanged"])
 </script>
