@@ -124,7 +124,7 @@ const {
     selectedSource,
     updateLXNSData
 } = useDataStore();
-const { hasLXNSOAuth, isAccessTokenExpired, isRefreshTokenExpired, LXNSOAuth, refreshLXNSToken } = useOAuthStore();
+const { hasLXNSOAuth, isAccessTokenExpired, isRefreshTokenExpired, LXNSOAuth, refreshLXNSToken, cleanLXNSOAuth } = useOAuthStore();
 const { handelCopy } = useCopyHelper()
 
 type AuthType = 'Token' | 'OAuth'
@@ -142,12 +142,16 @@ const updateLXNSDataSource = async (type: AuthType = 'Token') => {
                 "authorization": lnxsCredentials.value
             }
         })
-        if (!response.ok) {
-            toast.error('请求落雪数据源更新失败')
-            return;
-        }
         const result = await response.json()
         if (!result.success) {
+            if (result.details) {
+                if (result.details.code == 401) {
+                    toast.error(`落雪数据源更新失败: token失效`);
+                    //clean up auth info
+                    cleanLXNSOAuth();
+                    return
+                }
+            }
             toast.error(`落雪数据源更新失败: ${result.message}`)
             return;
         }
@@ -175,13 +179,21 @@ const handelLXNSDialog = async () => {
         //check acc expire
         if (isAccessTokenExpired()) {
             if (isRefreshTokenExpired()) {
+                //clean up auth info
+                cleanLXNSOAuth();
                 toast.error("OAuth已过期，请用token更新或者重新申请", { position: "top-center" })
                 showLxnsDialog.value = true
                 return;
             }
             //refresh token
             const b = await refreshLXNSToken(lnxsCredentials.value);
-            if (!b) return;
+            if (!b) {
+                //clean up auth info
+                cleanLXNSOAuth();
+                toast.error("OAuth已过期，请用token更新或者重新申请")
+                showLxnsDialog.value = true
+                return;
+            }
         }
         //update with oauth
         lnxsCredentials.value = `Bearer ${LXNSOAuth.access_token}`
