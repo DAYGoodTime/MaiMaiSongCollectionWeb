@@ -28,7 +28,7 @@ export const useSongSearch = () => {
     SONG_DATA = getSongDataList.list
     songMap = new Map<number, MaiMaiSong>(SONG_DATA.map(s => [s.id, s]))
     const searchSong = (keyword: string) => {
-        const searchLower = toHiragana(keyword.toLowerCase()).trim();
+        const searchLower = keyword.toLowerCase().trim();
         const searchNumber = !isNaN(Number(keyword)) ? toLXNSStyleId(Number(keyword)) : null;
         let songsToShow: MaiMaiSong[] = [];
         if (searchNumber !== null) {
@@ -151,10 +151,8 @@ export const useScoreSearch = () => {
                 id: 'score_id',
                 index: [
                     { field: 'title', tokenize: 'forward', priority: 10 },
-                    { field: 'titleHiragana', tokenize: 'forward', priority: 9 },
                     { field: 'aliasesLower', tokenize: 'forward', priority: 8 },
                     { field: 'artist', tokenize: 'forward', priority: 5 },
-                    { field: 'artistHiragana', tokenize: 'forward', priority: 4 },
                     { field: 'noteDesigners', tokenize: 'forward', priority: 1 }
                 ]
             },
@@ -165,8 +163,6 @@ export const useScoreSearch = () => {
                 score_id: score_id,
                 title: song.title,
                 artist: song.artist,
-                titleHiragana: toHiragana(song.title).toLowerCase(),
-                artistHiragana: toHiragana(song.artist).toLowerCase(),
                 aliasesLower: song.aliases?.join(" ").toLowerCase() || "",
                 noteDesigners: getNoteDesigners(song)
             };
@@ -176,10 +172,10 @@ export const useScoreSearch = () => {
 
     const searchScore = (keyword: string) => {
         if (!scoreIndex || !keyword) return Array.from(scoreMap.values());
-        const searchLower = toHiragana(keyword.toLowerCase());
+        const searchLower = keyword.toLowerCase().trim();
         let scoresToShow: ScoreExtend[] = [];
 
-        if (searchLower.trim().length > 0) {
+        if (searchLower.length > 0) {
             const searchResults = (scoreIndex as Document).search(searchLower);
             const orderedIds: string[] = [];
             const addedIds = new Set<string>();

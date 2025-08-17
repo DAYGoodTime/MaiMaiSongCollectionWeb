@@ -97,7 +97,7 @@ export function getNoteDesigners(song: MaiMaiSong) {
   const list = new Set<string>();
   diffs.forEach(d => {
     if (d.note_designer && d.note_designer !== '-') {
-      list.add(toHiragana(d.note_designer.toLocaleLowerCase()));
+      list.add(d.note_designer.toLocaleLowerCase());
     }
   })
   return [...list].reverse();

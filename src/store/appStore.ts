@@ -3,7 +3,6 @@ import FlexSearch from "flexsearch";
 import { defineStore } from "pinia";
 import { computed, ref } from "vue";
 import { useDataStore } from "./datasource";
-import { toHiragana } from "wanakana";
 import { getNoteDesigners } from "@/utils/StrUtil";
 
 export const useAppStore = defineStore("app", () => {
@@ -15,10 +14,8 @@ export const useAppStore = defineStore("app", () => {
       id: 'id',
       index: [
         { field: 'title', tokenize: 'forward', preset: 'match', priority: 10 },
-        { field: 'titleHiragana', tokenize: 'forward', priority: 9 },
         { field: 'aliasesLower', tokenize: 'forward', priority: 8 },
         { field: 'artist', tokenize: 'forward', priority: 5 },
-        { field: 'artistHiragana', tokenize: 'forward', priority: 4 },
         { field: 'noteDesigners', tokenize: 'forward', preset: 'match', priority: 9 }
       ]
     }
@@ -31,8 +28,6 @@ export const useAppStore = defineStore("app", () => {
       id: song.id,
       title: song.title.toLocaleLowerCase(),
       artist: song.artist,
-      titleHiragana: toHiragana(song.title).toLowerCase(),
-      artistHiragana: toHiragana(song.artist).toLowerCase(),
       aliasesLower: song.aliases?.join(" ").toLowerCase() || "",
       noteDesigners: getNoteDesigners(song)
     };
