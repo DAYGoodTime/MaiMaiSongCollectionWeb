@@ -55,7 +55,7 @@
                         </div>
                     </CardTitle>
                     <CardDescription>
-                        管理合集和留言数据
+                        管理合集和留言数据(使用需要梯子)
                     </CardDescription>
                 </CardHeader>
                 <CardContent>

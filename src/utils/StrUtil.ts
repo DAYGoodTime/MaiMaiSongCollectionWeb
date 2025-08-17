@@ -93,11 +93,18 @@ export const getSongDiff = (song: MaiMaiSong, score: Score | FishScore | LXNSSco
 }
 export function getNoteDesigners(song: MaiMaiSong) {
   const diffs = [...song.difficulties.dx, ...song.difficulties.standard]
-  return diffs.map(d => {
+  const list = new Set<string>();
+  diffs.forEach(d => {
     if (d.note_designer && d.note_designer !== '-') {
-      return d.note_designer.toLowerCase();
-    } else return ""
-  }).join(" ")
+      list.add(d.note_designer.toLocaleLowerCase());
+    }
+  })
+  return [...list].reverse();
+}
+export function getNoteDesigner(diff: SongDifficulty) {
+  if (diff.note_designer && diff.note_designer !== '-') {
+    return diff.note_designer
+  } else return ""
 }
 export const getLevelValue = (sc: ScoreExtend) => {
   const diff = getSongDiff(sc.song, sc.score);
