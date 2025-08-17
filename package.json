@@ -1,7 +1,7 @@
 {
   "name": "songcollections",
   "private": true,
-  "version": "0.1-android",
+  "version": "0.0.3-android",
   "type": "module",
   "scripts": {
     "dev": "vite",
