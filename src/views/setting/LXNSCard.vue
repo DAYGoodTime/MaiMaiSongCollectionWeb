@@ -124,7 +124,7 @@ const {
     selectedSource,
     updateLXNSData
 } = useDataStore();
-const { hasLXNSOAuth, isAccessTokenExpired, isRefreshTokenExpired, LXNSOAuth, refreshLXNSToken, cleanLXNSOAuth } = useOAuthStore();
+const { hasLXNSOAuth, isAccessTokenExpired, isRefreshTokenExpired, getLXNSToken, LXNSOAuth, refreshLXNSToken, cleanLXNSOAuth } = useOAuthStore();
 const { handelCopy } = useCopyHelper()
 
 

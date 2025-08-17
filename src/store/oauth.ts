@@ -56,5 +56,5 @@ export const useOAuthStore = defineStore("lxns-oauth", () => {
     const cleanLXNSOAuth = () => {
         LXNSOAuth.value = EMPTY_OAUTH;
     }
-    return { hasLXNSOAuth, LXNSOAuth, isAccessTokenExpired, isRefreshTokenExpired, refreshLXNSToken, cleanLXNSOAuth }
+    return { hasLXNSOAuth, LXNSOAuth, getLXNSToken, isAccessTokenExpired, isRefreshTokenExpired, refreshLXNSToken, cleanLXNSOAuth }
 });
