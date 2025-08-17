@@ -2,6 +2,7 @@ import type { Score } from "@/types/datasource";
 import type { FishScore } from "@/types/divingfish";
 import type { LXNSScore } from "@/types/lxns";
 import type { MaiMaiSong, ScoreExtend, SongDifficulty } from "@/types/songs";
+import { toHiragana } from "wanakana";
 
 export const LEVEL_MATCH_PATTEN =
   /^[绿黄红紫白](?:(?:1[0-5]|[1-9])\+|(?:1[0-5]|[1-9])(?:\.\d)?)$/;
@@ -93,11 +94,13 @@ export const getSongDiff = (song: MaiMaiSong, score: Score | FishScore | LXNSSco
 }
 export function getNoteDesigners(song: MaiMaiSong) {
   const diffs = [...song.difficulties.dx, ...song.difficulties.standard]
-  return diffs.map(d => {
+  const list = new Set<string>();
+  diffs.forEach(d => {
     if (d.note_designer && d.note_designer !== '-') {
-      return d.note_designer.toLowerCase();
-    } else return ""
-  }).join(" ")
+      list.add(toHiragana(d.note_designer.toLocaleLowerCase()));
+    }
+  })
+  return [...list].reverse();
 }
 export function getNoteDesigner(diff: SongDifficulty) {
   if (diff.note_designer && diff.note_designer !== '-') {

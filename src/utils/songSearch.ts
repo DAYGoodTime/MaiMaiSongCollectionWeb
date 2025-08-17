@@ -8,6 +8,7 @@ import type { MaiMaiSong, ScoreExtend } from "@/types/songs";
 import { useDataStore } from "@/store/datasource";
 import type { AdvanceFilterFilters } from "@/types/component";
 import { useAppStore } from "@/store/appStore";
+import { toRaw } from "vue";
 
 export interface OrderBadge {
     label: string,
@@ -21,12 +22,13 @@ let SONG_DATA: MaiMaiSong[] = []
 
 export const useSongSearch = () => {
     const appStore = useAppStore();
+    const SongIndex = toRaw(appStore.SongIndex)
     let songMap = new Map();
     const { getSongDataList, getScoreList } = useDataStore()
     SONG_DATA = getSongDataList.list
     songMap = new Map<number, MaiMaiSong>(SONG_DATA.map(s => [s.id, s]))
     const searchSong = (keyword: string) => {
-        const searchLower = toHiragana(keyword.toLowerCase());
+        const searchLower = toHiragana(keyword.toLowerCase()).trim();
         const searchNumber = !isNaN(Number(keyword)) ? toLXNSStyleId(Number(keyword)) : null;
         let songsToShow: MaiMaiSong[] = [];
         if (searchNumber !== null) {
@@ -41,8 +43,10 @@ export const useSongSearch = () => {
                 return songsToShow;
             }
         }
-        if (searchLower.trim().length > 0 && appStore.SongIndex) {
-            const searchResults = appStore.SongIndex.search(searchLower, { limit: MAX_SEARCH_NUMBER });
+        if (searchLower.length > 0 && SongIndex) {
+            const searchResults = SongIndex.search(searchLower, { limit: MAX_SEARCH_NUMBER });
+            console.log("search result", searchResults, searchLower);
+
             const orderedIds: number[] = [];
             const addedIds = new Set<number>();
 

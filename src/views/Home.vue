@@ -21,6 +21,7 @@ const bpmOption = reactive({
   enable: enableBpmFilter,
   range: bpmRangeValue
 })
+const tooltipsOpen = ref(false)
 
 const SelectedType = ref<SongType>("standard")
 const getScoreList = computed(() => selectedSong.value?.difficulties[SelectedType.value] ?? []);
@@ -41,9 +42,9 @@ const getScoreList = computed(() => selectedSong.value?.difficulties[SelectedTyp
               <div class="grid gap-6 sm:grid-cols-2">
                 <div class="space-y-2">
                   标签筛选:
-                  <HoverCard :open-delay="10">
+                  <HoverCard :open-delay="10" v-model:open="tooltipsOpen">
                     <HoverCardTrigger>
-                      <CircleQuestionMark class="inline w-4 h-4" />
+                      <CircleQuestionMark @click="tooltipsOpen = true" class=" cursor-pointer inline w-4 h-4" />
                     </HoverCardTrigger>
                     <HoverCardContent>
                       <div class="flex flex-col gap-2">
