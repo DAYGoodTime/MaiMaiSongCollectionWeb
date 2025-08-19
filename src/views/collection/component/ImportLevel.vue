@@ -60,6 +60,7 @@ import { toast } from 'vue-sonner';
 import { ref } from 'vue'
 import MultiSelectTags from '@/components/MultiSelectTags.vue'
 import type { FilterProps } from '@/types/component'
+import { storeToRefs } from 'pinia'
 
 interface LevelRange {
     start: number
@@ -68,7 +69,7 @@ interface LevelRange {
 const showOpen = defineModel<boolean>("open")
 const levelRange = ref([1.0, 15.0])
 const { getSongDataList, getSelectableSource } = useDataStore()
-const { UserCollectionList, CurrentCollectionLabel } = useCollectionStore();
+const { UserCollectionList, CurrentCollectionLabel } = storeToRefs(useCollectionStore());
 const commonLevelOptions: FilterProps<LevelRange>[] =
     [
         { label: "12", value: { start: 12.0, end: 12.5 } },
@@ -86,7 +87,7 @@ const handelImportByLevel = () => {
     importing.value = true
     const song_list = getSongDataList.list;
     const result_score = new Set<string>([])
-    const coll_index = UserCollectionList.findIndex(c => c.label == CurrentCollectionLabel);
+    const coll_index = UserCollectionList.value.findIndex(c => c.label == CurrentCollectionLabel.value);
     //优先筛选常用的
     const ranges = selectedLevelRanges.value.map(prop => [prop.value.start, prop.value.end]);
     if (selectedLevelRanges.value.length >= 1) {
@@ -105,11 +106,13 @@ const handelImportByLevel = () => {
             }
         }
     }
-    if (UserCollectionList[coll_index]) {
-        UserCollectionList[coll_index].list = result_score;
+    if (UserCollectionList.value[coll_index]) {
+        UserCollectionList.value[coll_index].list = result_score;
         toast.success("导入成功，正在重新加载")
         emit("onScoreListChanged")
     }
+    selectedLevelRanges.value = []
+    levelRange.value = [12.0, 15.0]
     importing.value = false
     showOpen.value = false
 }

@@ -2,7 +2,6 @@ import type { Score } from "@/types/datasource";
 import type { FishScore } from "@/types/divingfish";
 import type { LXNSScore } from "@/types/lxns";
 import type { MaiMaiSong, ScoreExtend, SongDifficulty } from "@/types/songs";
-import { toHiragana } from "wanakana";
 
 export const LEVEL_MATCH_PATTEN =
   /^[绿黄红紫白](?:(?:1[0-5]|[1-9])\+|(?:1[0-5]|[1-9])(?:\.\d)?)$/;

@@ -189,14 +189,14 @@ const handelLXNSDialog = async () => {
             if (!b) {
                 //clean up auth info
                 cleanLXNSOAuth();
-                toast.error("OAuth已过期，请用token更新或者重新申请")
+                toast.error("OAuth已过期，请用token更新或者重新申请", { position: "top-center" })
                 showLxnsDialog.value = true
                 return;
             }
         }
         //update with oauth
         lnxsCredentials.value = `Bearer ${LXNSOAuth.access_token}`
-        toast.info("使用OAuth更新中~", { position: "top-center" })
+        toast.info("使用OAuth更新中~")
         await updateLXNSDataSource('OAuth')
     } else {
         showLxnsDialog.value = true
@@ -207,7 +207,7 @@ const submitOAuthCode = async () => {
     const b = await getLXNSToken(lnxsCredentials.value, 'query');
     if (!b) { DataSourceUpdating.value = false; return };
     lnxsCredentials.value = `Bearer ${LXNSOAuth.access_token}`
-    toast.info("使用OAuth更新中~", { position: "top-center" })
+    toast.info("使用OAuth更新中~")
     await updateLXNSDataSource('OAuth')
 }
 const handelUseOAuth = () => {

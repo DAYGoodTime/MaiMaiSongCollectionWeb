@@ -3,7 +3,6 @@ import { conventLevelPrefix, conventLevelTag, LEVEL_MATCH_PATTEN, RANKING_MATCH_
 import { isAllFinal, versionList } from "@/utils/version";
 import { toLXNSStyleId } from "@/utils/functionUtil";
 import { rankingList } from "@/utils/urlUtils";
-import { toHiragana } from "wanakana";
 import type { MaiMaiSong, ScoreExtend } from "@/types/songs";
 import { useDataStore } from "@/store/datasource";
 import type { AdvanceFilterFilters } from "@/types/component";
@@ -34,18 +33,14 @@ export const useSongSearch = () => {
         if (searchNumber !== null) {
             // 如果搜索为id，则直接映射
             const songById = songMap.get(searchNumber);
+            // 若存在对应id则直接返回结果
             if (songById) {
-                const existingIndex = songsToShow.findIndex(s => s.id === searchNumber);
-                if (existingIndex !== -1) {
-                    songsToShow.splice(existingIndex, 1);
-                }
-                songsToShow.unshift(songById);
+                songsToShow.push(songById)
                 return songsToShow;
             }
         }
         if (searchLower.length > 0 && SongIndex) {
             const searchResults = SongIndex.search(searchLower, { limit: MAX_SEARCH_NUMBER });
-            console.log("search result", searchResults, searchLower);
 
             const orderedIds: number[] = [];
             const addedIds = new Set<number>();
