@@ -24,12 +24,12 @@
                         自义定谱面定数范围 <span class="text-xs font-light">滑块可以快速选定常用的定数范围，如果需要其他范围，可以从左右两边手动输入你想要的定数</span>
                     </Label>
                     <div class="flex items-center space-x-4 pt-2">
-                        <Input type="number" :step="0.1" :min="1.0" :max="levelRange[1]"
-                            class="w-12 text-center h-8 text-xs pr-0 pl-1" :model-value="levelRange[0].toFixed(1)" />
-                        <Slider v-model:model-value="levelRange" :min="12.0" :max="15.0" :step="0.1"
+                        <Input type="number" class="w-12 text-center h-8 text-xs pr-0 pl-1" :step="0.1" :min="1.0"
+                            :max="levelRange[1]" v-model:model-value="levelRange[0]" />
+                        <Slider v-model:model-value="levelRangeSlider" :min="12.0" :max="15.0" :step="0.1"
                             :show-min-max="false" :show-ticks="true" class="flex-1" />
-                        <Input type="number" :step="0.1" :min="levelRange[0]" :max="15.0"
-                            class="w-12 text-center h-8 text-xs pr-0 pl-1" :model-value="levelRange[1].toFixed(1)" />
+                        <Input type="number" class="w-12 text-center h-8 text-xs pr-0 pl-1" :step="0.1"
+                            :min="levelRange[0]" :max="15.0" v-model:model-value="levelRange[1]" />
                     </div>
                 </div>
             </div>
@@ -57,7 +57,7 @@ import Slider from '@/components/shadcn/ui/slider/Slider.vue'
 import { useCollectionStore } from '@/store/collections';
 import { useDataStore } from '@/store/datasource';
 import { toast } from 'vue-sonner';
-import { ref } from 'vue'
+import { ref, watch } from 'vue'
 import MultiSelectTags from '@/components/MultiSelectTags.vue'
 import type { FilterProps } from '@/types/component'
 import { storeToRefs } from 'pinia'
@@ -67,7 +67,12 @@ interface LevelRange {
     end: number
 }
 const showOpen = defineModel<boolean>("open")
-const levelRange = ref([1.0, 15.0])
+const levelRange = ref([12.0, 15.0])
+const levelRangeSlider = ref([12.0, 15.0])
+watch(levelRangeSlider, (newRange) => {
+    const [newMin, newMax] = newRange;
+    levelRange.value = [newMin, newMax]
+})
 const { getSongDataList, getSelectableSource } = useDataStore()
 const { UserCollectionList, CurrentCollectionLabel } = storeToRefs(useCollectionStore());
 const commonLevelOptions: FilterProps<LevelRange>[] =
@@ -88,21 +93,20 @@ const handelImportByLevel = () => {
     const song_list = getSongDataList.list;
     const result_score = new Set<string>([])
     const coll_index = UserCollectionList.value.findIndex(c => c.label == CurrentCollectionLabel.value);
-    //优先筛选常用的
+
     const ranges = selectedLevelRanges.value.map(prop => [prop.value.start, prop.value.end]);
-    if (selectedLevelRanges.value.length >= 1) {
-        for (const song of song_list) {
-            const difficulties = [...song.difficulties.standard, ...song.difficulties.dx];
-            for (const diff of difficulties) {
-                if (ranges.length >= 1) {
-                    for (const range of ranges) {
-                        if (diff.level_value >= range[0] && diff.level_value <= range[1]) {
-                            result_score.add(`${song.id}_${diff.type}_${diff.level_index}`)
-                        }
+    for (const song of song_list) {
+        const difficulties = [...song.difficulties.standard, ...song.difficulties.dx];
+        for (const diff of difficulties) {
+            //优先筛选常用的
+            if (ranges.length >= 1) {
+                for (const range of ranges) {
+                    if (diff.level_value >= range[0] && diff.level_value <= range[1]) {
+                        result_score.add(`${song.id}_${diff.type}_${diff.level_index}`)
                     }
-                } else if (diff.level_value >= levelRange.value[0] && diff.level_value <= levelRange.value[1]) {
-                    result_score.add(`${song.id}_${diff.type}_${diff.level_index}`)
                 }
+            } else if (diff.level_value >= levelRange.value[0] && diff.level_value <= levelRange.value[1]) {
+                result_score.add(`${song.id}_${diff.type}_${diff.level_index}`)
             }
         }
     }

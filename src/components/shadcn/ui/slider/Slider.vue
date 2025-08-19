@@ -82,8 +82,8 @@ const tickPositions = computed(() => {
         </TooltipProvider>
       </SliderRoot>
       <div v-if="showTicks" class="relative h-2 mt-1" aria-hidden="true">
-        <span v-for="tick in tickPositions" :key="tick.value" class="absolute w-px h-2 bg-gray-300"
-          :style="{ left: `${tick.position}%` }">
+        <span v-for="tick in tickPositions" :key="tick.value" class="absolute w-px h-2 bg-gray-300 text-sm"
+          :style="{ left: `${tick.position}%` }">{{ tick.value }}
         </span>
       </div>
     </div>
