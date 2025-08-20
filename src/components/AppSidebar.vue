@@ -41,6 +41,7 @@ import { useCollectionStore, type Collection } from "@/store/collections";
 import { computed, ref, watch } from "vue";
 import type { RouteLocationRaw } from "vue-router";
 import { Capacitor } from '@capacitor/core';
+import { storeToRefs } from "pinia";
 // Menu items.
 const items = [
   {
@@ -56,7 +57,7 @@ const items = [
 ];
 const { JumpToFromEvent, JumpTo } = useRouterHelper()
 const { EditCollectionName, DeleteCollection, newCollection } = useCollectionStore();
-const CollectionStore = useCollectionStore();
+const { UserCollectionList } = storeToRefs(useCollectionStore());
 //Dialog
 const DialogStatus = ref<"none" | "add" | "edit" | "delete">("none")
 const showDialogCompute = computed(() => DialogStatus.value !== 'none');
@@ -155,8 +156,7 @@ const handelPageJump = (e: Event, route: RouteLocationRaw) => {
                 </CollapsibleTrigger>
                 <CollapsibleContent>
                   <SidebarMenuSub class="mr-0 px-0">
-                    <SidebarMenuSubItem v-for="(collection, index) in CollectionStore.UserCollectionList"
-                      :key="collection.label">
+                    <SidebarMenuSubItem v-for="(collection, index) in UserCollectionList" :key="collection.label">
                       <SidebarMenuSubButton class="cursor-pointer group/item relative"
                         @click="handelCollectionJump(collection)">
                         <span class="truncate">{{ collection.label }}</span>

@@ -73,7 +73,7 @@ watch(levelRangeSlider, (newRange) => {
     const [newMin, newMax] = newRange;
     levelRange.value = [newMin, newMax]
 })
-const { getSongDataList, getSelectableSource } = useDataStore()
+const { getSongDataList, getSelectableSource } = storeToRefs(useDataStore())
 const { UserCollectionList, CurrentCollectionLabel } = storeToRefs(useCollectionStore());
 const commonLevelOptions: FilterProps<LevelRange>[] =
     [
@@ -90,7 +90,7 @@ const importing = ref(false)
 const handelImportByLevel = () => {
     if (importing.value) return;
     importing.value = true
-    const song_list = getSongDataList.list;
+    const song_list = getSongDataList.value.list;
     const result_score = new Set<string>([])
     const coll_index = UserCollectionList.value.findIndex(c => c.label == CurrentCollectionLabel.value);
 

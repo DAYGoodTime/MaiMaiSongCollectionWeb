@@ -63,7 +63,7 @@
                     </Button>
                 </div>
                 <div class="flex items-center gap-2">
-                    <Select :disabled="getSelectableSource.length === 0" :model-value="DataSourceStore.selectedSource"
+                    <Select :disabled="getSelectableSource.length === 0" :model-value="selectedSource"
                         @update:model-value="handelDataSourceSwitch">
                         <SelectTrigger class="w-36">
                             <SelectValue placeholder="成绩数据源" />
@@ -92,9 +92,10 @@ import { SelectItem, SelectLabel, SelectTrigger, Select, SelectValue, SelectCont
 import { useDataStore, type DataSourceType } from '@/store/datasource'
 import { toFishStyleId, useCopyHelper } from '@/utils/functionUtil'
 import type { AcceptableValue } from 'reka-ui'
+import { storeToRefs } from 'pinia'
 
-const { getSelectableSource, switchDataSource } = useDataStore();
-const DataSourceStore = useDataStore();
+const { switchDataSource } = useDataStore();
+const { getSelectableSource, selectedSource } = storeToRefs(useDataStore())
 const { song, infoOnly } = defineProps<{
     song: MaiMaiSong,
     infoOnly?: boolean
@@ -117,7 +118,7 @@ const isSelectedType = (type: TypeValue) => {
     return type === SelectedType.value;
 }
 const showCurrentStyleId = (id: number) => {
-    if (DataSourceStore.selectedSource === 'lxns') return id;
+    if (selectedSource.value === 'lxns') return id;
     else return toFishStyleId(id)
 }
 const handelDataSourceSwitch = (ds: AcceptableValue) => {

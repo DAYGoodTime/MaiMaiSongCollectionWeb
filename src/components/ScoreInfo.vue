@@ -81,6 +81,7 @@ import { useCollectionStore } from '@/store/collections';
 import { toast } from 'vue-sonner';
 import { defineAsyncComponent } from 'vue';
 import { useCopyHelper } from '@/utils/functionUtil';
+import { storeToRefs } from 'pinia';
 const { handelCopy } = useCopyHelper()
 const FCFSPanel = defineAsyncComponent(() => import('./FCFSPanel.vue'));
 
@@ -129,7 +130,8 @@ function getClassColorByIndex(index: number, isUtage: boolean) {
 }
 
 // collection
-const { getCollectionNames, pushScoreToCollection } = useCollectionStore();
+const { pushScoreToCollection } = useCollectionStore();
+const { getCollectionNames } = storeToRefs(useCollectionStore())
 function addScoreToCollection(label: string, diff: SongDifficulty) {
     if (pushScoreToCollection(label, `${props.song.id}_${diff.type}_${diff.level_index}`)) {
         toast.success("添加成功");
