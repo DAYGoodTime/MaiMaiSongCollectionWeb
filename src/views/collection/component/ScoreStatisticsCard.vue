@@ -1,5 +1,5 @@
 <template>
-    <Card class="mx-auto mt-4 lg:w-[30rem] shadow hover:shadow-xl">
+    <Card class="mx-4 sm:mx-auto mt-4 lg:w-[30rem] shadow hover:shadow-xl">
         <CardTitle>
             <div class="flex justify-between items-center mb-4">
                 <div></div>

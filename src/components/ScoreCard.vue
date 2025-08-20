@@ -1,6 +1,6 @@
 <template>
     <div>
-        <div class="w-64 rounded-lg shadow-lg transition-all duration-300 hover:shadow-xl"
+        <div class="w-72 sm:w-64 rounded-lg shadow-lg transition-all duration-300 hover:shadow-xl"
             @click="() => openTooltips = true" @dblclick="() => SongInfoModalOpen = true">
             <div :class="cardData.cardClass" @click="toggleDescMenu" class="cursor-pointer p-2">
                 <div class="flex gap-1">
@@ -11,7 +11,7 @@
                     <div class="flex-1 text-white min-w-0">
                         <div class="flex justify-between items-start">
                             <TooltipProvider>
-                                <Tooltip v-model:open="openTooltips">
+                                <Tooltip v-model:open="openTooltips" :delay-duration="100">
                                     <TooltipTrigger class="font-bold truncate text-left">
                                         {{ score.song.title }}
                                     </TooltipTrigger>
@@ -26,7 +26,7 @@
                         <div v-if="cardData.unplayed" class="font-bold text-xl text-left">
                             暂未游玩
                         </div>
-                        <div v-else class="flex items-center font-bold text-2xl text-left">
+                        <div v-else class="flex items-center justify-between font-bold text-2xl text-left">
                             <span>{{ cardData.achievementFormatted }}%</span>
                             <img :src="cardData.achievementIconUrl" alt="Achievement Icon" class="h-8 w-16"
                                 loading="lazy">
