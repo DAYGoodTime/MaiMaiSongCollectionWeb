@@ -159,8 +159,10 @@ const updateLXNSDataSource = async (type: LXNSAuthType = 'Token') => {
         // 显示成功提示
         toast.success('落雪数据源更新成功！')
     } catch (error: any) {
-        if (error.detail) {
-            toast.error(`落雪数据源更新失败 : ${error.detail}`, { position: "top-center" })
+        if (error.details.details.code === 401) {
+            toast.error(`落雪数据源更新失败 : token无效`, { position: "top-center" })
+        } else if (error.details) {
+            toast.error(`落雪数据源更新失败 : ${error.details.message}`, { position: "top-center" })
         } else {
             toast.error('落雪数据源更新失败，请查看控制台输出')
         }
