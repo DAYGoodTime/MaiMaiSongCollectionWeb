@@ -21,7 +21,7 @@
                     <div class="space-y-1">
                         <p class="text-sm font-medium">最后更新时间</p>
                         <p class="text-sm text-muted-foreground">
-                            {{ formatDate(getDivingFishScoreList.update_time) }}
+                            {{ formatDate(getDivingFishScoreList.value.update_time) }}
                         </p>
                     </div>
                     <div class="flex items-center gap-2">
@@ -79,14 +79,13 @@ import { useDataStore } from '@/store/datasource'
 import { ref } from 'vue'
 import { toast } from 'vue-sonner'
 import { queryFishUserScores } from '@/api/fish'
+import { storeToRefs } from 'pinia'
 const {
-    getDivingFishScoreList,
     updateDivingFishData,
     exportDivingFishData,
-    hasDivingFishData,
-    switchDataSource,
-    selectedSource
+    switchDataSource
 } = useDataStore();
+const { getDivingFishScoreList, hasDivingFishData, selectedSource } = storeToRefs(useDataStore())
 const DataSourceUpdating = ref(false)
 const showFishDialog = ref(false)
 const fishCredentials = ref('')

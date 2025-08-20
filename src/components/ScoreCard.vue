@@ -84,6 +84,7 @@ import {
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/shadcn/ui/tooltip';
 import { onClickOutside } from '@vueuse/core';
 import { useDataStore } from '@/store/datasource';
+import { storeToRefs } from 'pinia';
 
 const FCFSPanel = defineAsyncComponent(() => import('./FCFSPanel.vue'));
 
@@ -94,7 +95,7 @@ const props = defineProps<{
 const openMenu = ref(false);
 const openTooltips = ref(false)
 const target = ref(null);
-const { selectedSource } = useDataStore()
+const { selectedSource } = storeToRefs(useDataStore())
 
 onClickOutside(target, () => {
     if (openMenu.value) {
@@ -105,7 +106,7 @@ onClickOutside(target, () => {
     }
 });
 const showCurrentStyleId = (id: number) => {
-    if (selectedSource === 'lxns') return id;
+    if (selectedSource.value === 'lxns') return id;
     else return toFishStyleId(id)
 }
 const cardData = computed(() => {
@@ -136,19 +137,19 @@ const cardData = computed(() => {
 });
 
 //message 留言
-const { CollectionMessageMap } = useCollectionStore();
-const message = ref(CollectionMessageMap[props.score.score_id]?.message || "");
+const { CollectionMessageMap } = storeToRefs(useCollectionStore());
+const message = ref(CollectionMessageMap.value[props.score.score_id]?.message || "");
 const toggleDescMenu = () => {
-    const msgObj = CollectionMessageMap[props.score.score_id];
+    const msgObj = CollectionMessageMap.value[props.score.score_id];
     if (!msgObj) {
-        CollectionMessageMap[props.score.score_id] = { message: "" };
+        CollectionMessageMap.value[props.score.score_id] = { message: "" };
     }
-    message.value = CollectionMessageMap[props.score.score_id].message;
+    message.value = CollectionMessageMap.value[props.score.score_id].message;
     openMenu.value = !openMenu.value;
 }
 const onUpdateMessage = debounce((val: string | number) => {
-    if (CollectionMessageMap[props.score.score_id]) {
-        CollectionMessageMap[props.score.score_id].message = String(val);
+    if (CollectionMessageMap.value[props.score.score_id]) {
+        CollectionMessageMap.value[props.score.score_id].message = String(val);
     }
 }, 300);
 //copy

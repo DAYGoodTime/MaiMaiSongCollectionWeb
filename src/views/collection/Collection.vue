@@ -110,12 +110,13 @@ import type { StatusBoard, StatusValue } from '@/views/collection/component/Scor
 import ScoreStatisticsCard from '@/views/collection/component/ScoreStatisticsCard.vue';
 import AdvanceFeature from './component/AdvanceFeature.vue';
 import { useScoreSearch, type OrderBadge } from '@/utils/songSearch';
+import { storeToRefs } from 'pinia';
 
 
 const { route, backHome } = useRouterHelper()
 const { getScore, getSongListAsMap } = useDataStore()
-const { getCollectionByLabel, UserCollectionList, removeFromCollection, pushScoreToCollection } = useCollectionStore()
-const collectionStore = useCollectionStore()
+const { getCollectionByLabel, removeFromCollection, pushScoreToCollection } = useCollectionStore()
+const { CurrentCollectionLabel, UserCollectionList } = storeToRefs(useCollectionStore())
 const { updateIndex, searchScore, orderBy, advanceFilter } = useScoreSearch()
 
 const SONG_MAP = getSongListAsMap();
@@ -267,7 +268,7 @@ const initScoreList = () => {
         backHome()
         return;
     }
-    collectionStore.CurrentCollectionLabel = coll.label
+    CurrentCollectionLabel.value = coll.label
     rawCollection.value = coll;
 
     if (rawCollection.value) {
@@ -296,7 +297,7 @@ const initScoreList = () => {
 initScoreList();//立马进行初始化
 
 // computed
-const getOtherCollections = computed(() => UserCollectionList.filter(c => c.label !== route.query.label))
+const getOtherCollections = computed(() => UserCollectionList.value.filter(c => c.label !== route.query.label))
 
 const filteredScoreList = computed(() => {
     listVersion.value;

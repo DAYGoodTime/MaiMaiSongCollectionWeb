@@ -24,6 +24,7 @@ import { ScrollArea } from "@/components/shadcn/ui/scroll-area";
 import { LEVEL_MATCH_PATTEN } from "@/utils/StrUtil"
 import { useDataStore } from "@/store/datasource";
 import { toast } from "vue-sonner";
+import { storeToRefs } from "pinia";
 const modelValue = defineModel<Tag[]>("tags")
 const open = ref(false);
 const searchTerm = ref("");
@@ -140,12 +141,12 @@ const filteredTags = computed(() => {
   if (versionFiltered.length > 0) versionFiltered.forEach((e) => result.add(e));
   return Array.from(result);
 });
-const { getSelectableSource } = useDataStore();
+const { getSelectableSource } = storeToRefs(useDataStore())
 const onSelectTag = (ev: ListboxItemSelectEvent<AcceptableValue>) => {
   if (typeof ev.detail.value === 'object') {
     if (ev.detail.value && ev.detail.value.needDs) {
       //check datasource is available
-      if (getSelectableSource.length === 0) {
+      if (getSelectableSource.value.length === 0) {
         toast.error("请添加成绩数据源后再使用成绩相关Tag");
         return;
       }

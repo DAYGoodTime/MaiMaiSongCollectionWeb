@@ -21,7 +21,7 @@
                     <div class="space-y-1">
                         <p class="text-sm font-medium">最后更新时间</p>
                         <p class="text-sm text-muted-foreground">
-                            {{ formatDate(getLXNSScoreList.update_time) }}
+                            {{ formatDate(getLXNSScoreList.value.update_time) }}
                         </p>
                     </div>
                     <div class="flex items-center gap-2">
@@ -111,20 +111,20 @@ import { formatDate } from '@/utils/StrUtil';
 import { useOAuthStore } from '@/store/oauth';
 import { useCopyHelper } from '@/utils/functionUtil';
 import { queryDataFromLXNS, type LXNSAuthType } from '@/api/lxns'
+import { storeToRefs } from 'pinia'
 const DataSourceUpdating = ref(false)
 const showLxnsDialog = ref(false)
 const showLxnsOAuthDialog = ref(false)
 const lnxsCredentials = ref("")
 const LXNS_OAUTH_URI = import.meta.env.VITE_LXNS_OAUTH_URI
 const {
-    getLXNSScoreList,
     exportLXNSData,
-    hasLXNSData,
     switchDataSource,
-    selectedSource,
     updateLXNSData
 } = useDataStore();
-const { hasLXNSOAuth, isAccessTokenExpired, isRefreshTokenExpired, getLXNSToken, LXNSOAuth, refreshLXNSToken, cleanLXNSOAuth } = useOAuthStore();
+const { getLXNSScoreList, hasLXNSData, selectedSource } = storeToRefs(useDataStore())
+const { isAccessTokenExpired, isRefreshTokenExpired, getLXNSToken, cleanLXNSOAuth } = useOAuthStore();
+const { hasLXNSOAuth, LXNSOAuth } = storeToRefs(useOAuthStore())
 const { handelCopy } = useCopyHelper()
 
 
@@ -172,7 +172,7 @@ const updateLXNSDataSource = async (type: LXNSAuthType = 'Token') => {
 //handler
 const handelLXNSDialog = async () => {
     //如果有OAuth则尝试通过OAuth更新
-    if (hasLXNSOAuth) {
+    if (hasLXNSOAuth.value) {
         DataSourceUpdating.value = true
         //check acc expire
         if (isAccessTokenExpired()) {
@@ -185,17 +185,15 @@ const handelLXNSDialog = async () => {
                 return;
             }
             //refresh token
-            const b = await refreshLXNSToken(lnxsCredentials.value);
+            const b = await getLXNSToken(lnxsCredentials.value, 'refresh');
             if (!b) {
-                //clean up auth info
-                cleanLXNSOAuth();
-                toast.error("OAuth已过期，请用token更新或者重新申请", { position: "top-center" })
                 showLxnsDialog.value = true
+                DataSourceUpdating.value = false;
                 return;
             }
         }
         //update with oauth
-        lnxsCredentials.value = `Bearer ${LXNSOAuth.access_token}`
+        lnxsCredentials.value = `Bearer ${LXNSOAuth.value.access_token}`
         toast.info("使用OAuth更新中~")
         await updateLXNSDataSource('OAuth')
     } else {
@@ -206,7 +204,7 @@ const submitOAuthCode = async () => {
     DataSourceUpdating.value = true
     const b = await getLXNSToken(lnxsCredentials.value, 'query');
     if (!b) { DataSourceUpdating.value = false; return };
-    lnxsCredentials.value = `Bearer ${LXNSOAuth.access_token}`
+    lnxsCredentials.value = `Bearer ${LXNSOAuth.value.access_token}`
     toast.info("使用OAuth更新中~")
     await updateLXNSDataSource('OAuth')
 }
