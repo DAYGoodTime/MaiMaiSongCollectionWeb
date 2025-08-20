@@ -35,7 +35,8 @@ export const useOAuthStore = defineStore("lxns-oauth", () => {
         } catch (error: any) {
             if (error.details) {
                 //invalid auth
-                if (error.details.code === 401) {
+                if (error.details.details.code === 401) {
+                    cleanLXNSOAuth();
                     toast.error('落雪OAuth凭证失效,请重新授权', { position: "top-center" })
                     return false;
                 }
@@ -56,5 +57,5 @@ export const useOAuthStore = defineStore("lxns-oauth", () => {
     const cleanLXNSOAuth = () => {
         LXNSOAuth.value = EMPTY_OAUTH;
     }
-    return { hasLXNSOAuth, LXNSOAuth, getLXNSToken, isAccessTokenExpired, isRefreshTokenExpired, refreshLXNSToken, cleanLXNSOAuth }
+    return { hasLXNSOAuth, LXNSOAuth, getLXNSToken, isAccessTokenExpired, isRefreshTokenExpired, cleanLXNSOAuth }
 });
