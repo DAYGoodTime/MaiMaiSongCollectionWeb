@@ -4,6 +4,9 @@ import { request } from "./base"
 export type LXNSAuthType = 'Token' | 'OAuth'
 
 export const LXNS_HOST = "https://maimai.lxns.net"
+const APP_ID = import.meta.env.VITE_LXNS_OAUTH_APP_ID
+const APP_SECRET = import.meta.env.VITE_LXNS_OAUTH_APP_SECRET
+const APP_REDIRECT_URI = import.meta.env.VITE_LXNS_OAUTH_APP_REDIRECT_URI
 
 export const queryDataFromLXNS = (credentials: string, type: LXNSAuthType): Promise<LXNSResponse<any>> => {
     return new Promise((resolve, reject) => {
