@@ -8,8 +8,11 @@
                 </CardHeader>
                 <CardContent class="space-y-4">
                     <div>
-                        <p class="text-sm font-mono text-gray-400">双击卡片打开歌曲详情</p>
-                        <p class="text-sm font-medium text-muted-foreground">排序方式</p>
+                        <p class="text-sm font-semibold text-gray-400 mb-2">
+                            双击卡片打开歌曲详情，右键可以进行删除等操作。悬浮在曲名上方可以呼出完整文本，点击文本可以直接复制</p>
+                        <p class="text-sm font-semibold mb-2">合集默认没有成绩，需要在高级功能处进行导入</p>
+                        <p class="text-sm font-semibold mb-2 text-red-600">没有数据源的情况下所有成绩都是隐藏的！需要筛选中启用‘未游玩成绩’</p>
+                        <p class="font-bold text-xl">排序方式</p>
                         <div class="flex gap-4 justify-center pt-2">
                             <Badge class="w-fit h-8 cursor-pointer" v-for="(order, index) in OrderBadges"
                                 @click="handleOrderStatus(order, index)">

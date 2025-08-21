@@ -6,6 +6,8 @@
             <p v-if="appStore.hasUserName" class="mt-2">
                 欢迎回来：<span class="font-semibold">{{ appStore.UserName }}</span>
             </p>
+            <p v-if="Capacitor.getPlatform() === 'web'" class="text-red-600 font-bold">因为api的跨域问题，所以数据源的更新都需要能够访问海外才可以使用
+            </p>
         </div>
 
         <div class="space-y-6">
@@ -17,7 +19,7 @@
                         <span>歌曲数据源</span>
                     </CardTitle>
                     <CardDescription>
-                        管理歌曲数据的同步和更新
+                        歌曲数据源 (由Usagi提供)
                     </CardDescription>
                 </CardHeader>
                 <CardContent>
@@ -44,7 +46,7 @@
                             <MessageSquare class="h-5 w-5" />
                             <span>合集和留言数据</span>
                         </div>
-                        <div class="flex items-center gap-2">
+                        <div class="flex items-center gap-4">
                             <Button variant="outline" @click="exportCollectionData">
                                 导出
                             </Button>
@@ -55,7 +57,7 @@
                         </div>
                     </CardTitle>
                     <CardDescription>
-                        管理合集和留言数据(使用需要梯子)
+                        管理合集和留言数据
                     </CardDescription>
                 </CardHeader>
                 <CardContent>
@@ -145,6 +147,7 @@ import { getProjectVersion, formatDate } from '@/utils/StrUtil'
 import LXNSCard from './LXNSCard.vue'
 import DivingFIshCard from './DivingFIshCard.vue'
 import { useDataStore } from '@/store/datasource'
+import { Capacitor } from '@capacitor/core'
 
 // 响应式数据
 const showSetNameDialog = ref(false)

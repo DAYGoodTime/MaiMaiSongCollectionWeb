@@ -73,6 +73,9 @@
                             <SelectItem :value="ds" v-for="ds in getSelectableSource" :key="ds">
                                 {{ ds }}
                             </SelectItem>
+                            <SelectItem v-if="getSelectableSource.length === 0" value="empty">
+                                没有可用数据源
+                            </SelectItem>
                         </SelectContent>
                     </Select>
                 </div>
