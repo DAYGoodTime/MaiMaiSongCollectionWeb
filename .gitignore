@@ -25,6 +25,8 @@ dist-ssr
 *.sln
 *.sw?
 OPTIMIZATION_CHECKLIST.md
+GEMINI.md
+CLAUDE.md
 
 test.js
 .env

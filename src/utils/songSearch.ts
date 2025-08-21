@@ -8,6 +8,7 @@ import { useDataStore } from "@/store/datasource";
 import type { AdvanceFilterFilters } from "@/types/component";
 import { useAppStore } from "@/store/appStore";
 import { toRaw } from "vue";
+import { pinyin } from "pinyin-pro";
 
 export interface OrderBadge {
     label: string,
@@ -146,7 +147,9 @@ export const useScoreSearch = () => {
                 id: 'score_id',
                 index: [
                     { field: 'title', tokenize: 'forward', priority: 10 },
+                    { field: 'titlePinYin', tokenize: 'forward', priority: 9 },
                     { field: 'aliasesLower', tokenize: 'forward', priority: 8 },
+                    { field: 'aliasesPinYin', tokenize: 'forward', priority: 7 },
                     { field: 'artist', tokenize: 'forward', priority: 5 },
                     { field: 'noteDesigners', tokenize: 'forward', priority: 1 }
                 ]
@@ -154,11 +157,22 @@ export const useScoreSearch = () => {
         });
         scoreList.forEach(item => {
             const { song, score_id } = item;
+            const aliasesPinYin = []
+            if (Array.isArray(song.aliases)) {
+                for (const alias of song.aliases) {
+                    const py = pinyin(alias as string, { toneType: 'none', nonZh: "removed", separator: "", v: true });
+                    if (py.length > 0) {
+                        aliasesPinYin.push(py)
+                    }
+                }
+            }
             const indexedDoc = {
                 score_id: score_id,
                 title: song.title,
+                titlePinYin: pinyin(song.title, { toneType: 'none', nonZh: "removed", separator: "", v: true }),
                 artist: song.artist,
                 aliasesLower: song.aliases?.join(" ").toLowerCase() || "",
+                aliasesPinYin,
                 noteDesigners: getNoteDesigners(song)
             };
             (scoreIndex as Document).add(indexedDoc);

@@ -1,6 +1,7 @@
 
 //AdvanceFilter
 export interface AdvanceFilterProps {
+    showTrigger: boolean,
     modelValue: {
         difficulty?: FilterProps<number>[];
         musicCategories?: FilterProps<string>[];

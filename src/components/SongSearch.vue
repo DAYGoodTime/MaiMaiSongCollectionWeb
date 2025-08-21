@@ -55,7 +55,6 @@
   </Combobox>
 </template>
 <script setup lang="ts">
-import 'vue-virtual-scroller/dist/vue-virtual-scroller.css'
 import { Check, X, Search } from "lucide-vue-next";
 import { computed, ref } from "vue";
 import {

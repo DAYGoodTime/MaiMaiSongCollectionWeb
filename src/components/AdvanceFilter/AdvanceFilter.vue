@@ -1,14 +1,13 @@
 <template>
-    <div class="w-full max-w-4xl mx-auto bg-white border border-gray-200 rounded-lg">
-        <!-- 标题栏 -->
-        <div class="flex items-center justify-between p-4 cursor-pointer hover:bg-gray-50"
+    <slot name="trigger">
+        <div v-if="showTrigger" class="flex items-center justify-between p-4 cursor-pointer hover:bg-gray-50"
             @click="isExpanded = !isExpanded">
             <h3 class="text-lg font-medium text-gray-900">高级筛选设置</h3>
             <ChevronUp v-if="isExpanded" :size="20" />
             <ChevronDown v-else :size="20" />
         </div>
-
-        <!-- 筛选内容 -->
+    </slot>
+    <slot name="default">
         <div v-if="isExpanded" class="p-4 border-t border-gray-200 space-y-6">
             <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <!-- 筛选难度 -->
@@ -64,9 +63,9 @@
             </div>
 
             <!-- 筛选谱面定数 -->
-            <div>
+            <div class="w-96">
                 <Label class="block text-sm font-medium text-gray-700 mb-3">
-                    筛选谱面定数
+                    筛选谱面定数 <span class="text-xs font-light">滑块可以快速选定常用的定数范围，如果需要其他范围，可以从左右两边手动输入你想要的定数</span>
                 </Label>
                 <div class="flex items-center space-x-4 pt-2">
                     <Input type="number" :step="0.1" :min="1.0" :max="filters.difficultyRange[1]"
@@ -75,7 +74,7 @@
                         @update:model-value="handleRangeChange($event, 0)" />
                     <Slider :model-value="filters.difficultyRange"
                         @update:model-value="(value) => updateFilters({ difficultyRange: value as [number, number] || [1.0, 15.0] })"
-                        :min="1.0" :max="15.0" :step="0.1" :show-min-max="false" :show-ticks="true" class="flex-1" />
+                        :min="12.0" :max="15.0" :step="0.1" :show-min-max="false" :show-ticks="true" class="flex-1" />
                     <Input type="number" :step="0.1" :min="filters.difficultyRange[0]" :max="15.0"
                         class="w-12 text-center h-8 text-xs pr-0 pl-1"
                         :model-value="filters.difficultyRange[1].toFixed(1)"
@@ -126,18 +125,18 @@
                 </Button>
             </div>
         </div>
-    </div>
+    </slot>
 </template>
 
 <script setup lang="ts">
-import { ref, reactive, watch } from 'vue'
+import { reactive, watch } from 'vue'
 import { ChevronUp, ChevronDown, RotateCcw } from 'lucide-vue-next'
 import { Label } from '@/components/shadcn/ui/label'
 import { Button } from '@/components/shadcn/ui/button'
 import { Checkbox } from '@/components/shadcn/ui/checkbox'
 import { Input } from '@/components/shadcn/ui/input'
-import MultiSelectButtons from './MultiSelectButtons.vue'
-import MultiSelectTags from './MultiSelectTags.vue'
+import MultiSelectButtons from '@/components/MultiSelectButtons.vue'
+import MultiSelectTags from '@/components/MultiSelectTags.vue'
 import Slider from '@/components/shadcn/ui/slider/Slider.vue'
 import type { AdvanceFilterEmits, AdvanceFilterProps, AdvanceFilterFilters, FilterProps } from '@/types/component'
 import { SongGenreList, SongMapList, SongVersionList } from '@/utils/StrUtil'
@@ -150,7 +149,7 @@ const props = defineProps<AdvanceFilterProps>()
 const emit = defineEmits<AdvanceFilterEmits>()
 
 // 响应式数据
-const isExpanded = ref(false)
+const isExpanded = defineModel("isExpanded")
 
 // 默认值
 const defaultFilters: AdvanceFilterFilters = {

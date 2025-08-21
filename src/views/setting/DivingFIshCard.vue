@@ -6,11 +6,20 @@
                 <CardTitle class="flex items-center justify-between">
                     <div class="flex items-center gap-2">
                         <Fish class="h-5 w-5" />
-                        <span>水鱼数据源</span>
+                        <span>水鱼数据源 {{ selectedSource === 'divingfish' ? '(当前默认数据源)' : '' }}</span>
                     </div>
-                    <Button variant="outline" :disabled="!hasDivingFishData" @click="exportDivingFishData">
-                        {{ hasDivingFishData ? '导出' : '无数据' }}
-                    </Button>
+                    <div v-if="hasDivingFishData" class="flex gap-4">
+                        <Button variant="outline" @click="exportDivingFishData">
+                            导出
+                        </Button>
+                        <ActionConfirm title="你确定要删除该数据源吗?" confirm-text="删除" cancel-text="保留"
+                            @confirm="ClearDataSource('divingfish')">
+                            <Button variant="destructive">
+                                删除
+                            </Button>
+                        </ActionConfirm>
+                    </div>
+
                 </CardTitle>
                 <CardDescription>
                     管理水鱼成绩的同步和更新
@@ -25,7 +34,7 @@
                         </p>
                     </div>
                     <div class="flex items-center gap-2">
-                        <Button variant="outline" @click="() => switchDataSource('divingfish')"
+                        <Button v-if="hasDivingFishData" variant="outline" @click="() => switchDataSource('divingfish')"
                             :disabled="!hasDivingFishData || selectedSource === 'divingfish'">
                             设为默认
                         </Button>
@@ -80,10 +89,12 @@ import { ref } from 'vue'
 import { toast } from 'vue-sonner'
 import { queryFishUserScores } from '@/api/fish'
 import { storeToRefs } from 'pinia'
+import ActionConfirm from '@/components/ActionConfirm.vue'
 const {
     updateDivingFishData,
     exportDivingFishData,
-    switchDataSource
+    switchDataSource,
+    ClearDataSource
 } = useDataStore();
 const { getDivingFishScoreList, hasDivingFishData, selectedSource } = storeToRefs(useDataStore())
 const DataSourceUpdating = ref(false)

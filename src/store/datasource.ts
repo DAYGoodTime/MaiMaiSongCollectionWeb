@@ -5,12 +5,12 @@ import SONG_DATA from "@/assets/data/song_data_extra.json" with { type: 'json' }
 import type { MaiMaiSong, SongType } from "@/types/songs";
 import type { LXNSScore } from "@/types/lxns";
 import { formatDate } from "@/utils/StrUtil";
-import { useLocalStorage } from "@vueuse/core";
+import { useLocalStorage, type RemovableRef } from "@vueuse/core";
 import { conventToScore, exportFile, toLXNSStyleId } from "@/utils/functionUtil";
 import type { FishScore } from "@/types/divingfish";
 import { toast } from "vue-sonner";
 
-export type DataSourceType = "divingfish" | "lxns";
+export type DataSourceType = "divingfish" | "lxns" | "empty";
 
 const CURRENT_SONG_VERSION = 2
 
@@ -90,6 +90,9 @@ export const useDataStore = defineStore("datasource", () => {
       version: CURRENT_SCORE_VERSION
     };
     DivingFishSource.value = source;
+    if (selectedSource.value === "empty") {
+      selectedSource.value = "divingfish"
+    }
   }
   const hasDivingFishData = computed(() => {
     return DivingFishSource.value.list.size > 0
@@ -114,6 +117,9 @@ export const useDataStore = defineStore("datasource", () => {
       version: CURRENT_SCORE_VERSION
     };
     LXNSSource.value = source
+    if (selectedSource.value === "empty") {
+      selectedSource.value = "lxns"
+    }
   }
   const hasLXNSData = computed(() => {
     return LXNSSource.value.list.size > 0
@@ -125,7 +131,7 @@ export const useDataStore = defineStore("datasource", () => {
     }
   }
   //auto
-  const selectedSource: Ref<DataSourceType> = useLocalStorage("selected_datasource", "lxns") as Ref<DataSourceType>
+  const selectedSource: RemovableRef<DataSourceType> = useLocalStorage("selected_datasource", "empty") as RemovableRef<DataSourceType>
   const getDataSource = computed(() => {
     return selectedSource.value === "divingfish" ? toValue(DivingFishSource) : toValue(LXNSSource)
   })
@@ -156,6 +162,13 @@ export const useDataStore = defineStore("datasource", () => {
     if (type === "divingfish") {
       DivingFishSource.value = DEFAULT_DS;
     }
+    if (getSelectableSource.value.length === 0) {
+      selectedSource.value = "empty"
+    } else {
+      selectedSource.value = getSelectableSource.value[0]
+    }
+    const message = selectedSource.value === 'empty' ? ',当前没有可用的数据源了' : `当前默认数据源为 ${selectedSource.value}`
+    toast.success(`成功删除数据源 ${type} ${message}`, { position: "top-center" })
   }
   return {
     selectedSource,

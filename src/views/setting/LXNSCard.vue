@@ -6,11 +6,19 @@
                 <CardTitle class="flex items-center justify-between">
                     <div class="flex items-center gap-2">
                         <Snowflake class="h-5 w-5" />
-                        <span>落雪数据源</span>
+                        <span>落雪数据源 {{ selectedSource === 'lxns' ? '(当前默认数据源)' : '' }}</span>
                     </div>
-                    <Button variant="outline" :disabled="!hasLXNSData" @click="exportLXNSData">
-                        {{ hasLXNSData ? '导出' : '无数据' }}
-                    </Button>
+                    <div v-if="hasLXNSData" class="flex gap-4">
+                        <Button variant="outline" @click="exportLXNSData">
+                            导出
+                        </Button>
+                        <ActionConfirm title="你确定要删除该数据源吗?" confirm-text="删除" cancel-text="保留"
+                            @confirm="ClearDataSource('lxns')">
+                            <Button variant="destructive">
+                                删除
+                            </Button>
+                        </ActionConfirm>
+                    </div>
                 </CardTitle>
                 <CardDescription>
                     管理落雪成绩的同步和更新
@@ -25,7 +33,7 @@
                         </p>
                     </div>
                     <div class="flex items-center gap-2">
-                        <Button variant="outline" @click="() => switchDataSource('lxns')"
+                        <Button v-if="hasLXNSData" variant="outline" @click="() => switchDataSource('lxns')"
                             :disabled="!hasLXNSData || selectedSource === 'lxns'">
                             设为默认
                         </Button>
@@ -52,7 +60,7 @@
                 <form @submit.prevent="updateLXNSDataSource('Token')" class="space-y-4 pt-4">
                     <div class="space-y-2">
                         <Label for="lxns-token">API密钥</Label>
-                        <Input id="lxns-token" v-model="lnxsCredentials" placeholder="个人 API 密钥" required />
+                        <Input id="lxns-token" v-model="lxnsCredentials" placeholder="个人 API 密钥" required />
                     </div>
                     <DialogFooter class="gap-4 lg:gap-2">
                         <Button type="button" variant="outline" @click="showLxnsDialog = false">
@@ -82,7 +90,7 @@
                 <form @submit.prevent="() => submitOAuthCode()" class="space-y-4 pt-4">
                     <div class="space-y-2">
                         <Label for="lxns-token">授权码</Label>
-                        <Input id="lxns-token" v-model="lnxsCredentials" placeholder="落雪OAuth授权码" required />
+                        <Input id="lxns-token" v-model="lxnsCredentials" placeholder="落雪OAuth授权码" required />
                     </div>
                     <DialogFooter class="gap-4 lg:gap-2">
                         <Button type="button" variant="outline" @click="showLxnsOAuthDialog = false">
@@ -112,15 +120,17 @@ import { useOAuthStore } from '@/store/oauth';
 import { useCopyHelper } from '@/utils/functionUtil';
 import { queryDataFromLXNS, type LXNSAuthType } from '@/api/lxns'
 import { storeToRefs } from 'pinia'
+import ActionConfirm from '@/components/ActionConfirm.vue'
 const DataSourceUpdating = ref(false)
 const showLxnsDialog = ref(false)
 const showLxnsOAuthDialog = ref(false)
-const lnxsCredentials = ref("")
+const lxnsCredentials = ref("")
 const LXNS_OAUTH_URI = import.meta.env.VITE_LXNS_OAUTH_URI
 const {
     exportLXNSData,
     switchDataSource,
-    updateLXNSData
+    updateLXNSData,
+    ClearDataSource
 } = useDataStore();
 const { getLXNSScoreList, hasLXNSData, selectedSource } = storeToRefs(useDataStore())
 const { isAccessTokenExpired, isRefreshTokenExpired, getLXNSToken, cleanLXNSOAuth } = useOAuthStore();
@@ -130,13 +140,13 @@ const { handelCopy } = useCopyHelper()
 
 // 更新落雪数据源
 const updateLXNSDataSource = async (type: LXNSAuthType = 'Token') => {
-    if (!lnxsCredentials.value) {
+    if (!lxnsCredentials.value) {
         toast.error(`请填写您的落雪${type === 'Token' ? '账号个人 API 密钥' : 'OAuth授权码'}`)
         return
     }
     DataSourceUpdating.value = true
     try {
-        const result: any = await queryDataFromLXNS(lnxsCredentials.value, type)
+        const result: any = await queryDataFromLXNS(lxnsCredentials.value, type)
         if (!result.success) {
             if (result.details) {
                 if (result.details.code == 401) {
@@ -153,14 +163,16 @@ const updateLXNSDataSource = async (type: LXNSAuthType = 'Token') => {
         showLxnsDialog.value = false
         showLxnsOAuthDialog.value = false
         // 清空表单
-        lnxsCredentials.value = ''
+        lxnsCredentials.value = ''
         //存入数据
         updateLXNSData(result.data)
         // 显示成功提示
         toast.success('落雪数据源更新成功！')
     } catch (error: any) {
-        if (error.detail) {
-            toast.error(`落雪数据源更新失败 : ${error.detail}`, { position: "top-center" })
+        if (error.details.details.code === 401) {
+            toast.error(`落雪数据源更新失败 : token无效`, { position: "top-center" })
+        } else if (error.details) {
+            toast.error(`落雪数据源更新失败 : ${error.details.message}`, { position: "top-center" })
         } else {
             toast.error('落雪数据源更新失败，请查看控制台输出')
         }
@@ -185,7 +197,7 @@ const handelLXNSDialog = async () => {
                 return;
             }
             //refresh token
-            const b = await getLXNSToken(lnxsCredentials.value, 'refresh');
+            const b = await getLXNSToken(lxnsCredentials.value, 'refresh');
             if (!b) {
                 showLxnsDialog.value = true
                 DataSourceUpdating.value = false;
@@ -193,7 +205,7 @@ const handelLXNSDialog = async () => {
             }
         }
         //update with oauth
-        lnxsCredentials.value = `Bearer ${LXNSOAuth.value.access_token}`
+        lxnsCredentials.value = `Bearer ${LXNSOAuth.value.access_token}`
         toast.info("使用OAuth更新中~")
         await updateLXNSDataSource('OAuth')
     } else {
@@ -202,16 +214,16 @@ const handelLXNSDialog = async () => {
 }
 const submitOAuthCode = async () => {
     DataSourceUpdating.value = true
-    const b = await getLXNSToken(lnxsCredentials.value, 'query');
+    const b = await getLXNSToken(lxnsCredentials.value, 'query');
     if (!b) { DataSourceUpdating.value = false; return };
-    lnxsCredentials.value = `Bearer ${LXNSOAuth.value.access_token}`
+    lxnsCredentials.value = `Bearer ${LXNSOAuth.value.access_token}`
     toast.info("使用OAuth更新中~")
     await updateLXNSDataSource('OAuth')
 }
 const handelUseOAuth = () => {
     showLxnsDialog.value = false;
     showLxnsOAuthDialog.value = true;
-    lnxsCredentials.value = ''
+    lxnsCredentials.value = ''
 }
 
 </script>
