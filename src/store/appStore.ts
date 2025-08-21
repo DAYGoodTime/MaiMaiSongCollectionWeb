@@ -4,6 +4,7 @@ import { defineStore } from "pinia";
 import { computed, ref } from "vue";
 import { useDataStore } from "./datasource";
 import { getNoteDesigners } from "@/utils/StrUtil";
+import { pinyin } from "pinyin-pro";
 
 export const useAppStore = defineStore("app", () => {
   const UserName = useLocalStorage("user_name", "");
@@ -14,8 +15,10 @@ export const useAppStore = defineStore("app", () => {
       id: 'id',
       index: [
         { field: 'title', tokenize: 'forward', preset: 'match', priority: 10 },
+        { field: 'titlePinYin', tokenize: 'forward', preset: 'match', priority: 8 },
         { field: 'aliasesLower', tokenize: 'forward', priority: 8 },
-        { field: 'artist', tokenize: 'forward', priority: 5 },
+        { field: 'aliasesPinYin', tokenize: 'forward', priority: 7 },
+        { field: 'artist', tokenize: 'forward', priority: 6 },
         { field: 'noteDesigners', tokenize: 'forward', preset: 'match', priority: 9 }
       ]
     }
@@ -24,12 +27,25 @@ export const useAppStore = defineStore("app", () => {
   const SONG_DATA = getSongDataList.list
   //直接在这里加载索引
   SONG_DATA.forEach(song => {
+    const aliasesLower = song.aliases?.join(" ").toLowerCase() || ""
+    const aliasesPinYin = []
+    if (Array.isArray(song.aliases)) {
+      for (const alias of song.aliases) {
+        const py = pinyin(alias as string, { toneType: 'none', nonZh: "removed", separator: "", v: true });
+        if (py.length > 0) {
+          aliasesPinYin.push(py)
+        }
+      }
+    }
+    const noteDesigners = getNoteDesigners(song)
     const indexedDoc = {
       id: song.id,
       title: song.title.toLocaleLowerCase(),
+      titlePinYin: pinyin(song.title, { toneType: 'none', nonZh: "removed", separator: "", v: true }),
       artist: song.artist,
-      aliasesLower: song.aliases?.join(" ").toLowerCase() || "",
-      noteDesigners: getNoteDesigners(song)
+      aliasesLower,
+      aliasesPinYin,
+      noteDesigners,
     };
     if (SongIndex) {
       SongIndex.add(indexedDoc);
