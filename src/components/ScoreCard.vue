@@ -124,13 +124,14 @@ const cardData = computed(() => {
     const levelValue = diff ? formatLevelValue(diff.level_value) : '';
     const unplayed = props.score.score.is_played === undefined ? false : !props.score.score.is_played
     const noteDesigner = diff ? (getNoteDesigner(diff)) : ""
+    const dxScoreOrPc = props.score.score.play_count ? `pc:${props.score.score.play_count}` : `${props.score.score.dx_score}/`
     return {
         cardClass,
         coverUrl: getImageCoverUrl(props.score.song.id ?? 0),
         typeIconUrl: getImageAssertUrl(props.score.score.type === 'dx' ? 'DX' : 'SD'),
         achievementFormatted: formatAchievement(props.score.score.achievements),
         achievementIconUrl: getAchievementIcon(props.score.score.rate_type),
-        details: `#${showCurrentStyleId(props.score.song.id)} ${levelValue} → ${formatDxRating(props.score.score.dx_rating)}`,
+        details: `#${showCurrentStyleId(props.score.song.id)} ${levelValue} → ${formatDxRating(props.score.score.dx_rating)} ${dxScoreOrPc}`,
         noteDesigner,
         unplayed,
     }

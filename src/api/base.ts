@@ -20,7 +20,7 @@ export const request = async (url: string, options: RequestInit): Promise<Respon
         }
         return {
             success: true,
-            response: result.data,
+            response: result.data ? result.data : result,
             message: '',
             details: ''
         }
