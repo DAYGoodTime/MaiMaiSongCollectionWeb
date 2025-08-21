@@ -1,6 +1,6 @@
 import { defineStore } from "pinia";
 import { computed, toValue, type Ref } from "vue";
-import type { DataSource, Score } from "@/types/datasource";
+import type { AnyScore, DataSource, Score } from "@/types/datasource";
 import SONG_DATA from "@/assets/data/song_data_extra.json" with { type: 'json' };
 import type { MaiMaiSong, SongType } from "@/types/songs";
 import type { LXNSScore } from "@/types/lxns";
@@ -9,12 +9,13 @@ import { useLocalStorage, type RemovableRef } from "@vueuse/core";
 import { conventToScore, exportFile, toLXNSStyleId } from "@/utils/functionUtil";
 import type { FishScore } from "@/types/divingfish";
 import { toast } from "vue-sonner";
+import type { UsagiScore } from "@/types/usagi";
 
-export type DataSourceType = "divingfish" | "lxns" | "empty";
+export type DataSourceType = "divingfish" | "lxns" | "usagi" | "empty";
 
 const CURRENT_SONG_VERSION = 2
 
-const CURRENT_SCORE_VERSION = 3
+const CURRENT_SCORE_VERSION = 4
 
 const DEFAULT_DS = {
   list: new Map<number, Score[]>(),
@@ -40,7 +41,7 @@ const serializerMap = {
     version: v.version
   }),
 }
-export function flatMapById(list: LXNSScore[] | FishScore[], songMap: Map<number, MaiMaiSong>): Map<number, Score[]> {
+export function flatMapById(list: AnyScore[], songMap: Map<number, MaiMaiSong>): Map<number, Score[]> {
   const map = new Map<number, Score[]>();
   for (const item of list) {
     //转换为通用类型
@@ -130,14 +131,49 @@ export const useDataStore = defineStore("datasource", () => {
       exportFile(JSON.stringify([...LXNSSource.value.list]), fileName)
     }
   }
+  //Usagi
+  const UsagiSource: Ref<DataSource<Map<number, Score[]>>> = useLocalStorage('usagi_local_ds', DEFAULT_DS, {
+    serializer: serializerMap
+  })
+  const getUsagiScoreList = computed(() => {
+    return UsagiSource;
+  })
+  const updateUsagiData = (data: UsagiScore[]) => {
+    const source = {
+      list: flatMapById(data, SONG_MAP),
+      update_time: formatDate(new Date()),
+      version: CURRENT_SCORE_VERSION
+    };
+    UsagiSource.value = source
+    if (selectedSource.value === "empty") {
+      selectedSource.value = "usagi"
+    }
+  }
+  const hasUsagiData = computed(() => {
+    return UsagiSource.value.list.size > 0
+  })
+  const exportUsagiData = () => {
+    if (hasLXNSData.value) {
+      const fileName = formatDate(UsagiSource.value.update_time) + "-Usagi.json";
+      exportFile(JSON.stringify([...UsagiSource.value.list]), fileName)
+    }
+  }
   //auto
   const selectedSource: RemovableRef<DataSourceType> = useLocalStorage("selected_datasource", "empty") as RemovableRef<DataSourceType>
   const getDataSource = computed(() => {
-    return selectedSource.value === "divingfish" ? toValue(DivingFishSource) : toValue(LXNSSource)
+    let source;
+    switch (selectedSource.value) {
+      case "divingfish": source = toValue(DivingFishSource); break;
+      case "lxns": source = toValue(LXNSSource); break;
+      case "usagi": source = toValue(UsagiSource); break;
+      case "empty": source = null
+    }
+    return source
   })
   const getSelectableSource = computed(() => {
     let arr: DataSourceType[] = []
     if (hasLXNSData.value) arr.push("lxns")
+    if (hasUsagiData.value) arr.push("usagi")
     if (hasDivingFishData.value) arr.push("divingfish")
     return arr;
   })
@@ -161,6 +197,9 @@ export const useDataStore = defineStore("datasource", () => {
     }
     if (type === "divingfish") {
       DivingFishSource.value = DEFAULT_DS;
+    }
+    if (type === "usagi") {
+      UsagiSource.value = DEFAULT_DS
     }
     if (getSelectableSource.value.length === 0) {
       selectedSource.value = "empty"
@@ -191,6 +230,11 @@ export const useDataStore = defineStore("datasource", () => {
     switchDataSource,
     CURRENT_SCORE_VERSION,
     CURRENT_SONG_VERSION,
-    ClearDataSource
+    ClearDataSource,
+    UsagiSource,
+    updateUsagiData,
+    getUsagiScoreList,
+    hasUsagiData,
+    exportUsagiData,
   };
 });

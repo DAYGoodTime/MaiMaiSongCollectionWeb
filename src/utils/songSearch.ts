@@ -233,6 +233,17 @@ export const useScoreSearch = () => {
                     }
                 });
                 break;
+            case 'play_count':
+                if (ordered.length > 1 && (ordered[0].score.play_count || ordered[0].score.play_count != 0)) {
+                    ordered = ordered.sort((a, b) => {
+                        if (orderBy.status_index == 2) {
+                            return (a.score.play_count ?? 0) - (b.score.play_count ?? 0)
+                        } else {
+                            return (b.score.play_count ?? 0) - (a.score.play_count ?? 0)
+                        }
+                    });
+                }
+                break;
         }
         return ordered;
     }

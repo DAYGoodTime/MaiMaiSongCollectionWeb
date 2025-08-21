@@ -38,6 +38,8 @@
             <DivingFIshCard />
             <!-- 落雪数据源 -->
             <LXNSCard />
+            <!-- Usagi数据源 -->
+            <UsagiCard />
             <!-- 合集和留言数据 -->
             <Card>
                 <CardHeader>
@@ -148,6 +150,7 @@ import LXNSCard from './LXNSCard.vue'
 import DivingFIshCard from './DivingFIshCard.vue'
 import { useDataStore } from '@/store/datasource'
 import { Capacitor } from '@capacitor/core'
+import UsagiCard from './UsagiCard.vue'
 
 // 响应式数据
 const showSetNameDialog = ref(false)

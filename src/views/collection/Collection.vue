@@ -186,12 +186,14 @@ const search = ref("")
 const showAdvanced = ref(false)
 const listVersion = ref(0)
 const showAdvancedFilter = ref(true)
+const supportPcCount = ref(false)
 
 //排序
 const OrderBadges = ref<OrderBadge[]>([
     { label: "达成率", value: "achievement", status_index: 2 },
     { label: "Dx Rating", value: "dx_rating", status_index: 0 },
-    { label: "定数", value: "level", status_index: 0 }
+    { label: "定数", value: "level", status_index: 0 },
+
 ])
 const selectedOrder = ref<OrderBadge>(OrderBadges.value[0])
 
@@ -292,6 +294,7 @@ const handelMoveToOtherCollection = (coll_label: string, score_id: string) => {
 }
 //init
 const initStatus = () => {
+    supportPcCount.value = false
     for (const key of Object.keys(statusBoard)) {
         if (key === "total") statusBoard.total = 0;
         else if (key === "noteDesigners") statusBoard.noteDesigners.clear();
@@ -351,6 +354,22 @@ const initScoreList = () => {
         updateIndex(result);
         statusBoard.total = result.length;
         listVersion.value++;
+        if (result.length > 0) {
+            const score = result[0];
+            if (score.score.play_count || score.score.play_count === 0) {
+                supportPcCount.value = true
+            } else {
+                supportPcCount.value = false
+            }
+        }
+    }
+    if (supportPcCount.value) {
+        OrderBadges.value.push({ label: "游玩次数", value: "play_count", status_index: 0 })
+    } else {
+        const index = OrderBadges.value.findIndex(o => o.value === "play_count");
+        if (index != -1) {
+            OrderBadges.value.splice(index, 1)
+        }
     }
 }
 initScoreList();//立马进行初始化

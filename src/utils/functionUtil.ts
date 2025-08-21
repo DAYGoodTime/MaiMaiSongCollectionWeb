@@ -1,11 +1,10 @@
-import type { Score, SongType } from "@/types/datasource";
-import type { FishScore } from "@/types/divingfish";
-import type { LXNSScore } from "@/types/lxns";
+import type { AnyScore, Score, SongType } from "@/types/datasource";
 import { Clipboard } from "@capacitor/clipboard"
 import { useRoute, useRouter, type RouteLocationRaw } from "vue-router";
 import { toast } from "vue-sonner";
 import { getSongDiff } from "./StrUtil";
 import type { MaiMaiSong } from "@/types/songs";
+import { fcMapping, fsMapping, rateMapping } from "@/api/usagi";
 
 type DebouncedFunction<T extends any[]> = (...args: T) => void;
 
@@ -64,21 +63,50 @@ export function useCopyHelper() {
   }
   return { handelCopy }
 }
-export function conventToScore(score: LXNSScore | FishScore, song: MaiMaiSong): Score {
+export function conventToScore(score: AnyScore, song: MaiMaiSong): Score {
+  let rate_type;
+  if ("rate" in score) {
+    //usagi or fish
+    if (Number.isInteger(score.rate)) {
+      //usagi
+      rate_type = rateMapping[score.rate as number]
+    } else {
+      //fish
+      rate_type = score.rate as string
+    }
+  } else {
+    //lxns
+    rate_type = score.rate_type
+  }
+  let fc
+  if (Number.isInteger(score.fc)) {
+    //usagi
+    fc = fcMapping[score.fc as number]
+  } else {
+    fc = score.fc as string | null
+  }
+  let fs
+  if (Number.isInteger(score.fs)) {
+    //usagi
+    fs = fsMapping[score.fs as number]
+  } else {
+    fs = score.fs as string | null
+  }
   return {
     id: ("song_id" in score) ? toLXNSStyleId(score.song_id) : score.id,
     fish_id: ("song_id" in score) ? score.song_id : toFishStyleId(score.id),
     song_name: ("title" in score) ? score.title : score.song_name,
     achievements: score.achievements,
-    fc: score.fc,
-    fs: score.fs,
+    fc,
+    fs,
     level: score.level,
     level_index: score.level_index,
     level_value: ("ds" in score) ? score.ds : getSongDiff(song, score)?.level_value,
-    rate_type: ("rate" in score) ? score.rate : score.rate_type,
+    rate_type,
     dx_score: ("dxScore" in score) ? score.dxScore : score.dx_score,
     dx_rating: ("ra" in score) ? score.ra : score.dx_rating,
-    type: toLXNSType(score.type) as SongType
+    type: toLXNSType(score.type) as SongType,
+    play_count: ("play_count" in score) ? score.play_count : void 0
   }
 }
 export function toFishStyleId(id: number) {

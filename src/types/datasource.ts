@@ -1,9 +1,14 @@
+import type { FishScore } from "./divingfish";
+import type { LXNSScore } from "./lxns";
+import type { UsagiScore } from "./usagi";
+
 export interface DataSource<T> {
     list: T,
     update_time: Date | string,
     version: number
 }
 export type SongType = "standard" | "dx" | "utage"
+export type AnyScore = LXNSScore | FishScore | UsagiScore
 export interface Score {
     /** 曲目 ID */
     id: number;
@@ -32,5 +37,7 @@ export interface Score {
     /** 谱面类型 例如 dx standard utage */
     type: SongType;
     /** 是否有拥有成绩（用于构建未游玩难度） */
-    is_played?: boolean
+    is_played?: boolean;
+    /** 游玩次数 (部分数据源支持) */
+    play_count?: number;
 }
