@@ -82,9 +82,17 @@ const tickPositions = computed(() => {
         </TooltipProvider>
       </SliderRoot>
       <div v-if="showTicks" class="relative h-2 mt-1" aria-hidden="true">
-        <span v-for="tick in tickPositions" :key="tick.value" class="absolute w-px h-2 bg-gray-300 text-sm"
-          :style="{ left: `${tick.position}%` }">{{ tick.value }}
-        </span>
+        <div v-for="(tick, index) in tickPositions" :key="tick.value" class="absolute top-0 h-full"
+          :style="{ left: `${tick.position}%` }">
+          <span class="absolute block w-px h-2 bg-gray-300 -translate-x-1/2"></span>
+          <span class="absolute block mt-3 text-sm text-gray-500" :class="{
+            'translate-x-0': index === 0,
+            '-translate-x-full': index === tickPositions.length - 1,
+            '-translate-x-1/2': index > 0 && index < tickPositions.length - 1
+          }">
+            {{ tick.value }}
+          </span>
+        </div>
       </div>
     </div>
     <div v-if="showMinMax" class="flex justify-between mt-2">
