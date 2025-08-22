@@ -34,7 +34,8 @@
                         </p>
                     </div>
                     <div class="flex items-center gap-2">
-                        <Button v-if="hasDivingFishData" variant="outline" @click="() => switchDataSource('divingfish')"
+                        <Button v-if="hasDivingFishData && selectedSource !== 'divingfish'" variant="outline"
+                            @click="() => switchDataSource('divingfish')"
                             :disabled="!hasDivingFishData || selectedSource === 'divingfish'">
                             设为默认
                         </Button>
