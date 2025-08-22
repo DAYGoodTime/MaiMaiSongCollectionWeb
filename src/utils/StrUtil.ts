@@ -299,3 +299,8 @@ export const SongVersionList =
       label: "舞萌DX2025",
     }
   ]
+export function getTotalDxScore(diff?: SongDifficulty | null): number {
+  if (diff) {
+    return (diff.tap_num + diff.hold_num + diff.slide_num + diff.touch_num + diff.break_num) * 3
+  } else return 0;
+}

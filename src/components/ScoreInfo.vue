@@ -26,9 +26,21 @@
                     </div>
 
                     <div class="grid grid-cols-2 gap-4 text-sm">
-                        <div>
-                            <span class="text-gray-200">DX Rating</span>
-                            <div class="font-bold">{{ formatDxRating(diff.score.dx_rating) }}</div>
+                        <div class="flex gap-4">
+                            <div>
+                                <span class="text-gray-200">DX Rating</span>
+                                <div class="font-bold">{{ formatDxRating(diff.score.dx_rating) }}</div>
+                            </div>
+                            <div class="flex justify-between items-center">
+                                <div>
+                                    <span class="text-gray-200">DX Score</span>
+                                    <div class="font-bold">{{ `${diff.dxScore.current}/${diff.dxScore.total}` }}</div>
+                                </div>
+                                <div class="overflow-hidden h-7">
+                                    <img class="max-w-full max-h-full" v-if="diff.dxScore.available"
+                                        :src="diff.dxScore.icon" loading="lazy" />
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -71,9 +83,9 @@
 import { Card, CardContent } from '@/components/shadcn/ui/card'
 import { DropdownMenu, DropdownMenuTrigger, DropdownMenuItem, DropdownMenuContent } from './shadcn/ui/dropdown-menu';
 import { Button } from './shadcn/ui/button';
-import { getAchievementIcon } from '@/utils/urlUtils';
+import { getAchievementIcon, getDxScoreIcon } from '@/utils/urlUtils';
 import type { MaiMaiSong, SongDifficulty } from '@/types/songs';
-import { formatDxRating, formatLevelValue, LevelIndexToLabel } from '@/utils/StrUtil';
+import { formatDxRating, formatLevelValue, getTotalDxScore, LevelIndexToLabel } from '@/utils/StrUtil';
 import { conventVersionByInt } from '@/utils/version';
 import { computed } from 'vue';
 import { useDataStore } from '@/store/datasource';
@@ -102,13 +114,21 @@ const processedDifficulties = computed(() => {
         } else {
             label = LevelIndexToLabel(difficulty.level_index) ?? "";
         }
-
+        const totalDxScore = getTotalDxScore(difficulty)
+        const currentDxScore = score ? score.dx_score : 0
+        const dxScoreIcon = getDxScoreIcon(currentDxScore, totalDxScore)
         return {
             difficulty,
             score,
             isUtage: isUtageVal,
             label,
             levelDisplay: isUtageVal ? difficulty.level : formatLevelValue(difficulty.level_value),
+            dxScore: {
+                total: totalDxScore,
+                current: currentDxScore,
+                available: dxScoreIcon != null,
+                icon: dxScoreIcon ?? ""
+            }
         };
     });
 });

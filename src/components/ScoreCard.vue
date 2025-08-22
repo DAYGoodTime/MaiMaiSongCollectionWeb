@@ -1,7 +1,7 @@
 <template>
     <div>
         <div class="w-72 sm:w-64 rounded-lg shadow-lg transition-all duration-300 hover:shadow-xl"
-            @click="() => openTooltips = true" @dblclick="() => SongInfoModalOpen = true">
+            @click="() => openTitleTooltips = true" @dblclick="() => SongInfoModalOpen = true">
             <div :class="cardData.cardClass" @click="toggleDescMenu" class="cursor-pointer p-2">
                 <div class="flex gap-1">
                     <div class="w-12 h-12 rounded overflow-hidden flex-shrink-0">
@@ -11,7 +11,7 @@
                     <div class="flex-1 text-white min-w-0">
                         <div class="flex justify-between items-start">
                             <TooltipProvider>
-                                <Tooltip v-model:open="openTooltips" :delay-duration="100">
+                                <Tooltip v-model:open="openTitleTooltips" :delay-duration="0">
                                     <TooltipTrigger class="font-bold truncate text-left">
                                         {{ score.song.title }}
                                     </TooltipTrigger>
@@ -36,7 +36,20 @@
             </div>
             <div class="bg-white rounded-b-lg p-2">
                 <div class="flex w-full justify-between items-center">
-                    <span class="text-left text-sm text-gray-600">{{ cardData.details }}</span>
+                    <div class="flex justify-between">
+                        <span class="text-left text-sm text-gray-600">{{ cardData.details }}</span>
+                        <TooltipProvider>
+                            <Tooltip v-model:open="openDxScoreTooltips" :delay-duration="0">
+                                <TooltipTrigger>
+                                    <img v-if="cardData.dxScore.available" :src="cardData.dxScore.icon"
+                                        loading="lazy" />
+                                </TooltipTrigger>
+                                <TooltipContent>
+                                    <p>{{ `${cardData.dxScore.current}/${cardData.dxScore.total}` }}</p>
+                                </TooltipContent>
+                            </Tooltip>
+                        </TooltipProvider>
+                    </div>
                     <div class="flex w-12">
                         <FCFSPanel class="h-7 w-7" :fc="score.score.fc" :fs="score.score.fs" />
                     </div>
@@ -69,10 +82,10 @@
 <script setup lang="ts">
 import SongInfo from './SongInfo.vue';
 import type { ScoreExtend } from '@/types/songs';
-import { getAchievementIcon, getImageAssertUrl, getImageCoverUrl } from '@/utils/urlUtils';
+import { getAchievementIcon, getDxScoreIcon, getImageAssertUrl, getImageCoverUrl } from '@/utils/urlUtils';
 import { ref, computed, defineAsyncComponent } from 'vue';
 import { Textarea } from './shadcn/ui/textarea';
-import { formatAchievement, formatDxRating, formatLevelValue, getNoteDesigner, getSongDiff } from '@/utils/StrUtil';
+import { formatAchievement, formatDxRating, formatLevelValue, getNoteDesigner, getSongDiff, getTotalDxScore } from '@/utils/StrUtil';
 import { useCollectionStore } from '@/store/collections';
 import { debounce, toFishStyleId, useCopyHelper } from '@/utils/functionUtil';
 import {
@@ -93,7 +106,8 @@ const props = defineProps<{
 }>()
 
 const openMenu = ref(false);
-const openTooltips = ref(false)
+const openTitleTooltips = ref(false)
+const openDxScoreTooltips = ref(false)
 const target = ref(null);
 const { selectedSource } = storeToRefs(useDataStore())
 
@@ -101,8 +115,11 @@ onClickOutside(target, () => {
     if (openMenu.value) {
         openMenu.value = false;
     }
-    if (openTooltips.value) {
-        openTooltips.value = false
+    if (openTitleTooltips.value) {
+        openTitleTooltips.value = false
+    }
+    if (openDxScoreTooltips.value) {
+        openDxScoreTooltips.value = false
     }
 });
 const showCurrentStyleId = (id: number) => {
@@ -124,7 +141,9 @@ const cardData = computed(() => {
     const levelValue = diff ? formatLevelValue(diff.level_value) : '';
     const unplayed = props.score.score.is_played === undefined ? false : !props.score.score.is_played
     const noteDesigner = diff ? (getNoteDesigner(diff)) : ""
-    const dxScoreOrPc = props.score.score.play_count ? `pc:${props.score.score.play_count}` : `${props.score.score.dx_score}/`
+    const totalDxScore = getTotalDxScore(diff)
+    const dxScoreIconUrl = getDxScoreIcon(props.score.score.dx_score, totalDxScore);
+    const dxScoreOrPc = props.score.score.play_count ? `pc:${props.score.score.play_count}` : ''
     return {
         cardClass,
         coverUrl: getImageCoverUrl(props.score.song.id ?? 0),
@@ -134,6 +153,12 @@ const cardData = computed(() => {
         details: `#${showCurrentStyleId(props.score.song.id)} ${levelValue} → ${formatDxRating(props.score.score.dx_rating)} ${dxScoreOrPc}`,
         noteDesigner,
         unplayed,
+        dxScore: {
+            available: dxScoreIconUrl !== null && selectedSource.value !== 'usagi',
+            icon: dxScoreIconUrl ?? "",
+            current: props.score.score.dx_score,
+            total: totalDxScore
+        }
     }
 });
 
