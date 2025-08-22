@@ -4,8 +4,12 @@
             <CardHeader>
                 <CardTitle class="flex items-center justify-between">
                     <div class="flex items-center gap-2">
-                        <img src="/usagi_logo.ico" class="h-5 w-5" />
-                        <span>UsagiCard(兔卡) {{ selectedSource === 'usagi' ? '(当前默认数据源)' : '' }}</span>
+                        <img :src="usagiLogo" class="h-5 w-5" />
+                        <div>
+                            <span>UsagiCard(兔卡) </span>
+                            <span class="block md:inline">{{ selectedSource === 'usagi' ? '(当前默认数据源)' : ''
+                                }}</span>
+                        </div>
                     </div>
                     <div v-if="hasUsagiData" class="flex gap-4">
                         <Button variant="outline" @click="exportUsagiData">
@@ -34,8 +38,7 @@
                     </div>
                     <div class="flex items-center gap-2">
                         <Button v-if="hasUsagiData && selectedSource !== 'usagi'" variant="outline"
-                            @click="() => switchDataSource('usagi')"
-                            :disabled="!hasUsagiData || selectedSource === 'usagi'">
+                            @click="() => switchDataSource('usagi')" :disabled="!hasUsagiData">
                             设为默认
                         </Button>
                         <Button @click="showUsagiDialog = true" :disabled="DataSourceUpdating" class="gap-2">
@@ -77,6 +80,7 @@
     </div>
 </template>
 <script setup lang="ts">
+import usagiLogo from '@/assets/usagi_logo.ico';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/shadcn/ui/card'
 import { Button } from '@/components/shadcn/ui/button'
 import { Input } from '@/components/shadcn/ui/input'

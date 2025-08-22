@@ -6,7 +6,11 @@
                 <CardTitle class="flex items-center justify-between">
                     <div class="flex items-center gap-2">
                         <Snowflake class="h-5 w-5" />
-                        <span>落雪数据源 {{ selectedSource === 'lxns' ? '(当前默认数据源)' : '' }}</span>
+                        <div>
+                            <span>落雪数据源 </span>
+                            <span class="block md:inline">{{ selectedSource === 'lxns' ? '(当前默认数据源)' : '' }}</span>
+                        </div>
+
                     </div>
                     <div v-if="hasLXNSData" class="flex gap-4">
                         <Button variant="outline" @click="exportLXNSData">
@@ -34,8 +38,7 @@
                     </div>
                     <div class="flex items-center gap-2">
                         <Button v-if="hasLXNSData && selectedSource !== 'lxns'" variant="outline"
-                            @click="() => switchDataSource('lxns')"
-                            :disabled="!hasLXNSData || selectedSource === 'lxns'">
+                            @click="() => switchDataSource('lxns')" :disabled="!hasLXNSData">
                             设为默认
                         </Button>
                         <Button @click="handelLXNSDialog" :disabled="DataSourceUpdating" class="gap-2">

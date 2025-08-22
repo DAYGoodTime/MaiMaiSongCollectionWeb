@@ -166,7 +166,7 @@ export const useDataStore = defineStore("datasource", () => {
       case "divingfish": source = toValue(DivingFishSource); break;
       case "lxns": source = toValue(LXNSSource); break;
       case "usagi": source = toValue(UsagiSource); break;
-      case "empty": source = null
+      case "empty": source = DEFAULT_DS
     }
     return source
   })

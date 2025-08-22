@@ -1,6 +1,4 @@
 import type { AnyScore, Score } from "@/types/datasource";
-import type { FishScore } from "@/types/divingfish";
-import type { LXNSScore } from "@/types/lxns";
 import type { MaiMaiSong, ScoreExtend, SongDifficulty } from "@/types/songs";
 import { pinyin } from "pinyin-pro";
 

@@ -6,7 +6,11 @@
                 <CardTitle class="flex items-center justify-between">
                     <div class="flex items-center gap-2">
                         <Fish class="h-5 w-5" />
-                        <span>水鱼数据源 {{ selectedSource === 'divingfish' ? '(当前默认数据源)' : '' }}</span>
+                        <div>
+                            <span>水鱼数据源 </span>
+                            <span class="block md:inline">{{ selectedSource === 'divingfish' ? '(当前默认数据源)' : ''
+                                }}</span>
+                        </div>
                     </div>
                     <div v-if="hasDivingFishData" class="flex gap-4">
                         <Button variant="outline" @click="exportDivingFishData">
@@ -35,8 +39,7 @@
                     </div>
                     <div class="flex items-center gap-2">
                         <Button v-if="hasDivingFishData && selectedSource !== 'divingfish'" variant="outline"
-                            @click="() => switchDataSource('divingfish')"
-                            :disabled="!hasDivingFishData || selectedSource === 'divingfish'">
+                            @click="() => switchDataSource('divingfish')" :disabled="!hasDivingFishData">
                             设为默认
                         </Button>
                         <Button @click="showFishDialog = true" :disabled="DataSourceUpdating" class="gap-2">
