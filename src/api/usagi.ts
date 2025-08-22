@@ -5,7 +5,7 @@ export const rateMapping = ["sssp", "sss", "ssp", "ss", "sp", "s", "aaa", "aa", 
 export const fcMapping = ["app", "ap", "fcp", "fc"]
 export const fsMapping = ["sync", "fs", "fsp", "fsd", "fsdp"]
 
-const HOST = "https://uc.turou.fun/api/maimai/v1"
+const HOST = "https://uc.turou.fun/api"
 const DEV_TOKEN = import.meta.env.VITE_USAGI_DEV_TOKEN
 
 export const queryUsagiUserScore = (uuid: String): Promise<Response<UsagiScore[]>> => {
@@ -17,7 +17,7 @@ export const queryUsagiUserScore = (uuid: String): Promise<Response<UsagiScore[]
         'Content-Type': 'application/json',
         'x-developer-token': DEV_TOKEN
     };
-    const url = `${HOST}/scores?uuid=${uuid}`
+    const url = `${HOST}/v1/maimai/scores?uuid=${uuid}`
     const requestOption: RequestInit = {
         method: 'GET',
         headers,
