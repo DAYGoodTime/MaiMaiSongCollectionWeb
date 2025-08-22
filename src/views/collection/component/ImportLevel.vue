@@ -82,7 +82,7 @@ const commonLevelOptions: FilterProps<LevelRange>[] =
         { label: "13", value: { start: 13.0, end: 13.5 } },
         { label: "13+", value: { start: 13.6, end: 13.9 } },
         { label: "14", value: { start: 14.0, end: 14.5 } },
-        { label: "14+", value: { start: 14.6, end: 13.9 } },
+        { label: "14+", value: { start: 14.6, end: 14.9 } },
         { label: "15", value: { start: 15.0, end: 15.5 } }
     ]
 const selectedLevelRanges = ref<FilterProps<LevelRange>[]>([])
@@ -93,7 +93,6 @@ const handelImportByLevel = () => {
     const song_list = getSongDataList.value.list;
     const result_score = new Set<string>([])
     const coll_index = UserCollectionList.value.findIndex(c => c.label == CurrentCollectionLabel.value);
-
     const ranges = selectedLevelRanges.value.map(prop => [prop.value.start, prop.value.end]);
     for (const song of song_list) {
         const difficulties = [...song.difficulties.standard, ...song.difficulties.dx];
