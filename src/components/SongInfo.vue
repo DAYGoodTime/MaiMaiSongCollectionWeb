@@ -121,8 +121,8 @@ const isSelectedType = (type: TypeValue) => {
     return type === SelectedType.value;
 }
 const showCurrentStyleId = (id: number) => {
-    if (selectedSource.value === 'lxns') return id;
-    else return toFishStyleId(id)
+    if (selectedSource.value === 'divingfish') return toFishStyleId(id);
+    else return id
 }
 const handelDataSourceSwitch = (ds: AcceptableValue) => {
     switchDataSource(ds as DataSourceType);

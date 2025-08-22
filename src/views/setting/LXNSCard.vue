@@ -33,7 +33,8 @@
                         </p>
                     </div>
                     <div class="flex items-center gap-2">
-                        <Button v-if="hasLXNSData" variant="outline" @click="() => switchDataSource('lxns')"
+                        <Button v-if="hasLXNSData && selectedSource !== 'lxns'" variant="outline"
+                            @click="() => switchDataSource('lxns')"
                             :disabled="!hasLXNSData || selectedSource === 'lxns'">
                             设为默认
                         </Button>
