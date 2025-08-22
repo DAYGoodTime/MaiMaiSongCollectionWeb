@@ -2,6 +2,7 @@ import type { AnyScore, Score } from "@/types/datasource";
 import type { FishScore } from "@/types/divingfish";
 import type { LXNSScore } from "@/types/lxns";
 import type { MaiMaiSong, ScoreExtend, SongDifficulty } from "@/types/songs";
+import { pinyin } from "pinyin-pro";
 
 export const LEVEL_MATCH_PATTEN =
   /^[绿黄红紫白](?:(?:1[0-5]|[1-9])\+|(?:1[0-5]|[1-9])(?:\.\d)?)$/;
@@ -91,12 +92,35 @@ export const getSongDiff = (song: MaiMaiSong, score: Score | AnyScore) => {
   }
   return null;
 }
+const toPy = (str: string) => pinyin(str, { toneType: 'none', separator: '', v: true })
+const commonNoteDesignerAliasMapping = new Map([
+  ["サファ太", ["沙发太", toPy("沙发太")]],
+  ["ロシェ@ペンギン", ["企鹅", toPy("企鹅")]],
+  ["はっぴー", ["哈皮", toPy("哈皮"), "狗", toPy("狗")]],
+  ["翠楼屋", ["脆脆薯条", toPy("脆脆薯条"), toPy("翠楼屋")]],
+  ["小鳥遊さん", ["小鸟游", toPy("小鸟游")]],
+  ["mai-Star", ["maistar", toPy("麦思达"), "麦思达"]],
+  ["ニャイン", ["二大爷", toPy("二大爷")]],
+  ["玉子豆腐", [toPy("玉子豆腐")]],
+  ["鳩ホルダー", ["九鸟", toPy("九鸟")]],
+  ["Luxizhel", ["泸溪河", toPy("泸溪河")]],
+  ["玉子豆腐", [toPy("玉子豆腐")]],
+  ["華火職人", ["华火职人", toPy("华火职人")]],
+  ["チャン@DP皆伝", ["DP", "DP" + toPy("皆传")]],
+  ["ぴちネコ", ["桃子猫", toPy("桃子猫")]],
+  ["隅田川星人", [toPy("隅田川星人")]],
+])
+
 export function getNoteDesigners(song: MaiMaiSong) {
   const diffs = [...song.difficulties.dx, ...song.difficulties.standard]
   const list = new Set<string>();
   diffs.forEach(d => {
     if (d.note_designer && d.note_designer !== '-') {
       list.add(d.note_designer.toLocaleLowerCase());
+      if (commonNoteDesignerAliasMapping.has(d.note_designer)) {
+        const alias = commonNoteDesignerAliasMapping.get(d.note_designer) as string[]
+        alias.forEach(a => list.add(a))
+      }
     }
   })
   return [...list].reverse();

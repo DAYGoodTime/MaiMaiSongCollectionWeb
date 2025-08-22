@@ -60,7 +60,7 @@
                         </div>
                     </CardTitle>
                     <CardDescription>
-                        管理合集和留言数据
+                        管理合集和留言数据(使用需要能访问海外网络)
                     </CardDescription>
                 </CardHeader>
                 <CardContent>
