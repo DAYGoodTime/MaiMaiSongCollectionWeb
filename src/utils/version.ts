@@ -91,31 +91,31 @@ export const versionList = [
   },
   {
     icon: "",
-    id: "maimai DX 2021",
+    id: "maimai DX Splash",
     label_full: "舞萌DX2021",
     alias: "爽 煌 2021",
   },
   {
     icon: "",
-    id: "maimai DX 2022",
+    id: "maimai DX UNIVERSE",
     label_full: "舞萌DX2022",
     alias: "宙 星 2022",
   },
   {
     icon: "",
-    id: "maimai DX 2023",
+    id: "maimai DX FESTIVAL",
     label_full: "舞萌DX2023",
     alias: "祭 祝 2023",
   },
   {
     icon: "",
-    id: "maimai DX 2024",
+    id: "maimai DX BUDDIES",
     label_full: "舞萌DX2024",
     alias: "双 宴 2024",
   },
   {
     icon: "",
-    id: "maimai DX 2025",
+    id: "maimai DX PRISM",
     label_full: "舞萌DX2025",
     alias: "镜 2025",
   },];
