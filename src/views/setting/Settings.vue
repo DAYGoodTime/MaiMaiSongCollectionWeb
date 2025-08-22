@@ -6,7 +6,8 @@
             <p v-if="appStore.hasUserName" class="mt-2">
                 欢迎回来：<span class="font-semibold">{{ appStore.UserName }}</span>
             </p>
-            <p v-if="Capacitor.getPlatform() === 'web'" class="text-red-600 font-bold">因为api的跨域问题，所以数据源的更新都需要能够访问海外才可以使用
+            <p v-if="Capacitor.getPlatform() === 'web'" class="text-red-600 font-bold">
+                因为api的跨域问题，所以数据源(落雪,水鱼)的更新都需要能够访问海外才可以使用
             </p>
         </div>
 

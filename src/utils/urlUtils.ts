@@ -94,3 +94,23 @@ export function getFCFSIcon(fcfs_name: string) {
   if (!name || name.length === 0) name = "Empty"
   return getImageAssertUrl(`UI_CHR_PlayBonus_${name}`)
 }
+
+const DX_SCORE_TIERS = [
+  { threshold: 0.97, iconName: "UI_GAM_DXScoreIcon_5" },
+  { threshold: 0.95, iconName: "UI_GAM_DXScoreIcon_4" },
+  { threshold: 0.93, iconName: "UI_GAM_DXScoreIcon_3" },
+  { threshold: 0.9, iconName: "UI_GAM_DXScoreIcon_2" },
+  { threshold: 0.85, iconName: "UI_GAM_DXScoreIcon_1" },
+];
+export function getDxScoreIcon(dxScore: number, totalDxScore: number): string | null {
+  if (totalDxScore <= 0 || dxScore < 0) {
+    return null;
+  }
+  const radio = (dxScore / totalDxScore)
+  for (const tier of DX_SCORE_TIERS) {
+    if (radio > tier.threshold) {
+      return getImageAssertUrl(tier.iconName)
+    }
+  }
+  return null;
+}
