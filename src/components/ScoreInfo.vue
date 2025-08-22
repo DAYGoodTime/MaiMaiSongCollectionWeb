@@ -36,8 +36,8 @@
                                     <span class="text-gray-200">DX Score</span>
                                     <div class="font-bold">{{ `${diff.dxScore.current}/${diff.dxScore.total}` }}</div>
                                 </div>
-                                <div class="overflow-hidden h-7">
-                                    <img class="max-w-full max-h-full" v-if="diff.dxScore.available"
+                                <div style="height: 28px;width: 58px;">
+                                    <img object-contain class="max-w-full max-h-full" v-if="diff.dxScore.available"
                                         :src="diff.dxScore.icon" loading="lazy" />
                                 </div>
                             </div>

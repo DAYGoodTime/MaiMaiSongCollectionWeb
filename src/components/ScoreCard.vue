@@ -36,7 +36,7 @@
             </div>
             <div class="bg-white rounded-b-lg p-2">
                 <div class="flex w-full justify-between items-center">
-                    <div class="flex justify-between">
+                    <div class="flex justify-between items-center">
                         <span class="text-left text-sm text-gray-600">{{ cardData.details }}</span>
                         <TooltipProvider>
                             <Tooltip v-model:open="openDxScoreTooltips" :delay-duration="0">

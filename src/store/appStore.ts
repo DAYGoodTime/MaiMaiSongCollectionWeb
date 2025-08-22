@@ -28,24 +28,17 @@ export const useAppStore = defineStore("app", () => {
   const SONG_DATA = getSongDataList.list
   //直接在这里加载索引
   SONG_DATA.forEach(song => {
-    const aliasesLower = song.aliases?.join(" ").toLowerCase() || ""
-    const aliasesPinYin = []
-    if (Array.isArray(song.aliases)) {
-      for (const alias of song.aliases) {
-        const py = pinyin(alias as string, { toneType: 'none', nonZh: "removed", separator: "", v: true });
-        if (py.length > 0) {
-          aliasesPinYin.push(py)
-        }
-      }
-    }
     const noteDesigners = getNoteDesigners(song)
     const indexedDoc = {
       id: song.id,
       title: song.title.toLocaleLowerCase(),
       titlePinYin: pinyin(song.title, { toneType: 'none', nonZh: "removed", separator: "", v: true }),
       artist: song.artist,
-      aliasesLower,
-      aliasesPinYin,
+      aliasesLower: song.aliases?.join(" ").toLowerCase() || "",
+      aliasesPinYin: song.aliases?.flatMap(v => {
+        const py = pinyin(v as string, { toneType: 'none', nonZh: "removed", separator: "", v: true });
+        return py ? [py] : []
+      }) || [],
       noteDesigners,
     };
     if (SongIndex) {
