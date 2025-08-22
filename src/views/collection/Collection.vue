@@ -364,7 +364,10 @@ const initScoreList = () => {
         }
     }
     if (supportPcCount.value) {
-        OrderBadges.value.push({ label: "游玩次数", value: "play_count", status_index: 0 })
+        const index = OrderBadges.value.findIndex(o => o.value === "play_count");
+        if (index === -1) {
+            OrderBadges.value.push({ label: "游玩次数", value: "play_count", status_index: 0 })
+        }
     } else {
         const index = OrderBadges.value.findIndex(o => o.value === "play_count");
         if (index != -1) {
