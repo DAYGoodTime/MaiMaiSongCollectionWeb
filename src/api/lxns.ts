@@ -1,5 +1,6 @@
-import type { LXNSOAuthRefresh, LXNSOAuthRequest, LXNSOAuthResponse, LXNSResponse } from "@/types/lxns"
-import { request } from "./base"
+import type { LXNSOAuthRefresh, LXNSOAuthRequest, LXNSOAuthResponse, LXNSResponse, LXNSScore } from "@/types/lxns"
+import { createApiClient, isWebEnv } from "./base"
+import apiRouterClient from "./router"
 
 export type LXNSAuthType = 'Token' | 'OAuth'
 
@@ -8,42 +9,36 @@ const APP_ID = import.meta.env.VITE_LXNS_OAUTH_APP_ID
 const APP_SECRET = import.meta.env.VITE_LXNS_OAUTH_APP_SECRET
 const APP_REDIRECT_URI = import.meta.env.VITE_LXNS_OAUTH_APP_REDIRECT_URI
 
-export const queryDataFromLXNS = (credentials: string, type: LXNSAuthType): Promise<LXNSResponse<any>> => {
-    return new Promise((resolve, reject) => {
-        try {
-            if (credentials.length < 1) {
-                reject({ success: false, message: "凭证为空" })
-            }
-            // 准备请求头
-            let headers: Record<string, string> = { 'Content-Type': 'application/json' }
-            const apiUrl = `${LXNS_HOST}/api/v0/user/maimai/player/scores`
+async function handleLXNSError(response: Response) {
+    const errorBody = await response.json();
+    return {
+        message: `LXNS API Error: ${errorBody.message || 'Unknown error'}`,
+        body: errorBody
+    };
+}
+const lxnsApiClient = createApiClient({
+    baseUrl: LXNS_HOST,
+    handleError: handleLXNSError,
+});
+const LXNSService = {
+    queryDataFromLXNS: (credentials: string, type: LXNSAuthType): Promise<LXNSResponse<LXNSScore[]>> => {
+        if (isWebEnv()) {
+            return apiRouterClient(credentials).get<LXNSResponse<LXNSScore[]>>("maimai/lxns")
+        } else {
+            let headers: Record<string, string> = {}
             const isOAuthToken = credentials.startsWith("Bearer") && type === 'OAuth';
             if (isOAuthToken) {
                 headers["Authorization"] = credentials
             } else {
                 headers["X-User-Token"] = credentials
             }
-            const requestOptions: RequestInit = {
-                method: 'GET',
-                headers,
-            };
-            request(apiUrl, requestOptions)
-                .then(response => {
-                    if (response.success) {
-                        resolve(response.response)
-                    } else {
-                        reject(response)
-                    }
-                })
-        } catch (error) {
-            reject(error)
+            return lxnsApiClient.get<LXNSResponse<LXNSScore[]>>("api/v0/user/maimai/player/scores", { headers })
         }
-    })
-}
-export const queryLXNSToken = (code: string): Promise<LXNSResponse<LXNSOAuthResponse>> => {
-    return new Promise((resolve, reject) => {
-        try {
-            const url = `${LXNS_HOST}/api/v0/oauth/token`
+    },
+    queryLXNSToken: (code: string): Promise<LXNSResponse<LXNSOAuthResponse>> => {
+        if (isWebEnv()) {
+            return apiRouterClient(code).get<LXNSResponse<LXNSOAuthResponse>>("maimai/lxns/oauth")
+        } else {
             const requestBody: LXNSOAuthRequest = {
                 client_id: APP_ID,
                 client_secret: APP_SECRET,
@@ -51,49 +46,21 @@ export const queryLXNSToken = (code: string): Promise<LXNSResponse<LXNSOAuthResp
                 code: code,
                 redirect_uri: APP_REDIRECT_URI
             }
-            const requestOptions: RequestInit = {
-                method: "POST",
-                body: JSON.stringify(requestBody),
-                headers: { 'Content-Type': 'application/json' }
-            }
-            request(url, requestOptions)
-                .then(response => {
-                    if (response.success) {
-                        resolve(response.response)
-                    } else {
-                        reject(response)
-                    }
-                })
-        } catch (error) {
-            reject(error)
+            return lxnsApiClient.post<LXNSResponse<LXNSOAuthResponse>>("api/v0/oauth/token", requestBody)
         }
-    })
-}
-export const refreshLXNSToken = (refresh_token: string): Promise<LXNSResponse<LXNSOAuthResponse>> => {
-    return new Promise((resolve, reject) => {
-        try {
-            const url = `${LXNS_HOST}/api/v0/oauth/token`
+    },
+    refreshLXNSToken: (refresh_token: string): Promise<LXNSResponse<LXNSOAuthResponse>> => {
+        if (isWebEnv()) {
+            return apiRouterClient(refresh_token).get("maimai/lxns/oauth/refresh")
+        } else {
             const requestBody: LXNSOAuthRefresh = {
                 client_id: APP_ID,
                 client_secret: APP_SECRET,
                 grant_type: "refresh_token",
                 refresh_token,
             }
-            const requestOptions: RequestInit = {
-                method: "POST",
-                body: JSON.stringify(requestBody),
-                headers: { 'Content-Type': 'application/json' }
-            }
-            request(url, requestOptions)
-                .then(response => {
-                    if (response.success) {
-                        resolve(response.response)
-                    } else {
-                        reject(response)
-                    }
-                })
-        } catch (error) {
-            reject(error)
+            return lxnsApiClient.post<LXNSResponse<LXNSOAuthResponse>>("api/v0/oauth/token", requestBody)
         }
-    })
-}
+    }
+};
+export default LXNSService;

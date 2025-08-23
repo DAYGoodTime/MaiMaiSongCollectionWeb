@@ -122,9 +122,10 @@ import { toast } from 'vue-sonner';
 import { formatDate } from '@/utils/StrUtil';
 import { useOAuthStore } from '@/store/oauth';
 import { useCopyHelper } from '@/utils/functionUtil';
-import { queryDataFromLXNS, type LXNSAuthType } from '@/api/lxns'
+import LXNSService, { type LXNSAuthType } from '@/api/lxns'
 import { storeToRefs } from 'pinia'
 import ActionConfirm from '@/components/ActionConfirm.vue'
+import { HttpError } from '@/api/base'
 const DataSourceUpdating = ref(false)
 const showLxnsDialog = ref(false)
 const showLxnsOAuthDialog = ref(false)
@@ -150,35 +151,37 @@ const updateLXNSDataSource = async (type: LXNSAuthType = 'Token') => {
     }
     DataSourceUpdating.value = true
     try {
-        const result: any = await queryDataFromLXNS(lxnsCredentials.value, type)
-        if (!result.success) {
-            if (result.details) {
-                if (result.details.code == 401) {
-                    toast.error(`落雪数据源更新失败: token失效`);
+        const result = await LXNSService.queryDataFromLXNS(lxnsCredentials.value, type)
+        if (result) {
+            if (result.success) {
+                //存入数据
+                updateLXNSData(result.data)
+                toast.success('落雪数据源更新成功！')
+                // 关闭对话框
+                showLxnsDialog.value = false
+                showLxnsOAuthDialog.value = false
+                // 清空表单
+                lxnsCredentials.value = ''
+            } else {
+                toast.error(`落雪数据源更新失败 code:${result.code}`)
+                console.error("落雪数据源更新失败", result);
+            }
+        } else toast.error('落雪数据源更新失败,返回的数据源为空')
+    } catch (error: any) {
+        if (error instanceof HttpError) {
+            if (error.status === 401) {
+                if (type === 'Token') {
+                    toast.error(`落雪数据源更新失败: token无效`, { position: "top-center" });
+                } else {
+                    toast.error(`落雪数据源更新失败: token失效`, { position: "top-center" });
                     //clean up auth info
                     cleanLXNSOAuth();
-                    return
                 }
+            } else {
+                toast.error(`落雪数据源更新失败 : ${error.message}`, { position: "top-center" })
             }
-            toast.error(`落雪数据源更新失败: ${result.message}`)
-            return;
-        }
-        // 关闭对话框
-        showLxnsDialog.value = false
-        showLxnsOAuthDialog.value = false
-        // 清空表单
-        lxnsCredentials.value = ''
-        //存入数据
-        updateLXNSData(result.data)
-        // 显示成功提示
-        toast.success('落雪数据源更新成功！')
-    } catch (error: any) {
-        if (error.details.details.code === 401) {
-            toast.error(`落雪数据源更新失败 : token无效`, { position: "top-center" })
-        } else if (error.details) {
-            toast.error(`落雪数据源更新失败 : ${error.details.message}`, { position: "top-center" })
         } else {
-            toast.error('落雪数据源更新失败，请查看控制台输出')
+            toast.error("落雪数据源更新失败", { position: "top-center" })
         }
         console.error(error);
     } finally {

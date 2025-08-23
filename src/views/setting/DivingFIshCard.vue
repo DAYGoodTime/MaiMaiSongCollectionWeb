@@ -9,7 +9,7 @@
                         <div>
                             <span>水鱼数据源 </span>
                             <span class="block md:inline">{{ selectedSource === 'divingfish' ? '(当前默认数据源)' : ''
-                                }}</span>
+                            }}</span>
                         </div>
                     </div>
                     <div v-if="hasDivingFishData" class="flex gap-4">
@@ -91,9 +91,10 @@ import { formatDate } from '@/utils/StrUtil';
 import { useDataStore } from '@/store/datasource'
 import { ref } from 'vue'
 import { toast } from 'vue-sonner'
-import { queryFishUserScores } from '@/api/fish'
 import { storeToRefs } from 'pinia'
 import ActionConfirm from '@/components/ActionConfirm.vue'
+import DivingFishService from '@/api/fish'
+import { HttpError } from '@/api/base'
 const {
     updateDivingFishData,
     exportDivingFishData,
@@ -108,28 +109,28 @@ const fishCredentials = ref('')
 // 更新水鱼数据源
 const updateFishDataSource = async () => {
     if (!fishCredentials.value) {
-        toast.error('请填写水鱼成绩导入Token')
+        toast.error('请填写水鱼成绩导入Token', { position: "top-center" })
         return
     }
     DataSourceUpdating.value = true
     try {
-        const response = await queryFishUserScores(fishCredentials.value)
-        if (!response.success) {
-            toast.error('请求水鱼数据源更新失败' + response.message, { position: "top-center" })
-            return;
-        }
-        const result = response.response
-        // 关闭对话框
-        showFishDialog.value = false
-        // 清空表单
-        fishCredentials.value = ''
+        const result = await DivingFishService.queryFishUserScores(fishCredentials.value);
         if (result) {
             updateDivingFishData(result.records)
-            // 显示成功提示
-            toast.success('水鱼数据源更新成功！')
-        }
+            toast.success('水鱼数据源更新成功！', { position: "top-center" })
+            // 关闭对话框
+            showFishDialog.value = false
+            // 清空表单
+            fishCredentials.value = ''
+        } else toast.error('水鱼数据源更新失败,返回的数据源为空', { position: "top-center" })
     } catch (error) {
-        toast.error('水鱼数据源更新失败，请查看控制台输出')
+        if (error instanceof HttpError) {
+            if (error.status === 400) {
+                toast.error('水鱼数据源更新失败 token无效', { position: "top-center" })
+                return;
+            }
+        }
+        toast.error('水鱼数据源更新失败', { position: "top-center" })
         console.error(error);
     } finally {
         DataSourceUpdating.value = false

@@ -93,7 +93,7 @@ import { ref } from 'vue'
 import { toast } from 'vue-sonner'
 import { storeToRefs } from 'pinia'
 import ActionConfirm from '@/components/ActionConfirm.vue'
-import { queryUsagiUserScore } from '@/api/usagi'
+import UsagiService from '@/api/usagi';
 const {
     updateUsagiData,
     exportUsagiData,
@@ -108,28 +108,23 @@ const Credentials = ref('')
 // 更新水鱼数据源
 const updateData = async () => {
     if (!Credentials.value) {
-        toast.error('请填写UsagiCard的uuid')
+        toast.error('请填写UsagiCard的uuid', { position: "top-center" })
         return
     }
     DataSourceUpdating.value = true
     try {
-        const response = await queryUsagiUserScore(Credentials.value)
-        if (!response.success) {
-            toast.error('请求Usagi数据源更新失败' + response.message, { position: "top-center" })
-            return;
-        }
-        const result = response.response
-        // 关闭对话框
-        showUsagiDialog.value = false
-        // 清空表单
-        Credentials.value = ''
+        const result = await UsagiService.queryUsagiUserScore(Credentials.value)
         if (result) {
             updateUsagiData(result)
             // 显示成功提示
             toast.success('Usagi数据源更新成功！')
-        }
+            // 关闭对话框
+            showUsagiDialog.value = false
+            // 清空表单
+            Credentials.value = ''
+        } else toast.error('Usagi数据源更新失败,返回的数据源为空', { position: "top-center" });
     } catch (error) {
-        toast.error('Usagi数据源更新失败，请查看控制台输出')
+        toast.error('Usagi数据源更新失败', { position: "top-center" })
         console.error(error);
     } finally {
         DataSourceUpdating.value = false

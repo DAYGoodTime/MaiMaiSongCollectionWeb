@@ -1,6 +1,4 @@
 import type { UsagiScore } from "@/types/usagi"
-import { request, type Response } from "./base"
-
 export const rateMapping = ["sssp", "sss", "ssp", "ss", "sp", "s", "aaa", "aa", "a", "bbb", "bb", "b", "c", "d"]
 export const fcMapping = ["app", "ap", "fcp", "fc"]
 export const fsMapping = ["sync", "fs", "fsp", "fsd", "fsdp"]
@@ -8,19 +6,27 @@ export const fsMapping = ["sync", "fs", "fsp", "fsd", "fsdp"]
 const HOST = "https://uc.turou.fun/api"
 const DEV_TOKEN = import.meta.env.VITE_USAGI_DEV_TOKEN
 
-export const queryUsagiUserScore = (uuid: String): Promise<Response<UsagiScore[]>> => {
-    if (uuid.length === 0) {
-        throw new Error("uuid is empty")
-    }
-    // 准备请求头
-    const headers: Record<string, string> = {
-        'Content-Type': 'application/json',
-        'x-developer-token': DEV_TOKEN
+import { createApiClient } from './base';
+
+async function handleUsagiError(response: Response) {
+    const errorBody = await response.json();
+    return {
+        message: `Usagi API Error: ${errorBody.detail || 'Unknown error'}`,
+        body: errorBody
     };
-    const url = `${HOST}/v1/maimai/scores?uuid=${uuid}`
-    const requestOption: RequestInit = {
-        method: 'GET',
-        headers,
-    }
-    return request(url, requestOption)
 }
+const usagiApiClient = createApiClient({
+    baseUrl: HOST,
+    defaultHeaders: {
+        'x-developer-token': DEV_TOKEN,
+    },
+    handleError: handleUsagiError,
+});
+
+const UsagiService = {
+    queryUsagiUserScore: (uuid: string): Promise<UsagiScore[]> => {
+        return usagiApiClient.get<UsagiScore[]>(`v1/maimai/scores?uuid=${uuid}`);
+    },
+};
+
+export default UsagiService;

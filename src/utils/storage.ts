@@ -1,20 +1,19 @@
-import { toast } from "vue-sonner";
-
+import { API_ROUTER_HOST } from "@/api/router";
 
 export async function getFromKey(key: string): Promise<any | null> {
-    let res = await fetch(`${import.meta.env.VITE_API_BASE_URL}/kv?key=${key}`, {
+    let res = await fetch(`${API_ROUTER_HOST}/kv?key=${key}`, {
         method: 'GET',
     });
     const body = await res.json()
     if (res.status != 200 || !body["success"]) {
-        toast.error(`请求失败，请查看控制台\n Error:${body["message"] ?? 'unexpected error'}`)
+        console.error("请求失败", body);
         return null;
     } else {
         return body.data
     }
 }
 export async function putToStorage(key: string, value: string) {
-    let res = await fetch(`${import.meta.env.VITE_API_BASE_URL}/kv`, {
+    let res = await fetch(`${API_ROUTER_HOST}/kv`, {
         method: 'POST',
         body: JSON.stringify({
             key,
@@ -23,7 +22,7 @@ export async function putToStorage(key: string, value: string) {
     });
     const body = await res.json()
     if (res.status != 200 || !body["success"]) {
-        toast.error(`请求失败，请查看控制台\n Error:${body["message"] ?? 'unexpected error'}`)
+        console.error("请求失败", body);
         return false;
     } else {
         return true
