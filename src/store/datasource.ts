@@ -1,6 +1,6 @@
 import { defineStore } from "pinia";
 import { computed, toValue, type Ref } from "vue";
-import type { AnyScore, DataSource, Score } from "@/types/datasource";
+import type { AnyScore, AvailableDataSourceType, CredentialsStorage, DataSource, DataSourceType, Score } from "@/types/datasource";
 import SONG_DATA from "@/assets/data/song_data_extra.json" with { type: 'json' };
 import type { MaiMaiSong, SongType } from "@/types/songs";
 import type { LXNSScore } from "@/types/lxns";
@@ -11,16 +11,21 @@ import type { FishScore } from "@/types/divingfish";
 import { toast } from "vue-sonner";
 import type { UsagiScore } from "@/types/usagi";
 
-export type DataSourceType = "divingfish" | "lxns" | "usagi" | "empty";
 
 const CURRENT_SONG_VERSION = 2
 
 const CURRENT_SCORE_VERSION = 4
+export const MAX_ERROR_COUNT = 3
 
 const DEFAULT_DS = {
   list: new Map<number, Score[]>(),
   update_time: '从未获取',
   version: CURRENT_SCORE_VERSION
+}
+const DEFAULT_CREDENTIALS: Record<AvailableDataSourceType, string> = {
+  divingfish: '',
+  lxns: '',
+  usagi: ''
 }
 const serializerMap = {
   read: (v: string): DataSource<Map<number, Score[]>> => {
@@ -209,6 +214,13 @@ export const useDataStore = defineStore("datasource", () => {
     const message = selectedSource.value === 'empty' ? ',当前没有可用的数据源了' : `当前默认数据源为 ${selectedSource.value}`
     toast.success(`成功删除数据源 ${type} ${message}`, { position: "top-center" })
   }
+  const DataSourceCredentials: RemovableRef<CredentialsStorage> = useLocalStorage("credentials", DEFAULT_CREDENTIALS)
+  const hasCredentials = (type: AvailableDataSourceType) => {
+    return DataSourceCredentials.value[type].length > 0
+  }
+  const removeCredentials = (type: AvailableDataSourceType) => {
+    DataSourceCredentials.value[type] = ''
+  }
   return {
     selectedSource,
     getSongDataList,
@@ -236,5 +248,8 @@ export const useDataStore = defineStore("datasource", () => {
     getUsagiScoreList,
     hasUsagiData,
     exportUsagiData,
+    DataSourceCredentials,
+    hasCredentials,
+    removeCredentials
   };
 });

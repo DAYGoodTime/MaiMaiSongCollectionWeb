@@ -64,7 +64,12 @@
                 <form @submit.prevent="updateLXNSDataSource('Token')" class="space-y-4 pt-4">
                     <div class="space-y-2">
                         <Label for="lxns-token">API密钥</Label>
-                        <Input id="lxns-token" v-model="lxnsCredentials" placeholder="个人 API 密钥" required />
+                        <Input id="lxns-token" v-model="lxnsCredentials" placeholder="个人 API 密钥" required
+                            :disabled="DataSourceUpdating" />
+                    </div>
+                    <div class="flex items-center gap-2">
+                        <Checkbox id="remember" v-model="remember" />
+                        <Label for="remember">记住凭证(保存在本地)</Label>
                     </div>
                     <DialogFooter class="gap-4 lg:gap-2">
                         <Button type="button" variant="outline" @click="showLxnsDialog = false">
@@ -117,7 +122,7 @@ import { Input } from '@/components/shadcn/ui/input'
 import { Label } from '@/components/shadcn/ui/label'
 import { ref } from 'vue';
 import { RefreshCw, Snowflake } from 'lucide-vue-next'
-import { useDataStore } from '@/store/datasource';
+import { MAX_ERROR_COUNT, useDataStore } from '@/store/datasource';
 import { toast } from 'vue-sonner';
 import { formatDate } from '@/utils/StrUtil';
 import { useOAuthStore } from '@/store/oauth';
@@ -130,14 +135,18 @@ const DataSourceUpdating = ref(false)
 const showLxnsDialog = ref(false)
 const showLxnsOAuthDialog = ref(false)
 const lxnsCredentials = ref("")
+const ErrorCount = ref(0);
+const remember = ref(false)
 const LXNS_OAUTH_URI = import.meta.env.VITE_LXNS_OAUTH_URI
 const {
     exportLXNSData,
     switchDataSource,
     updateLXNSData,
-    ClearDataSource
+    ClearDataSource,
+    hasCredentials,
+    removeCredentials
 } = useDataStore();
-const { getLXNSScoreList, hasLXNSData, selectedSource } = storeToRefs(useDataStore())
+const { getLXNSScoreList, hasLXNSData, selectedSource, DataSourceCredentials } = storeToRefs(useDataStore())
 const { isAccessTokenExpired, isRefreshTokenExpired, getLXNSToken, cleanLXNSOAuth } = useOAuthStore();
 const { hasLXNSOAuth, LXNSOAuth } = storeToRefs(useOAuthStore())
 const { handelCopy } = useCopyHelper()
@@ -184,6 +193,11 @@ const updateLXNSDataSource = async (type: LXNSAuthType = 'Token') => {
             toast.error("落雪数据源更新失败", { position: "top-center" })
         }
         console.error(error);
+        if (type === 'Token') ErrorCount.value++;
+        if (ErrorCount.value >= MAX_ERROR_COUNT && hasCredentials("lxns") && type === 'Token') {
+            toast.warning("错误次数过多,已为你删除缓存凭证")
+            removeCredentials("lxns")
+        }
     } finally {
         DataSourceUpdating.value = false
     }
@@ -216,7 +230,12 @@ const handelLXNSDialog = async () => {
         toast.info("使用OAuth更新中~")
         await updateLXNSDataSource('OAuth')
     } else {
-        showLxnsDialog.value = true
+        if (hasCredentials("lxns")) {
+            //尝试使用本地缓存更新
+            lxnsCredentials.value = DataSourceCredentials.value.lxns
+            await updateLXNSDataSource("Token")
+        } else showLxnsDialog.value = true
+
     }
 }
 const submitOAuthCode = async () => {

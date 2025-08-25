@@ -42,7 +42,7 @@
                             @click="() => switchDataSource('divingfish')" :disabled="!hasDivingFishData">
                             设为默认
                         </Button>
-                        <Button @click="showFishDialog = true" :disabled="DataSourceUpdating" class="gap-2">
+                        <Button @click="handelUpdate" :disabled="DataSourceUpdating" class="gap-2">
                             <RefreshCw :class="{ 'animate-spin': DataSourceUpdating }" class="h-4 w-4" />
                             <span>{{ DataSourceUpdating ? '更新中...' : '更新' }}</span>
                         </Button>
@@ -65,7 +65,12 @@
                 <form @submit.prevent="updateFishDataSource" class="space-y-4 pt-4">
                     <div class="space-y-2">
                         <Label for="fish-token">成绩导入Token</Label>
-                        <Input id="fish-token" v-model="fishCredentials" placeholder="请输入成绩导入Token" required />
+                        <Input id="fish-token" v-model="fishCredentials" placeholder="请输入成绩导入Token" required
+                            :disabled="DataSourceUpdating" />
+                    </div>
+                    <div class="flex items-center gap-2">
+                        <Checkbox id="remember" v-model="remember" />
+                        <Label for="remember">记住凭证(保存在本地)</Label>
                     </div>
                     <DialogFooter class="gap-4 lg:gap-2">
                         <Button type="button" variant="outline" @click="showFishDialog = false">
@@ -88,7 +93,7 @@ import { Label } from '@/components/shadcn/ui/label'
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/shadcn/ui/dialog'
 import { Fish, RefreshCw } from 'lucide-vue-next'
 import { formatDate } from '@/utils/StrUtil';
-import { useDataStore } from '@/store/datasource'
+import { MAX_ERROR_COUNT, useDataStore } from '@/store/datasource'
 import { ref } from 'vue'
 import { toast } from 'vue-sonner'
 import { storeToRefs } from 'pinia'
@@ -99,12 +104,16 @@ const {
     updateDivingFishData,
     exportDivingFishData,
     switchDataSource,
-    ClearDataSource
+    ClearDataSource,
+    hasCredentials,
+    removeCredentials
 } = useDataStore();
-const { getDivingFishScoreList, hasDivingFishData, selectedSource } = storeToRefs(useDataStore())
+const { getDivingFishScoreList, hasDivingFishData, selectedSource, DataSourceCredentials } = storeToRefs(useDataStore())
 const DataSourceUpdating = ref(false)
 const showFishDialog = ref(false)
 const fishCredentials = ref('')
+const ErrorCount = ref(0);
+const remember = ref(false)
 
 // 更新水鱼数据源
 const updateFishDataSource = async () => {
@@ -132,8 +141,22 @@ const updateFishDataSource = async () => {
         }
         toast.error('水鱼数据源更新失败', { position: "top-center" })
         console.error(error);
+        ErrorCount.value++;
+        if (ErrorCount.value >= MAX_ERROR_COUNT && hasCredentials("divingfish")) {
+            toast.warning("错误次数过多,已为你删除缓存凭证")
+            removeCredentials("divingfish")
+        }
     } finally {
         DataSourceUpdating.value = false
+    }
+}
+const handelUpdate = async () => {
+    if (hasCredentials("divingfish")) {
+        //尝试直接更新
+        fishCredentials.value = DataSourceCredentials.value.divingfish;
+        await updateFishDataSource();
+    } else {
+        showFishDialog.value = true;
     }
 }
 </script>

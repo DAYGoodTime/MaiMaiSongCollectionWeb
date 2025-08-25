@@ -9,6 +9,8 @@ export interface DataSource<T> {
 }
 export type SongType = "standard" | "dx" | "utage"
 export type AnyScore = LXNSScore | FishScore | UsagiScore
+export type DataSourceType = AvailableDataSourceType | "empty";
+export type AvailableDataSourceType = "divingfish" | "lxns" | "usagi"
 export interface Score {
     /** 曲目 ID */
     id: number;
@@ -41,3 +43,4 @@ export interface Score {
     /** 游玩次数 (部分数据源支持) */
     play_count?: number;
 }
+export type CredentialsStorage = Record<AvailableDataSourceType, string>

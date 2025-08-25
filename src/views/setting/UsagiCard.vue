@@ -8,7 +8,7 @@
                         <div>
                             <span>UsagiCard(兔卡) </span>
                             <span class="block md:inline">{{ selectedSource === 'usagi' ? '(当前默认数据源)' : ''
-                                }}</span>
+                            }}</span>
                         </div>
                     </div>
                     <div v-if="hasUsagiData" class="flex gap-4">
@@ -41,7 +41,7 @@
                             @click="() => switchDataSource('usagi')" :disabled="!hasUsagiData">
                             设为默认
                         </Button>
-                        <Button @click="showUsagiDialog = true" :disabled="DataSourceUpdating" class="gap-2">
+                        <Button @click="handelUpdate" :disabled="DataSourceUpdating" class="gap-2">
                             <RefreshCw :class="{ 'animate-spin': DataSourceUpdating }" class="h-4 w-4" />
                             <span>{{ DataSourceUpdating ? '更新中...' : '更新' }}</span>
                         </Button>
@@ -50,7 +50,7 @@
                 </div>
             </CardContent>
         </Card>
-        <!-- 水鱼对话框 -->
+        <!-- Usagi对话框 -->
         <Dialog v-model:open="showUsagiDialog">
             <DialogContent class="sm:max-w-[425px]">
                 <DialogHeader>
@@ -64,7 +64,12 @@
                 <form @submit.prevent="updateData" class="space-y-4 pt-4">
                     <div class="space-y-2">
                         <Label for="fish-token">卡片uuid</Label>
-                        <Input id="fish-token" v-model="Credentials" placeholder="请输入UsagiCard的UUID" required />
+                        <Input id="fish-token" v-model="Credentials" placeholder="请输入UsagiCard的UUID" required
+                            :disabled="DataSourceUpdating" />
+                    </div>
+                    <div class="flex items-center gap-2">
+                        <Checkbox id="remember" v-model="remember" />
+                        <Label for="remember">记住凭证(保存在本地)</Label>
                     </div>
                     <DialogFooter class="gap-4 lg:gap-2">
                         <Button type="button" variant="outline" @click="showUsagiDialog = false">
@@ -87,8 +92,9 @@ import { Input } from '@/components/shadcn/ui/input'
 import { Label } from '@/components/shadcn/ui/label'
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/shadcn/ui/dialog'
 import { RefreshCw } from 'lucide-vue-next'
+import { Checkbox } from "@/components/shadcn/ui/checkbox";
 import { formatDate } from '@/utils/StrUtil';
-import { useDataStore } from '@/store/datasource'
+import { MAX_ERROR_COUNT, useDataStore } from '@/store/datasource'
 import { ref } from 'vue'
 import { toast } from 'vue-sonner'
 import { storeToRefs } from 'pinia'
@@ -98,14 +104,28 @@ const {
     updateUsagiData,
     exportUsagiData,
     switchDataSource,
-    ClearDataSource
+    ClearDataSource,
+    removeCredentials,
+    hasCredentials
 } = useDataStore();
-const { getUsagiScoreList, hasUsagiData, selectedSource } = storeToRefs(useDataStore())
+const { getUsagiScoreList, hasUsagiData, selectedSource, DataSourceCredentials } = storeToRefs(useDataStore())
 const DataSourceUpdating = ref(false)
 const showUsagiDialog = ref(false)
 const Credentials = ref('')
+const ErrorCount = ref(0)
+const remember = ref(false)
 
-// 更新水鱼数据源
+const handelUpdate = async () => {
+    if (hasCredentials("usagi")) {
+        //尝试直接更新
+        Credentials.value = DataSourceCredentials.value.usagi;
+        await updateData();
+    } else {
+        showUsagiDialog.value = true;
+    }
+}
+
+// 更新Usagi数据源
 const updateData = async () => {
     if (!Credentials.value) {
         toast.error('请填写UsagiCard的uuid', { position: "top-center" })
@@ -118,14 +138,23 @@ const updateData = async () => {
             updateUsagiData(result)
             // 显示成功提示
             toast.success('Usagi数据源更新成功！')
+            if (showUsagiDialog.value && remember.value) {
+                //保存凭证
+                DataSourceCredentials.value.usagi = Credentials.value
+            }
             // 关闭对话框
             showUsagiDialog.value = false
             // 清空表单
             Credentials.value = ''
         } else toast.error('Usagi数据源更新失败,返回的数据源为空', { position: "top-center" });
     } catch (error) {
+        ErrorCount.value++;
         toast.error('Usagi数据源更新失败', { position: "top-center" })
         console.error(error);
+        if (ErrorCount.value >= MAX_ERROR_COUNT && hasCredentials("usagi")) {
+            toast.warning("错误次数过多,已为你删除缓存凭证")
+            removeCredentials("usagi")
+        }
     } finally {
         DataSourceUpdating.value = false
     }

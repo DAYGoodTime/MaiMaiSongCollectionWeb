@@ -116,7 +116,6 @@ const loadMore = () => {
     if (loading.value || !hasMore.value) return
     loading.value = true
     error.value = false
-    console.log("trigger");
     try {
         currentPage.value++;
     } catch (err) {
