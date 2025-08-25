@@ -9,7 +9,7 @@
                         <div>
                             <span>水鱼数据源 </span>
                             <span class="block md:inline">{{ selectedSource === 'divingfish' ? '(当前默认数据源)' : ''
-                            }}</span>
+                                }}</span>
                         </div>
                     </div>
                     <div v-if="hasDivingFishData" class="flex gap-4">
@@ -92,6 +92,7 @@ import { Input } from '@/components/shadcn/ui/input'
 import { Label } from '@/components/shadcn/ui/label'
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/shadcn/ui/dialog'
 import { Fish, RefreshCw } from 'lucide-vue-next'
+import { Checkbox } from "@/components/shadcn/ui/checkbox";
 import { formatDate } from '@/utils/StrUtil';
 import { MAX_ERROR_COUNT, useDataStore } from '@/store/datasource'
 import { ref } from 'vue'

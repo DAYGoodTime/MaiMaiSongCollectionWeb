@@ -123,6 +123,7 @@ import { Label } from '@/components/shadcn/ui/label'
 import { ref } from 'vue';
 import { RefreshCw, Snowflake } from 'lucide-vue-next'
 import { MAX_ERROR_COUNT, useDataStore } from '@/store/datasource';
+import { Checkbox } from "@/components/shadcn/ui/checkbox";
 import { toast } from 'vue-sonner';
 import { formatDate } from '@/utils/StrUtil';
 import { useOAuthStore } from '@/store/oauth';
