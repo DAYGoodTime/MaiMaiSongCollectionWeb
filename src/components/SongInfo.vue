@@ -92,10 +92,11 @@ import { getImageCoverUrl } from '@/utils/urlUtils'
 import type { MaiMaiSong, SongType } from '@/types/songs'
 import { onMounted, reactive, ref, watch } from 'vue'
 import { SelectItem, SelectLabel, SelectTrigger, Select, SelectValue, SelectContent } from './shadcn/ui/select'
-import { useDataStore, type DataSourceType } from '@/store/datasource'
+import { useDataStore } from '@/store/datasource'
 import { toFishStyleId, useCopyHelper } from '@/utils/functionUtil'
 import type { AcceptableValue } from 'reka-ui'
 import { storeToRefs } from 'pinia'
+import type { DataSourceType } from '@/types/datasource'
 
 const { switchDataSource } = useDataStore();
 const { getSelectableSource, selectedSource } = storeToRefs(useDataStore())

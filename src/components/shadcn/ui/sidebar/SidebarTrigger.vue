@@ -55,17 +55,19 @@ watch(() => appStore.shouldShowFloatingSideBarTrigger, () => {
 </script>
 
 <template>
-  <md-fab ref="sidebarTrigger" data-sidebar="trigger" @click="handelTriggerToggle" :class="props.class">
-    <PanelLeft slot="icon" class="!h-7 !w-7" />
-    <span class="sr-only">menu</span>
-  </md-fab>
-  <transition name="fade">
-    <md-fab v-if="showSticky" :style="floatingStyle" data-sidebar="trigger" @click="handelTriggerToggle"
-      :class="cn('fixed top-0 left-0 z-10', props.class)">
+  <div v-if="appStore.showSideBarTrigger">
+    <md-fab ref="sidebarTrigger" data-sidebar="trigger" @click="handelTriggerToggle" :class="props.class">
       <PanelLeft slot="icon" class="!h-7 !w-7" />
       <span class="sr-only">menu</span>
     </md-fab>
-  </transition>
+    <transition name="fade">
+      <md-fab v-if="showSticky" :style="floatingStyle" data-sidebar="trigger" @click="handelTriggerToggle"
+        :class="cn('fixed top-0 left-0 z-10', props.class)">
+        <PanelLeft slot="icon" class="!h-7 !w-7" />
+        <span class="sr-only">menu</span>
+      </md-fab>
+    </transition>
+  </div>
 </template>
 <style scoped>
 .fade-enter-active,

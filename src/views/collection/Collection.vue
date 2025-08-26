@@ -21,11 +21,35 @@
             </span>
         </div>
     </DefineSearchTemplate>
-    <div class="container mx-auto px-4 py-4">
-        <div ref="panel" class="flex justify-center">
-            <Card class="w-full lg:w-1/2">
+    <div class="px-4 py-4">
+        <NavigationMenu class="border rounded-xl shadow bg-background mb-4">
+            <NavigationMenuList class="flex md:gap-2 lg:gap-4 p-1">
+                <NavigationMenuItem>
+                    <NavigationMenuLink :class="cn('cursor-pointer', navigationMenuTriggerStyle())"
+                        @click="toggleSidebar">
+                        <PanelLeft slot="icon" />
+                    </NavigationMenuLink>
+                </NavigationMenuItem>
+                <NavigationMenuItem>
+                    <NavigationMenuTrigger>排序方式</NavigationMenuTrigger>
+                    <NavigationMenuContent>
+                        <div class="flex flex-col w-fit p-4 gap-y-4">
+                            <ReuseSortingTemplate />
+                        </div>
+                    </NavigationMenuContent>
+                </NavigationMenuItem>
+                <NavigationMenuItem>
+                    <NavigationMenuLink @click="showAdvanced = true"
+                        :class="cn('cursor-pointer w-fit', navigationMenuTriggerStyle())">
+                        高级功能
+                    </NavigationMenuLink>
+                </NavigationMenuItem>
+            </NavigationMenuList>
+        </NavigationMenu>
+        <div class="flex gap-4 flex-wrap" ref="panel">
+            <Card class="flex-auto w-96">
                 <CardHeader>
-                    <CardTitle>排序与搜索</CardTitle>
+                    <CardTitle>合集: {{ CurrentCollectionLabel }}</CardTitle>
                 </CardHeader>
                 <CardContent class="space-y-4">
                     <div>
@@ -33,13 +57,6 @@
                             双击卡片打开歌曲详情，右键可以进行删除等操作。悬浮在曲名上方可以呼出完整文本，点击文本可以直接复制</p>
                         <p class="text-sm font-semibold mb-2">合集默认没有成绩，需要在高级功能处进行导入</p>
                         <p class="text-sm font-semibold mb-2 text-red-600">没有数据源的情况下所有成绩都是隐藏的！需要筛选中启用‘未游玩成绩’</p>
-                        <p class="font-bold text-xl">排序方式</p>
-                        <div class="flex gap-4 justify-center pt-2">
-                            <ReuseSortingTemplate />
-                        </div>
-                    </div>
-                    <div class="flex justify-center">
-                        <Button variant="outline" @click="showAdvanced = true">高级功能</Button>
                     </div>
                     <div>
                         <ReuseSearchTemplate />
@@ -52,6 +69,7 @@
                     </div>
                 </CardContent>
             </Card>
+            <ScoreStatisticsCard class="w-96" :status-board="statusBoard" />
         </div>
         <!-- 成绩列表 -->
         <InfiniteScrollArea
@@ -121,20 +139,18 @@
             </NavigationMenuItem>
         </template>
     </CollectionFloatingNav>
-    <ScoreStatisticsCard :status-board="statusBoard" />
 </template>
 <script setup lang="ts">
 import ScoreCard from '@/components/ScoreCard.vue';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/shadcn/ui/card'
 import { Badge } from '@/components/shadcn/ui/badge';
-import { Search, X, ChevronDown, ChevronUp } from 'lucide-vue-next'
+import { Search, X, ChevronDown, ChevronUp, PanelLeft } from 'lucide-vue-next'
 import { Input } from '@/components/shadcn/ui/input'
-import { Button } from '@/components/shadcn/ui/button';
 import { type Collection, useCollectionStore } from '@/store/collections';
 import { useDataStore } from '@/store/datasource';
 import type { MaiMaiSong, ScoreExtend, SongType } from '@/types/songs';
 import { debounce, toFishStyleId, useRouterHelper } from '@/utils/functionUtil';
-import { computed, reactive, ref, useTemplateRef, watch } from 'vue';
+import { computed, onMounted, onUnmounted, reactive, ref, useTemplateRef, watch } from 'vue';
 import { toast } from 'vue-sonner';
 import { conventFcFsStr, getSongDiff } from '@/utils/StrUtil';
 import { ACHIEVEMENT, PLAY_BONUS, ACHIEVEMENT_ICON, PLAY_BONUS_ICON } from '@/utils/urlUtils';
@@ -148,13 +164,14 @@ import {
     ContextMenuSubTrigger,
 } from '@/components/shadcn/ui/context-menu'
 import {
+    NavigationMenu,
     NavigationMenuContent,
+    NavigationMenuList,
     NavigationMenuItem,
     NavigationMenuLink,
     NavigationMenuTrigger,
     navigationMenuTriggerStyle
 } from "@/components/shadcn/ui/navigation-menu"
-
 import type { Score } from '@/types/datasource';
 import InfiniteScrollArea from '@/components/InfiniteScrollArea.vue';
 import AdvanceFilter from '@/components/AdvanceFilter/AdvanceFilter.vue';
@@ -167,6 +184,8 @@ import { storeToRefs } from 'pinia';
 import { createReusableTemplate } from '@vueuse/core';
 import { cn } from '@/lib/utils';
 import CollectionFloatingNav from './component/CollectionFloatingNav.vue';
+import { useAppStore } from '@/store/appStore';
+import { useSidebar } from '@/components/shadcn/ui/sidebar';
 
 
 const { route, backHome } = useRouterHelper()
@@ -174,6 +193,7 @@ const { getScore, getSongListAsMap } = useDataStore()
 const { getCollectionByLabel, removeFromCollection, pushScoreToCollection } = useCollectionStore()
 const { CurrentCollectionLabel, UserCollectionList } = storeToRefs(useCollectionStore())
 const { updateIndex, searchScore, orderBy, advanceFilter } = useScoreSearch()
+const { toggleSidebar } = useSidebar()
 const PanelRef = useTemplateRef("panel")
 const [DefineSortingTemplate, ReuseSortingTemplate] = createReusableTemplate()
 const [DefineSearchTemplate, ReuseSearchTemplate] = createReusableTemplate()
@@ -376,6 +396,13 @@ const initScoreList = () => {
     }
 }
 initScoreList();//立马进行初始化
+const appStore = useAppStore();
+onMounted(() => {
+    appStore.showSideBarTrigger = false;
+})
+onUnmounted(() => {
+    appStore.showSideBarTrigger = true;
+})
 
 // computed
 const getOtherCollections = computed(() => UserCollectionList.value.filter(c => c.label !== route.query.label))

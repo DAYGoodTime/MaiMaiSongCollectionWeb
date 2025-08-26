@@ -11,6 +11,7 @@ export const useAppStore = defineStore("app", () => {
   const hasUserName = computed(() => UserName.value.length > 0);
   const ComboboxOpen = ref(false);
   const shouldShowFloatingSideBarTrigger = ref(true)
+  const showSideBarTrigger = ref(true)
   const SongIndex = new FlexSearch.Document({
     document: {
       id: 'id',
@@ -50,6 +51,7 @@ export const useAppStore = defineStore("app", () => {
     hasUserName,
     ComboboxOpen,
     SongIndex,
-    shouldShowFloatingSideBarTrigger
+    shouldShowFloatingSideBarTrigger,
+    showSideBarTrigger
   };
 });
