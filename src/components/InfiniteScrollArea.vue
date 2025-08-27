@@ -1,5 +1,5 @@
 <template>
-    <ScrollArea :class="cn('w-full rounded-md border p-4', props.class)" ref="scrollAreaRef">
+    <ScrollArea :class="cn('w-full rounded-md border p-4', props.class)">
         <!-- 使用 slot 渲染已加载的内容 -->
         <div class="space-y-4">
             <slot name="default" :items="bufferItems" :loading="loading" :has-more="hasMore" :error="error">
@@ -53,10 +53,11 @@
 </template>
 
 <script setup lang="ts" generic="T = any">
-import { ref, onMounted, onUnmounted, nextTick, computed, watchEffect } from 'vue'
+import { ref, computed, watchEffect, watch } from 'vue'
 import { ScrollArea } from '@/components/shadcn/ui/scroll-area'
 import { Skeleton } from '@/components/shadcn/ui/skeleton'
 import { cn } from '@/lib/utils';
+import { useWindowScroll } from '@vueuse/core';
 
 // 组件属性
 interface Props<T> {
@@ -101,7 +102,6 @@ const loading = ref(false)
 const hasMore = ref(true)
 const error = ref(false)
 const currentPage = ref(1)
-const scrollAreaRef = ref()
 
 
 const bufferItems = computed(() => {
@@ -128,36 +128,23 @@ const loadMore = () => {
 
 
 // 滚动事件处理
-const handleScroll = async (event: Event) => {
-    const target = event.target as HTMLElement
-    const { scrollTop, scrollHeight, clientHeight } = target
-    const distanceToBottom = scrollHeight - scrollTop - clientHeight
+// const handleScroll = async (event: Event) => {
+//     const target = event.target as HTMLElement
+//     const { scrollTop, scrollHeight, clientHeight } = target
+//     const distanceToBottom = scrollHeight - scrollTop - clientHeight
 
-    // 当距离底部小于阈值时触发加载
-    if (distanceToBottom < props.threshold && !loading.value && hasMore.value) {
-        loadMore()
+//     // 当距离底部小于阈值时触发加载
+//     if (distanceToBottom < props.threshold && !loading.value && hasMore.value) {
+//         loadMore()
+//     }
+// }
+const { arrivedState } = useWindowScroll({ offset: { bottom: props.threshold } })
+
+watch(() => arrivedState.bottom, (bool) => {
+    if (bool && hasMore.value) {
+        loadMore();
     }
-}
-
-// 设置滚动监听
-const currentViewport = ref();
-const setupScrollListener = () => {
-    if (!scrollAreaRef.value) return
-
-    // 获取 ScrollArea 内部的滚动容器
-    currentViewport.value = scrollAreaRef.value.$el?.querySelector('.scroller-viewport')
-    if (currentViewport.value) {
-        currentViewport.value.addEventListener('scroll', handleScroll)
-    }
-}
-
-// 移除滚动监听
-const removeScrollListener = (viewport: Element | null) => {
-    if (viewport) {
-        viewport.removeEventListener('scroll', handleScroll)
-    }
-}
-
+})
 // 重置数据
 const reset = () => {
     items.value = []
@@ -165,18 +152,6 @@ const reset = () => {
     hasMore.value = true
     error.value = false
 }
-
-// 初始加载和滚动监听设置
-onMounted(async () => {
-    // 等待 DOM 更新后设置滚动监听
-    await nextTick()
-    setupScrollListener()
-})
-// 清理函数
-onUnmounted(() => {
-    removeScrollListener(currentViewport.value)
-})
-
 // 暴露方法给父组件
 defineExpose({
     loadMore,
