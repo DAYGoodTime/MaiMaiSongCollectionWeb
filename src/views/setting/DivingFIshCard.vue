@@ -9,7 +9,7 @@
                         <div>
                             <span>水鱼数据源 </span>
                             <span class="block md:inline">{{ selectedSource === 'divingfish' ? '(当前默认数据源)' : ''
-                                }}</span>
+                            }}</span>
                         </div>
                     </div>
                     <div v-if="hasDivingFishData" class="flex gap-4">
@@ -128,6 +128,10 @@ const updateFishDataSource = async () => {
         if (result) {
             updateDivingFishData(result.records)
             toast.success('水鱼数据源更新成功！', { position: "top-center" })
+            if (showFishDialog.value && remember.value) {
+                //保存凭证
+                DataSourceCredentials.value.divingfish = fishCredentials.value
+            }
             // 关闭对话框
             showFishDialog.value = false
             // 清空表单

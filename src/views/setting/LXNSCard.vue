@@ -167,6 +167,10 @@ const updateLXNSDataSource = async (type: LXNSAuthType = 'Token') => {
                 //存入数据
                 updateLXNSData(result.data)
                 toast.success('落雪数据源更新成功！')
+                if (showLxnsDialog.value && remember.value) {
+                    //保存凭证
+                    DataSourceCredentials.value.lxns = lxnsCredentials.value
+                }
                 // 关闭对话框
                 showLxnsDialog.value = false
                 showLxnsOAuthDialog.value = false
