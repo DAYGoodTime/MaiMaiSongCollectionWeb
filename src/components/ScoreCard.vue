@@ -87,7 +87,7 @@ import { ref, computed, defineAsyncComponent } from 'vue';
 import { Textarea } from './shadcn/ui/textarea';
 import { formatAchievement, formatDxRating, formatLevelValue, getNoteDesigner, getSongDiff, getTotalDxScore } from '@/utils/StrUtil';
 import { useCollectionStore } from '@/store/collections';
-import { debounce, toFishStyleId, useCopyHelper } from '@/utils/functionUtil';
+import { debounce, showCurrentStyleId, toFishStyleId, useCopyHelper } from '@/utils/functionUtil';
 import {
     Dialog,
     DialogContent,
@@ -122,10 +122,6 @@ onClickOutside(target, () => {
         openDxScoreTooltips.value = false
     }
 });
-const showCurrentStyleId = (id: number) => {
-    if (selectedSource.value === 'lxns') return id;
-    else return toFishStyleId(id)
-}
 const cardData = computed(() => {
     const isUtage = props.score.score.type === 'utage';
     const levelIndex = props.score.score.level_index;

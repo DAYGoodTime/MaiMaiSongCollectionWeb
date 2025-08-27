@@ -93,7 +93,7 @@ import type { MaiMaiSong, SongType } from '@/types/songs'
 import { onMounted, reactive, ref, watch } from 'vue'
 import { SelectItem, SelectLabel, SelectTrigger, Select, SelectValue, SelectContent } from './shadcn/ui/select'
 import { useDataStore } from '@/store/datasource'
-import { toFishStyleId, useCopyHelper } from '@/utils/functionUtil'
+import { showCurrentStyleId, useCopyHelper } from '@/utils/functionUtil'
 import type { AcceptableValue } from 'reka-ui'
 import { storeToRefs } from 'pinia'
 import type { DataSourceType } from '@/types/datasource'
@@ -121,10 +121,7 @@ type TypeValue = typeof typeList[number]["value"];
 const isSelectedType = (type: TypeValue) => {
     return type === SelectedType.value;
 }
-const showCurrentStyleId = (id: number) => {
-    if (selectedSource.value === 'divingfish') return toFishStyleId(id);
-    else return id
-}
+
 const handelDataSourceSwitch = (ds: AcceptableValue) => {
     switchDataSource(ds as DataSourceType);
 }

@@ -5,6 +5,7 @@ import { toast } from "vue-sonner";
 import { getSongDiff } from "./StrUtil";
 import type { MaiMaiSong } from "@/types/songs";
 import { fcMapping, fsMapping, rateMapping } from "@/api/usagi";
+import { useDataStore } from "@/store/datasource";
 
 type DebouncedFunction<T extends any[]> = (...args: T) => void;
 
@@ -142,6 +143,10 @@ function toLXNSType(type: string) {
     case "UTAGE": return "utage";
     default: return type;
   }
+}
+export function showCurrentStyleId(id: number) {
+  if (useDataStore().selectedSource === 'divingfish') return toFishStyleId(id);
+  else return id
 }
 /**
  * 对数组进行分页处理
