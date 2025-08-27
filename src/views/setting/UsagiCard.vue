@@ -8,7 +8,7 @@
                         <div>
                             <span>UsagiCard(兔卡) </span>
                             <span class="block md:inline">{{ selectedSource === 'usagi' ? '(当前默认数据源)' : ''
-                                }}</span>
+                            }}</span>
                         </div>
                     </div>
                     <div v-if="hasUsagiData" class="flex gap-4">
@@ -57,10 +57,15 @@
                     <DialogTitle>UsagiCard数据源认证</DialogTitle>
                     <DialogDescription>
                         请输入您的UsagiCard账号中的UUID以更新数据源。
-                        <div v-if="isSupported">
+                        <div v-if="NFCEnabled">
                             <p>似乎你可以通过读取NFC来读取卡片id</p>
-                            <Button @click="startScan" :disabled="isScanning">{{ isScanning ? '扫描中' : '通过NFC读取卡片id'
-                                }}</Button>
+                            <p>将UsagiCard贴到手机NFC识别处既可自动添加凭证</p>
+                            <Button v-if="WebNFCEnabled" @click="startScan" :disabled="!NFCEnabled || isScanning">{{
+                                isScanning ?
+                                    '扫描中' :
+                                    '通过NFC读取卡片id'
+                            }}</Button>
+
                         </div>
 
                         <p><a class="text-blue-600 hover:underline" href="https://uc.turou.fun/"
@@ -101,12 +106,15 @@ import { RefreshCw } from 'lucide-vue-next'
 import { Checkbox } from "@/components/shadcn/ui/checkbox";
 import { formatDate } from '@/utils/StrUtil';
 import { MAX_ERROR_COUNT, useDataStore } from '@/store/datasource'
-import { ref } from 'vue'
+import { ref, watch } from 'vue'
 import { toast } from 'vue-sonner'
 import { storeToRefs } from 'pinia'
 import ActionConfirm from '@/components/ActionConfirm.vue'
 import UsagiService from '@/api/usagi';
+import { NFC } from '@day_time/capacitor-nfc-day';
+import { Capacitor } from '@capacitor/core';
 import { useNFC } from '@/utils/functionUtil';
+import { useAppStore } from '@/store/appStore';
 const {
     updateUsagiData,
     exportUsagiData,
@@ -168,7 +176,7 @@ const updateData = async () => {
     }
 }
 const UUIDRegex = /\/([0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12})\/?$/i;
-const handelNFCMessage = (message: string) => {
+const handelNFCScanning = async (message: string) => {
     if (typeof message != 'string') {
         toast.error("无效的UsagiCard", { position: "top-center" })
         return
@@ -183,5 +191,13 @@ const handelNFCMessage = (message: string) => {
         return
     }
 }
-const { isSupported, startScan, isScanning } = useNFC(handelNFCMessage)
+const { isSupported, isScanning, startScan } = useNFC(handelNFCScanning);
+const NFCEnabled = Capacitor.getPlatform() === "web" ? NFC.isSupported() : isSupported
+const WebNFCEnabled = Capacitor.getPlatform() === "web" ? isSupported : false
+const appStore = useAppStore();
+watch(() => appStore.NFCData, (newVal) => {
+    if (newVal) {
+        handelNFCScanning(newVal)
+    }
+})
 </script>

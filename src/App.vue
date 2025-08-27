@@ -14,7 +14,9 @@ import { Toaster } from '@/components/shadcn/ui/sonner'
 import 'vue-sonner/style.css'
 import { onMounted, ref } from 'vue';
 import { useDataStore } from './store/datasource';
-
+import { toast } from 'vue-sonner';
+import { NFC } from '@day_time/capacitor-nfc-day';
+import { useAppStore } from './store/appStore';
 onMounted(() => {
   checkDataSource();
   const userAgent = navigator.userAgent;
@@ -37,6 +39,13 @@ const checkDataSource = () => {
   }
   showReSyncDialog.value = needReSync;
 }
+const appStore = useAppStore()
+NFC.onRead((data) => {
+  console.log("NFC Data", data.string());
+  toast.success("正在读取NFC数据", { position: "top-center" })
+  const result = data.string();
+  appStore.NFCData = result.messages[0].records[0].payload
+})
 </script>
 
 <template>

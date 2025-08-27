@@ -15,6 +15,7 @@
     "@capacitor/android": "^7.4.2",
     "@capacitor/clipboard": "^7.0.2",
     "@capacitor/core": "^7.4.2",
+    "@day_time/capacitor-nfc-day": "^0.0.10",
     "@material/web": "^2.3.0",
     "@vueuse/components": "^13.5.0",
     "@vueuse/core": "^13.5.0",

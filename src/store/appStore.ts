@@ -12,6 +12,8 @@ export const useAppStore = defineStore("app", () => {
   const ComboboxOpen = ref(false);
   const shouldShowFloatingSideBarTrigger = ref(true)
   const showSideBarTrigger = ref(true)
+  const NFCData = ref("")
+  //Song Data
   const SongIndex = new FlexSearch.Document({
     document: {
       id: 'id',
@@ -52,6 +54,7 @@ export const useAppStore = defineStore("app", () => {
     ComboboxOpen,
     SongIndex,
     shouldShowFloatingSideBarTrigger,
-    showSideBarTrigger
+    showSideBarTrigger,
+    NFCData
   };
 });
