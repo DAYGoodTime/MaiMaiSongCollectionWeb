@@ -2,14 +2,13 @@
     <Sheet v-model:open="showOpen">
         <SheetContent>
             <SheetHeader>
-                <SheetTitle>高级选项</SheetTitle>
+                <SheetTitle>批量导入</SheetTitle>
                 <SheetDescription>
-                    这里有一些自动化操作，未来可能会逐步添加
+                    这里有一些用于批量导入成绩的操作，未来可能会逐步添加
                 </SheetDescription>
             </SheetHeader>
             <div class="flex-1 my-4">
                 <div>
-                    <p class="font-semibold">自动导入</p>
                     <span class="text-sm text-gray-600">根据预先设定的逻辑进行成绩的筛选导入</span><span
                         class="text-sm text-red-600">且会覆盖合集原来的数据</span>
                     <div class="flex justify-center gap-4 mt-2">
@@ -39,7 +38,7 @@ import {
     SheetTitle,
 } from '@/components/shadcn/ui/sheet'
 import { Button } from '@/components/shadcn/ui/button';
-import ImportLevel from './ImportLevel.vue';
+import ImportLevel from '@/components/ImportLevel.vue';
 import { ref } from 'vue';
 const showOpen = defineModel<boolean>('open')
 //advance feature

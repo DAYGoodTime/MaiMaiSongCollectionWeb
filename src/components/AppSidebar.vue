@@ -23,6 +23,10 @@ import {
 import {
   DropdownMenu,
   DropdownMenuContent,
+  DropdownMenuSub,
+  DropdownMenuSubTrigger,
+  DropdownMenuPortal,
+  DropdownMenuSubContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from '@/components/shadcn/ui/dropdown-menu'
@@ -42,6 +46,7 @@ import { computed, ref, watch } from "vue";
 import type { RouteLocationRaw } from "vue-router";
 import { Capacitor } from '@capacitor/core';
 import { storeToRefs } from "pinia";
+import ImportLevel from "./ImportLevel.vue";
 // Menu items.
 const items = [
   {
@@ -57,7 +62,7 @@ const items = [
 ];
 const { JumpToFromEvent, JumpTo } = useRouterHelper()
 const { EditCollectionName, DeleteCollection, newCollection } = useCollectionStore();
-const { UserCollectionList } = storeToRefs(useCollectionStore());
+const { UserCollectionList, CurrentCollectionLabel } = storeToRefs(useCollectionStore());
 //Dialog
 const DialogStatus = ref<"none" | "add" | "edit" | "delete">("none")
 const showDialogCompute = computed(() => DialogStatus.value !== 'none');
@@ -79,6 +84,10 @@ const getCardInfo = computed(() => {
 })
 const dialogInput = ref("");
 const targetIndex = ref(-1);
+const importDialogShow = ref(false)
+const ImportDialogTitle = "给合集批量导入成绩"
+const ImportDialogDesc = ref("你可以根据定数批量导入一些成绩,如果你不需要，也可以关闭该对话。")
+const ImportDescForAfterAdded = "你可以根据定数批量导入一些成绩,如果你不需要，也可以关闭该对话。"
 const handelDialogOpen = (type: "add" | "edit" | "delete", index?: number) => {
   DialogStatus.value = type;
   dialogInput.value = ""
@@ -97,6 +106,12 @@ const handelDialogSubmit = () => {
     case "delete":
       result = DeleteCollection(targetIndex.value); break;
   }
+  if (DialogStatus.value === 'add') {
+    //open import score dialog
+    ImportDialogDesc.value = ImportDescForAfterAdded
+    CurrentCollectionLabel.value = dialogInput.value
+    importDialogShow.value = true
+  }
   if (!result.success) {
     toast.error(result.message)
   } else {
@@ -105,7 +120,6 @@ const handelDialogSubmit = () => {
     dialogInput.value = ""
     showDialog.value = false
   }
-
 }
 const { toggleSidebar } = useSidebar()
 const handelCollectionJump = (coll: Collection) => {
@@ -127,6 +141,12 @@ const handelPageJump = (e: Event, route: RouteLocationRaw) => {
       toggleSidebar()
     }
   })
+}
+//
+const handelLevelImportDialog = (label: string) => {
+  ImportDialogDesc.value = "你可以根据定数批量导入一些成绩,注意！！这会覆盖掉合集原有的内容。"
+  CurrentCollectionLabel.value = label;
+  importDialogShow.value = true
 }
 </script>
 
@@ -168,6 +188,15 @@ const handelPageJump = (e: Event, route: RouteLocationRaw) => {
                             </button>
                           </DropdownMenuTrigger>
                           <DropdownMenuContent side="right" align="start">
+                            <DropdownMenuSub>
+                              <DropdownMenuSubTrigger>批量导入</DropdownMenuSubTrigger>
+                              <DropdownMenuPortal>
+                                <DropdownMenuSubContent>
+                                  <DropdownMenuItem @click="handelLevelImportDialog(collection.label)">定数导入
+                                  </DropdownMenuItem>
+                                </DropdownMenuSubContent>
+                              </DropdownMenuPortal>
+                            </DropdownMenuSub>
                             <DropdownMenuItem @click="handelDialogOpen('edit', index)">
                               <span>修改合集名字</span>
                             </DropdownMenuItem>
@@ -221,4 +250,5 @@ const handelPageJump = (e: Event, route: RouteLocationRaw) => {
       </form>
     </DialogContent>
   </Dialog>
+  <ImportLevel :title="ImportDialogTitle" :description="ImportDialogDesc" v-model:open="importDialogShow"></ImportLevel>
 </template>

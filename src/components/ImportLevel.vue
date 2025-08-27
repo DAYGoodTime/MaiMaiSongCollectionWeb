@@ -2,9 +2,9 @@
     <Dialog v-model:open="showOpen">
         <DialogContent class="sm:max-w-[425px]">
             <DialogHeader>
-                <DialogTitle>自动导入对应定数</DialogTitle>
+                <DialogTitle>{{ title }}</DialogTitle>
                 <DialogDescription>
-                    可以选择定数范围，自动导入定速范围内的成绩。
+                    {{ description }}
                     <p v-if="getSelectableSource.length == 0" class="text-red-600 font-bold">
                         注意:你没有添加任何查分器，所有导入的成绩都是'未游玩'状态，默认不会进行显示！</p>
                 </DialogDescription>
@@ -66,6 +66,16 @@ interface LevelRange {
     start: number
     end: number
 }
+const { title, description } = defineProps({
+    title: {
+        type: String,
+        default: "自动导入对应定数"
+    },
+    description: {
+        type: String,
+        default: "可以选择定数范围，自动导入定速范围内的成绩。"
+    }
+})
 const showOpen = defineModel<boolean>("open")
 const levelRange = ref([12.0, 15.0])
 const levelRangeSlider = ref([12.0, 15.0])

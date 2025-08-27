@@ -41,7 +41,7 @@
                 <NavigationMenuItem>
                     <NavigationMenuLink @click="showAdvanced = true"
                         :class="cn('cursor-pointer w-fit', navigationMenuTriggerStyle())">
-                        高级功能
+                        批量导入
                     </NavigationMenuLink>
                 </NavigationMenuItem>
             </NavigationMenuList>
@@ -55,7 +55,6 @@
                     <div>
                         <p class="text-sm font-semibold text-gray-400 mb-2">
                             双击卡片打开歌曲详情，右键可以进行删除等操作。悬浮在曲名上方可以呼出完整文本，点击文本可以直接复制</p>
-                        <p class="text-sm font-semibold mb-2">合集默认没有成绩，需要在高级功能处进行导入</p>
                         <p class="text-sm font-semibold mb-2 text-red-600">没有数据源的情况下所有成绩都是隐藏的！需要筛选中启用‘未游玩成绩’</p>
                     </div>
                     <div>
@@ -72,8 +71,7 @@
             <ScoreStatisticsCard class="w-96" :status-board="statusBoard" />
         </div>
         <!-- 成绩列表 -->
-        <InfiniteScrollArea
-            class="px-0 w-full max-h-screen h-[100vh] my-8 rounded-xl border shadow hover:shadow-xl py-2"
+        <InfiniteScrollArea class="px-0 w-full my-8 rounded-xl border shadow hover:shadow-xl py-2"
             :items="filteredScoreList" :page-size="60">
             <template #default="{ items }">
                 <div
@@ -134,7 +132,7 @@
             <NavigationMenuItem>
                 <NavigationMenuLink @click="showAdvanced = true"
                     :class="cn('cursor-pointer w-fit', navigationMenuTriggerStyle())">
-                    高级功能
+                    批量导入
                 </NavigationMenuLink>
             </NavigationMenuItem>
         </template>
