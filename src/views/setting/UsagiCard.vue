@@ -8,7 +8,7 @@
                         <div>
                             <span>UsagiCard(兔卡) </span>
                             <span class="block md:inline">{{ selectedSource === 'usagi' ? '(当前默认数据源)' : ''
-                            }}</span>
+                                }}</span>
                         </div>
                     </div>
                     <div v-if="hasUsagiData" class="flex gap-4">
@@ -57,6 +57,12 @@
                     <DialogTitle>UsagiCard数据源认证</DialogTitle>
                     <DialogDescription>
                         请输入您的UsagiCard账号中的UUID以更新数据源。
+                        <div v-if="isSupported">
+                            <p>似乎你可以通过读取NFC来读取卡片id</p>
+                            <Button @click="startScan" :disabled="isScanning">{{ isScanning ? '扫描中' : '通过NFC读取卡片id'
+                                }}</Button>
+                        </div>
+
                         <p><a class="text-blue-600 hover:underline" href="https://uc.turou.fun/"
                                 target="_blank">Usagi主页</a></p>
                     </DialogDescription>
@@ -100,6 +106,7 @@ import { toast } from 'vue-sonner'
 import { storeToRefs } from 'pinia'
 import ActionConfirm from '@/components/ActionConfirm.vue'
 import UsagiService from '@/api/usagi';
+import { useNFC } from '@/utils/functionUtil';
 const {
     updateUsagiData,
     exportUsagiData,
@@ -114,6 +121,7 @@ const showUsagiDialog = ref(false)
 const Credentials = ref('')
 const ErrorCount = ref(0)
 const remember = ref(false)
+
 
 const handelUpdate = async () => {
     if (hasCredentials("usagi")) {
@@ -159,4 +167,21 @@ const updateData = async () => {
         DataSourceUpdating.value = false
     }
 }
+const UUIDRegex = /\/([0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12})\/?$/i;
+const handelNFCMessage = (message: string) => {
+    if (typeof message != 'string') {
+        toast.error("无效的UsagiCard", { position: "top-center" })
+        return
+    }
+    const matched = message.match(UUIDRegex);
+    if (matched && matched[1]) {
+        toast.success(`读取成功:${matched[1]}`, { position: "top-center" })
+        Credentials.value = matched[1]
+        updateData();
+    } else {
+        toast.error("无效的UsagiCard", { position: "top-center" })
+        return
+    }
+}
+const { isSupported, startScan, isScanning } = useNFC(handelNFCMessage)
 </script>

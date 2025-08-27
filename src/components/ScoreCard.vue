@@ -87,7 +87,7 @@ import { ref, computed, defineAsyncComponent } from 'vue';
 import { Textarea } from './shadcn/ui/textarea';
 import { formatAchievement, formatDxRating, formatLevelValue, getNoteDesigner, getSongDiff, getTotalDxScore } from '@/utils/StrUtil';
 import { useCollectionStore } from '@/store/collections';
-import { debounce, showCurrentStyleId, toFishStyleId, useCopyHelper } from '@/utils/functionUtil';
+import { debounce, showCurrentStyleId, useCopyHelper } from '@/utils/functionUtil';
 import {
     Dialog,
     DialogContent,

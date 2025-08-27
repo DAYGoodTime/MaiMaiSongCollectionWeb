@@ -6,6 +6,7 @@ import { getSongDiff } from "./StrUtil";
 import type { MaiMaiSong } from "@/types/songs";
 import { fcMapping, fsMapping, rateMapping } from "@/api/usagi";
 import { useDataStore } from "@/store/datasource";
+import { ref } from "vue";
 
 type DebouncedFunction<T extends any[]> = (...args: T) => void;
 
@@ -175,4 +176,77 @@ export function paginateArray<T>(
 
   // 返回分页结果
   return array.slice(startIndex, endIndex)
+}
+export const useNFC = (callback: (message: string) => void) => {
+  const isSupported = 'NDEFReader' in window;
+  const isScanning = ref(false)
+  const error = ref<Error | null>(null)
+  const message = ref<any>(null)
+  let reader: any | null = null
+  let abortController: AbortController | null = null
+  const startScan = async () => {
+    if (!isSupported) {
+      error.value = new Error("NFC is Not Supported")
+      return;
+    }
+    if (isScanning.value) {
+      return
+    }
+    try {
+      reader = new (window as any).NDEFReader();
+      abortController = new AbortController()
+
+      await reader.scan({ signal: abortController.signal })
+
+      isScanning.value = true
+      error.value = null
+      message.value = null
+      toast.info("正在扫描NFC", { position: "top-center" })
+      reader.addEventListener('reading', (event: any) => {
+        console.log('NFC读取:', event);
+        message.value = event.message
+        //尝试解码数据
+        try {
+          const Record = event.message.records[0];
+          if (Record) {
+            const decoder = new TextDecoder()
+            const data = decoder.decode(Record.data);
+            callback(data)
+          } else {
+            console.warn("NFC读取为空");
+          }
+          stopScan();
+        } catch (err: any) {
+          console.error("NFC解码失败", err);
+          error.value = err as Error
+        }
+      })
+      reader.addEventListener('error', (event: any) => {
+        console.error('读取失败:', event)
+        error.value = new Error('读取失败')
+        stopScan()
+      })
+
+    } catch (err: any) {
+      console.error('NFC读取失败:', err)
+      error.value = err
+      isScanning.value = false
+    }
+  }
+  const stopScan = () => {
+    if (abortController) {
+      abortController.abort()
+      abortController = null
+      isScanning.value = false
+      console.log('NFC scan stopped.')
+    }
+  }
+  return {
+    isSupported,
+    isScanning,
+    error,
+    message,
+    startScan,
+    stopScan
+  }
 }
