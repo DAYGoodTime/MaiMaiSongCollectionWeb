@@ -21,7 +21,8 @@
                                     </TooltipContent>
                                 </Tooltip>
                             </TooltipProvider>
-                            <img class="w-auto h-5" :src="cardData.typeIconUrl" alt="Song Type" loading="lazy" />
+                            <img v-if="!cardData.isUtage" class="w-auto h-5" :src="cardData.typeIconUrl" alt="Song Type"
+                                loading="lazy" />
                         </div>
                         <div v-if="cardData.unplayed" class="font-bold text-xl text-left">
                             暂未游玩
@@ -140,13 +141,17 @@ const cardData = computed(() => {
     const totalDxScore = getTotalDxScore(diff)
     const dxScoreIconUrl = getDxScoreIcon(props.score.score.dx_score, totalDxScore);
     const dxScoreOrPc = props.score.score.play_count ? `pc:${props.score.score.play_count}` : ''
+    let details = `#${showCurrentStyleId(props.score.song.id)} ${levelValue} → ${formatDxRating(props.score.score.dx_rating)} ${dxScoreOrPc}`
+    if (props.score.score.type === "utage") {
+        details = `#${props.score.score.diff_id} ${props.score.score.level}      ${dxScoreOrPc}`
+    }
     return {
         cardClass,
         coverUrl: getImageCoverUrl(props.score.song.id ?? 0),
         typeIconUrl: getImageAssertUrl(props.score.score.type === 'dx' ? 'DX' : 'SD'),
         achievementFormatted: formatAchievement(props.score.score.achievements),
         achievementIconUrl: getAchievementIcon(props.score.score.rate_type),
-        details: `#${showCurrentStyleId(props.score.song.id)} ${levelValue} → ${formatDxRating(props.score.score.dx_rating)} ${dxScoreOrPc}`,
+        details,
         noteDesigner,
         unplayed,
         dxScore: {
@@ -154,7 +159,8 @@ const cardData = computed(() => {
             icon: dxScoreIconUrl ?? "",
             current: props.score.score.dx_score,
             total: totalDxScore
-        }
+        },
+        isUtage
     }
 });
 

@@ -94,8 +94,13 @@ export function conventToScore(score: AnyScore, song: MaiMaiSong): Score {
   } else {
     fs = score.fs as string | null
   }
+  const song_id = ("song_id" in score) ? toLXNSStyleId(score.song_id) : toLXNSStyleId(score.id)
+  const raw_id = ("song_id" in score) ? score.song_id : score.id
+  let type = toLXNSType(score.type) as SongType
+  //why your type is wrong
+  if ("level_label" in score && score.level_label === "Utage") type = "utage"
   return {
-    id: ("song_id" in score) ? toLXNSStyleId(score.song_id) : score.id,
+    id: song_id,
     fish_id: ("song_id" in score) ? score.song_id : toFishStyleId(score.id),
     song_name: ("title" in score) ? score.title : score.song_name,
     achievements: score.achievements,
@@ -107,8 +112,9 @@ export function conventToScore(score: AnyScore, song: MaiMaiSong): Score {
     rate_type,
     dx_score: ("dxScore" in score) ? score.dxScore : score.dx_score,
     dx_rating: ("ra" in score) ? score.ra : score.dx_rating,
-    type: toLXNSType(score.type) as SongType,
-    play_count: ("play_count" in score) ? score.play_count : void 0
+    type,
+    play_count: ("play_count" in score) ? score.play_count : void 0,
+    diff_id: raw_id
   }
 }
 export function toFishStyleId(id: number) {

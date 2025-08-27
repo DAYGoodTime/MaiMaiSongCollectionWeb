@@ -147,7 +147,7 @@ import { Input } from '@/components/shadcn/ui/input'
 import { type Collection, useCollectionStore } from '@/store/collections';
 import { useDataStore } from '@/store/datasource';
 import type { MaiMaiSong, ScoreExtend, SongType } from '@/types/songs';
-import { debounce, toFishStyleId, useRouterHelper } from '@/utils/functionUtil';
+import { debounce, toFishStyleId, toLXNSStyleId, useRouterHelper } from '@/utils/functionUtil';
 import { computed, onMounted, onUnmounted, reactive, ref, useTemplateRef, watch } from 'vue';
 import { toast } from 'vue-sonner';
 import { conventFcFsStr, getSongDiff } from '@/utils/StrUtil';
@@ -354,14 +354,14 @@ const initScoreList = () => {
     if (rawCollection.value) {
         const result: ScoreExtend[] = [];
         for (const level_str of rawCollection.value.list) {
-            const [song_id, song_type, level_index_str] = level_str.split("_");
-            if (!song_id || !song_type || !level_index_str) continue;
-
-            const song = SONG_MAP.get(Number(song_id));
+            const [diff_id, song_type, level_index_str] = level_str.split("_");
+            if (!diff_id || !song_type || !level_index_str) continue;
+            const song_id = toLXNSStyleId(Number(diff_id))
+            const song = SONG_MAP.get(song_id);
             if (!song) continue;
 
             const level_index = Number(level_index_str);
-            let score = getScore(Number(song_id), song_type as SongType, level_index);
+            let score = getScore(song_type === "utage" ? Number(diff_id) : song_id, song_type as SongType, level_index);
             if (score) {
                 calcStatusBoard(score, song);
             } else {

@@ -12,9 +12,9 @@ import { toast } from "vue-sonner";
 import type { UsagiScore } from "@/types/usagi";
 
 
-const CURRENT_SONG_VERSION = 2
+const CURRENT_SONG_VERSION = 3
 
-const CURRENT_SCORE_VERSION = 4
+const CURRENT_SCORE_VERSION = 5
 export const MAX_ERROR_COUNT = 3
 
 const DEFAULT_DS = {
@@ -50,7 +50,7 @@ export function flatMapById(list: AnyScore[], songMap: Map<number, MaiMaiSong>):
   const map = new Map<number, Score[]>();
   for (const item of list) {
     //转换为通用类型
-    const song_id = ("song_id" in item) ? toLXNSStyleId(item.song_id) : item.id;
+    const song_id = ("song_id" in item) ? toLXNSStyleId(item.song_id) : toLXNSStyleId(item.id);
     if (songMap.has(song_id)) {
       const score = conventToScore(item, songMap.get(song_id) as MaiMaiSong);
       if (map.has(score.id)) {
@@ -70,7 +70,7 @@ export const useDataStore = defineStore("datasource", () => {
   const getSongDataList = computed(() => {
     const source: DataSource<MaiMaiSong[]> = {
       list: SONG_DATA as MaiMaiSong[],
-      update_time: "2025-07-20 23:00:00",
+      update_time: "2025-08-27 23:56:00",
       version: CURRENT_SONG_VERSION
     }
     return source;
@@ -192,6 +192,12 @@ export const useDataStore = defineStore("datasource", () => {
     return getDataSource.value.list.get(id) ?? [];
   }
   const getScore = (id: number, type: SongType, level_index: number) => {
+    if (type === "utage") {
+      const song_id = toLXNSStyleId(id);
+      const list = getDataSource.value.list.get(song_id)
+      if (!list || list.length === 0) return null;
+      return list.find(s => s.type === type && s.diff_id === id)
+    }
     const scoreList = getDataSource.value.list.get(id)
     if (!scoreList || scoreList.length === 0) return null;
     return scoreList.find(s => s.type === type && s.level_index === level_index)

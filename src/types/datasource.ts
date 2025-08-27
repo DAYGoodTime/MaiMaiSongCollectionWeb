@@ -42,5 +42,7 @@ export interface Score {
     is_played?: boolean;
     /** 游玩次数 (部分数据源支持) */
     play_count?: number;
+    /** 难度唯一id (测试) */
+    diff_id?: number;
 }
 export type CredentialsStorage = Record<AvailableDataSourceType, string>

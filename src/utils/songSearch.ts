@@ -271,11 +271,22 @@ export const useScoreSearch = () => {
         }
         //level_value_rang
         result = result.filter(s => {
-            //非宴谱才可以计算
             if (s.score.type !== "utage" && s.score.level_value) {
                 return s.score.level_value >= filter.difficultyRange[0] && s.score.level_value <= filter.difficultyRange[1]
             }
-            return false;
+            //难度拆分大师
+            if (s.score.level.split("+").length != 2) {
+                const level_value = Number(s.score.level.split("?")[0])
+                if (!isNaN(level_value)) {
+                    return level_value >= filter.difficultyRange[0] && level_value <= filter.difficultyRange[1]
+                } else return false;
+            } else {
+                let level_value2 = Number(s.score.level.split("+")[0])
+                if (!isNaN(level_value2)) {
+                    level_value2 += 0.6;//as X.6
+                    return level_value2 >= filter.difficultyRange[0] && level_value2 <= filter.difficultyRange[1]
+                } else return false;
+            }
         })
         //fc
         const fc_filter = filter.fullCombo.map(f => f.value);

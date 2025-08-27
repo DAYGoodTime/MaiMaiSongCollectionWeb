@@ -13,7 +13,7 @@ export interface MaiMaiSong {
   difficulties: {
     standard: SongDifficulty[];
     dx: SongDifficulty[];
-    utage: SongDifficulty[];
+    utage: SongDifficultyUtage[];
   };
   level_0: any[];
   level_1: any[];
@@ -34,13 +34,17 @@ export interface SongDifficulty {
   touch_num: number;
   break_num: number;
   curve?: null;
-  kanji?: string;
-  description?: string;
-  is_buddy?: boolean;
+
 };
 export interface ScoreExtend {
   score: Score;
   song: MaiMaiSong;
   score_id: string
+}
+export interface SongDifficultyUtage extends SongDifficulty {
+  description: string;
+  is_buddy: boolean;
+  kanji: string;
+  diff_id: number
 }
 export type SongType = "standard" | "dx" | "utage"

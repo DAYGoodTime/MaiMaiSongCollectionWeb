@@ -84,7 +84,7 @@ import { Card, CardContent } from '@/components/shadcn/ui/card'
 import { DropdownMenu, DropdownMenuTrigger, DropdownMenuItem, DropdownMenuContent } from './shadcn/ui/dropdown-menu';
 import { Button } from './shadcn/ui/button';
 import { getAchievementIcon, getDxScoreIcon } from '@/utils/urlUtils';
-import type { MaiMaiSong, SongDifficulty } from '@/types/songs';
+import type { MaiMaiSong, SongDifficulty, SongDifficultyUtage } from '@/types/songs';
 import { formatDxRating, formatLevelValue, getTotalDxScore, LevelIndexToLabel } from '@/utils/StrUtil';
 import { conventVersionByInt } from '@/utils/version';
 import { computed } from 'vue';
@@ -99,18 +99,18 @@ const FCFSPanel = defineAsyncComponent(() => import('./FCFSPanel.vue'));
 
 const props = defineProps<{
     song: MaiMaiSong,
-    difficulties: SongDifficulty[],
+    difficulties: SongDifficulty[] | SongDifficultyUtage[],
 }>();
 
 const { getScore } = useDataStore();
 
 const processedDifficulties = computed(() => {
     return [...props.difficulties].reverse().map(difficulty => {
-        const score = getScore(props.song.id, difficulty.type, difficulty.level_index);
         const isUtageVal = difficulty.type === 'utage';
+        const score = getScore(isUtageVal ? (difficulty as SongDifficultyUtage).diff_id : props.song.id, difficulty.type, difficulty.level_index);
         let label = '';
         if (isUtageVal) {
-            label = `U·TA·GE ${`[${difficulty.kanji ?? ''}]`}${difficulty.is_buddy ? `[双]` : ''}`;
+            label = `U·TA·GE ${`[${(difficulty as SongDifficultyUtage).kanji ?? ''}]`}${(difficulty as SongDifficultyUtage).is_buddy ? `[双]` : ''}`;
         } else {
             label = LevelIndexToLabel(difficulty.level_index) ?? "";
         }
@@ -152,8 +152,9 @@ function getClassColorByIndex(index: number, isUtage: boolean) {
 // collection
 const { pushScoreToCollection } = useCollectionStore();
 const { getCollectionNames } = storeToRefs(useCollectionStore())
-function addScoreToCollection(label: string, diff: SongDifficulty) {
-    if (pushScoreToCollection(label, `${props.song.id}_${diff.type}_${diff.level_index}`)) {
+function addScoreToCollection(label: string, diff: SongDifficulty | SongDifficultyUtage) {
+    const diff_id = diff.type === "utage" ? (diff as SongDifficultyUtage).diff_id : props.song.id
+    if (pushScoreToCollection(label, `${diff_id}_${diff.type}_${diff.level_index}`)) {
         toast.success("添加成功");
     } else {
         toast.error("添加失败,已经在集合当中");

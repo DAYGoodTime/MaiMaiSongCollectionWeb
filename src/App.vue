@@ -37,6 +37,10 @@ const checkDataSource = () => {
     needReSync = true;
     DataSourceStore.ClearDataSource("lxns");
   }
+  if (DataSourceStore.UsagiSource.version !== DataSourceStore.CURRENT_SCORE_VERSION) {
+    needReSync = true;
+    DataSourceStore.ClearDataSource("usagi");
+  }
   showReSyncDialog.value = needReSync;
 }
 const appStore = useAppStore()
