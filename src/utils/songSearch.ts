@@ -88,7 +88,18 @@ export const useSongSearch = () => {
                         return Array.isArray(index_list) && index_list.includes(levelValue as never);
                     }
                 }
-
+                //范围定数过滤
+                if (LEVEL_RANGE_MATCH_PATTEN.test(tag)) {
+                    const indexValueList: number[] = [...song["level_0"], ...song["level_1"], ...song["level_2"], ...song["level_3"], ...song["level_4"]]
+                    for (const level_value of indexValueList) {
+                        const [start, end] = tag.split("-");
+                        const levelStart = Number(start);
+                        const levelEnd = Number(end)
+                        if (level_value >= levelStart && level_value <= levelEnd) {
+                            return true;
+                        }
+                    }
+                }
                 // 成绩标签过滤
                 if (RANKING_MATCH_PATTEN.test(tag)) {
                     const splits = tag.split("_");
@@ -324,7 +335,7 @@ export const filterDiffByLevelTag = (song_id: number, diffs: SongDifficulty[] | 
         for (const tag of tags) {
             const isLevelPatten = LEVEL_MATCH_PATTEN.test(tag);
             const isLevelRangePatten = LEVEL_RANGE_MATCH_PATTEN.test(tag)
-            if (!isLevelPatten || !isLevelRangePatten) continue;
+            if (!isLevelPatten && !isLevelRangePatten) continue;
             if (isLevelPatten) {
                 const level_filter = conventLevelTag(tag);
                 if (level_filter) {

@@ -131,7 +131,7 @@ const handelImport = () => {
     if (index === -1) {
         toast.error("未找到目标合集", { position: "top-center" }); return;
     }
-    const onlyLevelPurple = selectedDiffs.value.length === 0;
+    const onlyLevelPurple = selectedDiffs.value.length === 0 && !hasLevelTag.value;
     const diffList: string[] = []
     for (const song of props.list) {
         if (onlyLevelPurple) {

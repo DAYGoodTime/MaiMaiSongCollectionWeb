@@ -21,7 +21,7 @@ import {
 } from "@/components/shadcn/ui/tags-input";
 import { versionList } from "@/utils/version.ts";
 import { ScrollArea } from "@/components/shadcn/ui/scroll-area";
-import { LEVEL_MATCH_PATTEN } from "@/utils/StrUtil"
+import { LEVEL_MATCH_PATTEN, LEVEL_RANGE_MATCH_PATTEN } from "@/utils/StrUtil"
 import { useDataStore } from "@/store/datasource";
 import { toast } from "vue-sonner";
 import { storeToRefs } from "pinia";
@@ -113,6 +113,18 @@ const filteredTags = computed(() => {
       value: searchTerm.value,
       alias: searchTerm.value
     }]
+  }
+  if (LEVEL_RANGE_MATCH_PATTEN.test(searchTerm.value)) {
+    const [start, end] = searchTerm.value.split("-");
+    const startLevel = Number(start);
+    const endLevel = Number(end);
+    if (startLevel < endLevel) {
+      return [{
+        label: searchTerm.value,
+        value: searchTerm.value,
+        alias: searchTerm.value
+      }]
+    }
   }
   //match with score ranking
   const searchPrefix = searchTerm.value.substring(0, 1)
