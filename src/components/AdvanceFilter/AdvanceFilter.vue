@@ -190,7 +190,7 @@ const versionOptions: FilterProps<string>[] = SongVersionList
 const mapCategoryOptions: FilterProps<string>[] = SongMapList
 const fullComboOptions: FilterProps<string>[] = [{ label: 'FC', value: 'fc' }, { label: 'FC+', value: 'fcp' }, { label: 'AP', value: 'ap' }, { label: 'AP+', value: 'app' }]
 const fullSyncOptions: FilterProps<string>[] = [{ label: 'Sync', value: 'sync' }, { label: 'FS', value: 'fs' }, { label: 'FS+', value: 'fsp' }, { label: 'FDX', value: 'fsd' }, { label: 'FDX+', value: 'fsdp' }]
-const TypeOptions: FilterProps<string>[] = [{ label: '标准', value: 'standard' }, { label: 'DX', value: 'dx' }]
+const TypeOptions: FilterProps<string>[] = [{ label: '标准', value: 'standard' }, { label: 'DX', value: 'dx' }, { label: '宴会场', value: 'utage' }]
 
 // 更新筛选条件
 const updateFilters = (updates: Partial<AdvanceFilterFilters>) => {
