@@ -91,33 +91,33 @@ export const versionList = [
   },
   {
     icon: "",
-    id: "maimai DX Splash",
+    id: "舞萌DX2021",
     label_full: "舞萌DX2021",
-    alias: "爽 煌 2021",
+    alias: "爽 煌 2021 Splash",
   },
   {
     icon: "",
-    id: "maimai DX UNIVERSE",
+    id: "舞萌DX2022",
     label_full: "舞萌DX2022",
-    alias: "宙 星 2022",
+    alias: "宙 星 2022 UNIVERSE",
   },
   {
     icon: "",
-    id: "maimai DX FESTIVAL",
+    id: "舞萌DX2023",
     label_full: "舞萌DX2023",
-    alias: "祭 祝 2023",
+    alias: "祭 祝 2023 FESTIVAL",
   },
   {
     icon: "",
-    id: "maimai DX BUDDIES",
+    id: "舞萌DX2024",
     label_full: "舞萌DX2024",
-    alias: "双 宴 2024",
+    alias: "双 宴 2024 BUDDIES",
   },
   {
     icon: "",
-    id: "maimai DX PRISM",
+    id: "舞萌DX2025",
     label_full: "舞萌DX2025",
-    alias: "镜 2025",
+    alias: "镜 2025 PRISM",
   },];
 export const getVersionListStr = () => {
   return versionList.map((o) => o.label_full);
