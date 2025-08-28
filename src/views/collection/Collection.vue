@@ -46,7 +46,7 @@
                 </NavigationMenuItem>
             </NavigationMenuList>
         </NavigationMenu>
-        <div class="flex gap-4 flex-wrap" ref="panel">
+        <div class="flex gap-4 flex-wrap justify-center" ref="panel">
             <Card class="flex-auto w-96">
                 <CardHeader>
                     <CardTitle>合集: {{ CurrentCollectionLabel }}</CardTitle>
