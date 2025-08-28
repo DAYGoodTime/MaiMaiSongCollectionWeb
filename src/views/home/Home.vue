@@ -4,7 +4,7 @@ import { Filter, Search, CircleQuestionMark } from 'lucide-vue-next'
 import SongSearch from "@/components/SongSearch.vue";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/shadcn/ui/accordion'
 import { HoverCard, HoverCardContent, HoverCardTrigger } from "@/components/shadcn/ui/hover-card";
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/shadcn/ui/card'
+import { Card, CardContent } from '@/components/shadcn/ui/card'
 import { Slider } from "@/components/shadcn/ui/slider";
 import { Button } from "@/components/shadcn/ui/button";
 import { Checkbox } from "@/components/shadcn/ui/checkbox";
@@ -60,12 +60,13 @@ const handelOpenImportDialog = () => {
                       <HoverCardTrigger>
                         <CircleQuestionMark @click="tooltipsOpen = true" class=" cursor-pointer inline w-4 h-4" />
                       </HoverCardTrigger>
-                      <HoverCardContent>
+                      <HoverCardContent class="w-fit">
                         <div class="flex flex-col gap-2">
                           <p>通过标签来筛选需要搜索的歌曲范围:</p>
                           <p>版本: 任意maimai版本</p>
                           <p>铺面难度: 例如："红13"、"紫12"</p>
                           <p>达成率: 例如："红鸟加"、"白鸟"</p>
+                          <p>定数范围: 例如："12-14"、"14.6-14.9"</p>
                         </div>
                       </HoverCardContent>
                     </HoverCard>
