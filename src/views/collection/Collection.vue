@@ -323,11 +323,13 @@ const initStatus = () => {
 }
 const createUnplayedScore = (song: MaiMaiSong, song_type: SongType, level_index: number): Score => {
     const diff = song.difficulties[song_type].find(d => d.level_index === level_index);
+    const diff_id = diff ? (("diff_id" in diff) ? diff.diff_id as number : song.id) : song.id;
     return {
         id: song.id,
         fish_id: toFishStyleId(song.id),
         song_name: song.title,
         level: diff ? diff.level : "0",
+        diff_id,
         level_index,
         level_value: diff ? diff.level_value : 1.0,
         achievements: 0,

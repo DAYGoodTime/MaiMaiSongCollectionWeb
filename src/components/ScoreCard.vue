@@ -13,7 +13,7 @@
                             <TooltipProvider>
                                 <Tooltip v-model:open="openTitleTooltips" :delay-duration="0">
                                     <TooltipTrigger class="font-bold truncate text-left">
-                                        {{ score.song.title }}
+                                        {{ cardData.title }}
                                     </TooltipTrigger>
                                     <TooltipContent class="cursor-pointer hover:opacity-50"
                                         @click="() => handelCopy(score.song.title, '已成功复制歌曲名到剪切板中')">
@@ -82,7 +82,7 @@
 
 <script setup lang="ts">
 import SongInfo from './SongInfo.vue';
-import type { ScoreExtend } from '@/types/songs';
+import type { ScoreExtend, SongDifficultyUtage } from '@/types/songs';
 import { getAchievementIcon, getDxScoreIcon, getImageAssertUrl, getImageCoverUrl } from '@/utils/urlUtils';
 import { ref, computed, defineAsyncComponent } from 'vue';
 import { Textarea } from './shadcn/ui/textarea';
@@ -133,8 +133,8 @@ const cardData = computed(() => {
         const colors = ['bg-BASIC', 'bg-ADVANCED', 'bg-EXPERT', 'bg-MASTER', 'bg-REMASTER'];
         cardClass += ` ${colors[levelIndex]}`;
     }
-
     const diff = getSongDiff(props.score.song, props.score.score);
+    const title = isUtage ? `[${(diff as SongDifficultyUtage).kanji}]${props.score.song.title}` : props.score.song.title
     const levelValue = diff ? formatLevelValue(diff.level_value) : '';
     const unplayed = props.score.score.is_played === undefined ? false : !props.score.score.is_played
     const noteDesigner = diff ? (getNoteDesigner(diff)) : ""
@@ -146,6 +146,7 @@ const cardData = computed(() => {
         details = `#${props.score.score.diff_id} ${props.score.score.level}      ${dxScoreOrPc}`
     }
     return {
+        title,
         cardClass,
         coverUrl: getImageCoverUrl(props.score.song.id ?? 0),
         typeIconUrl: getImageAssertUrl(props.score.score.type === 'dx' ? 'DX' : 'SD'),
