@@ -1,0 +1,166 @@
+<template>
+    <Dialog v-model:open="open">
+        <DialogContent class="sm:max-w-[425px]">
+            <DialogHeader>
+                <DialogTitle>将搜索结果导入到合集当中</DialogTitle>
+                <DialogDescription>
+                    <p v-if="props.list.length === MAX_SEARCH_NUMBER" class="text-red-600">
+                        注意：当前搜索结果数量达到上限，这可能会导致遗漏，建议缩小搜索范围。</p>
+                    <p>准备导入的歌曲数量为 : {{ props.list.length }}</p>
+                </DialogDescription>
+            </DialogHeader>
+            <div class="flex flex-col gap-4">
+                <div v-if="!hasLevelTag">
+                    <Label class="block font-bold text-gray-700 mb-2">
+                        筛选难度
+                    </Label>
+                    <MultiSelectTags :options="diffOptions" :selected="selectedDiffs"
+                        @selection-change="(selected: any) => selectedDiffs = selected" placeholder="请选择难度，留空默认为紫谱">
+                        <template #option-item="{ option }">
+                            <div class="flex justify-between items-center gap-1">
+                                <div :class="getLevelClass(option.value)"></div>
+                                <span>{{ option.label }}</span>
+                            </div>
+                        </template>
+                        <template #selected-item="{ item }">
+                            <div class="flex justify-between items-center gap-1">
+                                <div :class="getLevelClass(item.value)"></div>
+                                <span>{{ item.label }}</span>
+                            </div>
+                        </template>
+                    </MultiSelectTags>
+                </div>
+                <div>
+                    <Label class="block font-bold text-gray-700 mb-2">
+                        选择导入的合集
+                    </Label>
+                    <Select :disabled="UserCollectionList.length === 0" v-model:model-value="selectedCollection">
+                        <SelectTrigger class="w-48">
+                            <SelectValue placeholder="请选择需要选择的列表" />
+                        </SelectTrigger>
+                        <SelectContent>
+                            <SelectLabel>合集列表</SelectLabel>
+                            <SelectItem :value="ds.label" v-for="ds in UserCollectionList" :key="ds.label">
+                                {{ ds.label }}
+                            </SelectItem>
+                            <SelectItem :disabled="true" v-if="UserCollectionList.length === 0" value="empty">
+                                一个合集都没有呀
+                            </SelectItem>
+                        </SelectContent>
+                    </Select>
+                </div>
+                <div class="w-full">
+                    <Label class="block font-bold text-gray-700 mb-2">
+                        查看导入的歌曲列表
+                    </Label>
+                    <Select>
+                        <SelectTrigger>
+                            <SelectValue placeholder="合集列表" />
+                        </SelectTrigger>
+                        <SelectContent>
+                            <SelectItem :value="ds.id" v-for="ds in props.list" :key="ds.id">
+                                {{ ds.title }}
+                            </SelectItem>
+                        </SelectContent>
+                    </Select>
+                </div>
+            </div>
+            <DialogFooter class="gap-4 lg:gap-2">
+                <Button type="button" variant="outline" @click="open = false">
+                    取消
+                </Button>
+                <Button type="submit" @click="handelImport" :disabled="Importing">
+                    导入！
+                </Button>
+            </DialogFooter>
+        </DialogContent>
+    </Dialog>
+</template>
+<script setup lang="ts">
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/shadcn/ui/dialog'
+import { SelectItem, SelectLabel, SelectTrigger, Select, SelectValue, SelectContent } from '@/components/shadcn/ui/select'
+import MultiSelectTags from '@/components/MultiSelectTags.vue'
+import { Button } from '@/components/shadcn/ui/button';
+import { Label } from 'reka-ui';
+import type { MaiMaiSong } from '@/types/songs';
+import { filterDiffByLevelTag, MAX_SEARCH_NUMBER } from '@/utils/songSearch';
+import type { Tag } from '@/components/TagInputCombobox.vue';
+import { computed, ref } from 'vue';
+import { LEVEL_MATCH_PATTEN, LEVEL_RANGE_MATCH_PATTEN } from '@/utils/StrUtil';
+import type { FilterProps } from '@/types/component';
+import { storeToRefs } from 'pinia';
+import { useCollectionStore } from '@/store/collections';
+import { toast } from 'vue-sonner';
+
+const { UserCollectionList } = storeToRefs(useCollectionStore())
+
+const open = defineModel("open", {
+    default: false,
+    type: Boolean
+})
+const diffOptions: FilterProps<number>[] = [{ label: 'BASIC', value: 0 }, { label: 'ADVANCED', value: 1 }, { label: 'EXPERT', value: 2 }, { label: 'MASTER', value: 3 }, { label: 'Re:MASTER', value: 4 }, { label: 'U•TA•GE', value: -1 }];
+const selectedDiffs = ref<FilterProps<number>[]>([])
+const props = defineProps<{
+    list: MaiMaiSong[] | []
+    tags: Tag[] | []
+}>()
+const hasLevelTag = computed(() => {
+    return props.tags.filter(t => LEVEL_MATCH_PATTEN.test(t.value) || LEVEL_RANGE_MATCH_PATTEN.test(t.value)).length > 0
+})
+const selectedCollection = ref<string>("")
+const getLevelClass = (level_index: number) => {
+    const base = `rounded-full w-4 h-4`;
+    switch (level_index) {
+        case 0: return `${base} bg-BASIC`;
+        case 1: return `${base} bg-ADVANCED`;
+        case 2: return `${base} bg-EXPERT`;
+        case 3: return `${base} bg-MASTER`;
+        case 4: return `${base} bg-REMASTER`;
+        case -1: return `${base} bg-UTAGE`;
+    }
+}
+const Importing = ref(false)
+const handelImport = () => {
+    if (!selectedCollection.value || selectedCollection.value.length === 0) {
+        toast.warning("请选择需要导入的合集", { position: "top-center" })
+        return;
+    }
+    if (Importing.value) return
+    Importing.value = true
+    const index = UserCollectionList.value.findIndex(c => c.label === selectedCollection.value);
+    if (index === -1) {
+        toast.error("未找到目标合集", { position: "top-center" }); return;
+    }
+    const onlyLevelPurple = selectedDiffs.value.length === 0;
+    const diffList: string[] = []
+    for (const song of props.list) {
+        if (onlyLevelPurple) {
+            Array.prototype.push.apply(diffList, getScoreId(song, [3]))
+            continue;
+        }
+        const targetLevels = selectedDiffs.value.map(diff => diff.value)
+        Array.prototype.push.apply(diffList, getScoreId(song, targetLevels))
+    }
+    UserCollectionList.value[index].list = new Set<string>(diffList)
+    toast.success(`导入成功,导入了${diffList.length}个成绩(难度)`, { position: "top-center" })
+    Importing.value = false;
+    open.value = false
+}
+const getScoreId = (song: MaiMaiSong, targetLevels: number[]) => {
+    const result: string[] = []
+    if (targetLevels.includes(-1)) {
+        //若有定数筛选，则宴谱不处理
+        if (hasLevelTag.value) return []
+        Array.prototype.push.apply(result, song.difficulties.utage.map(diff => `${diff.diff_id}_${diff.type}_${diff.level_index}`))
+    }
+    const diffs = [...song.difficulties.standard, ...song.difficulties.dx]
+    if (hasLevelTag.value) {
+        const tags = props.tags.map(t => t.value);
+        return filterDiffByLevelTag(song.id, diffs, tags)
+    }
+
+    const filtered = diffs.filter(diff => targetLevels.includes(diff.level_index))
+    Array.prototype.push.apply(result, filtered.map(diff => `${song.id}_${diff.type}_${diff.level_index}`))
+    return result;
+}
+</script>

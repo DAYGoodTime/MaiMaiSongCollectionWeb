@@ -4,6 +4,7 @@ import { pinyin } from "pinyin-pro";
 
 export const LEVEL_MATCH_PATTEN =
   /^[绿黄红紫白](?:(?:1[0-5]|[1-9])\+|(?:1[0-5]|[1-9])(?:\.\d)?)$/;
+export const LEVEL_RANGE_MATCH_PATTEN = /^(?:15(?:\.0)?|1[0-4](?:\.\d)?|[1-9](?:\.\d)?)-(?:15(?:\.0)?|1[0-4](?:\.\d)?|[1-9](?:\.\d)?)$/;
 export const RANKING_MATCH_PATTEN =
   /^[绿黄红紫白]_/;
 export function conventLevelPrefix(prefix: string): number | null {

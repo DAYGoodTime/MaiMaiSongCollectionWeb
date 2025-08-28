@@ -1,9 +1,9 @@
 import FlexSearch, { Document, type DocumentData } from "flexsearch";
-import { conventLevelPrefix, conventLevelTag, LEVEL_MATCH_PATTEN, RANKING_MATCH_PATTEN, getNoteDesigners, getLevelValue } from "@/utils/StrUtil";
+import { conventLevelPrefix, conventLevelTag, LEVEL_MATCH_PATTEN, RANKING_MATCH_PATTEN, getNoteDesigners, getLevelValue, LEVEL_RANGE_MATCH_PATTEN } from "@/utils/StrUtil";
 import { isAllFinal, versionList } from "@/utils/version";
 import { toLXNSStyleId } from "@/utils/functionUtil";
 import { rankingList } from "@/utils/urlUtils";
-import type { MaiMaiSong, ScoreExtend } from "@/types/songs";
+import type { MaiMaiSong, ScoreExtend, SongDifficulty, SongDifficultyUtage } from "@/types/songs";
 import { useDataStore } from "@/store/datasource";
 import type { AdvanceFilterFilters } from "@/types/component";
 import { useAppStore } from "@/store/appStore";
@@ -16,7 +16,7 @@ export interface OrderBadge {
     status_index: number
 }
 
-export const MAX_SEARCH_NUMBER = 100;
+export const MAX_SEARCH_NUMBER = 200;
 
 let SONG_DATA: MaiMaiSong[] = []
 
@@ -316,6 +316,37 @@ export const useScoreSearch = () => {
         advanceFilter
     }
 }
+export const filterDiffByLevelTag = (song_id: number, diffs: SongDifficulty[] | SongDifficultyUtage[], tags: string[]) => {
+    const result: string[] = []
+    for (const diff of diffs) {
+        //宴谱默认拒绝
+        if (diff.type === "utage" || ("kanji" in diff)) continue;
+        for (const tag of tags) {
+            const isLevelPatten = LEVEL_MATCH_PATTEN.test(tag);
+            const isLevelRangePatten = LEVEL_RANGE_MATCH_PATTEN.test(tag)
+            if (!isLevelPatten || !isLevelRangePatten) continue;
+            if (isLevelPatten) {
+                const level_filter = conventLevelTag(tag);
+                if (level_filter) {
+                    if (diff.level_index === level_filter.level_index
+                        && diff.level_value === level_filter.level_value
+                    ) {
+                        result.push(`${song_id}_${diff.type}_${diff.level_index}`)
+                    }
+                }
 
+            }
+            if (isLevelRangePatten) {
+                const [start, end] = tag.split("-");
+                const levelStart = Number(start);
+                const levelEnd = Number(end)
+                if (diff.level_value >= levelStart && diff.level_value <= levelEnd) {
+                    result.push(`${song_id}_${diff.type}_${diff.level_index}`)
+                }
+            }
+        }
+    }
+    return result;
+}
 
 

@@ -1,5 +1,5 @@
 <template>
-  <Combobox v-model="selectedSong" v-model:open="appStore.ComboboxOpen" class="max-w-2xl" :ignore-filter="true"
+  <Combobox v-model="selectedSong" v-model:open="appStore.ComboboxOpen" class="w-3/4" :ignore-filter="true"
     :open-on-click="true">
     <ComboboxAnchor class="w-full">
       <div class="relative items-center shadow-md rounded-xl bg-white border-2 border-blue-100">
@@ -122,4 +122,7 @@ const handelInteractOutSide = (event: Event) => {
   event.preventDefault();
   appStore.ComboboxOpen = false
 }
+defineExpose({
+  results: getFilteredSongs
+})
 </script>
