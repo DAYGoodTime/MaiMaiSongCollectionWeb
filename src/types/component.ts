@@ -1,7 +1,9 @@
+import type { HTMLAttributes } from "vue";
 
 //AdvanceFilter
 export interface AdvanceFilterProps {
     showTrigger: boolean,
+    class?: HTMLAttributes["class"],
     modelValue: {
         difficulty?: FilterProps<number>[];
         musicCategories?: FilterProps<string>[];

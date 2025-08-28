@@ -62,7 +62,7 @@
                     </div>
                     <div>
                         <div class="w-full max-w-4xl mx-auto bg-white border border-gray-200 rounded-lg">
-                            <AdvanceFilter :model-value="{}" :show-trigger="true"
+                            <AdvanceFilter :model-value="AdvanceFilterForm" :show-trigger="true"
                                 @update:model-value="(filter) => onFilterUpdate(filter as AdvanceFilterFilters)" />
                         </div>
                     </div>
@@ -121,13 +121,14 @@
                 </div>
             </NavigationMenuItem>
             <NavigationMenuItem class="hidden md:block">
-                <NavigationMenuTrigger>高级筛选</NavigationMenuTrigger>
-                <NavigationMenuContent>
-                    <div class="w-max">
-                        <AdvanceFilter :model-value="{}" :show-trigger="false" v-model:is-expanded="showAdvancedFilter"
+                <Popover>
+                    <PopoverTrigger class="">高级筛选</PopoverTrigger>
+                    <PopoverContent class="w-3/4 pr-0">
+                        <AdvanceFilter class="h-96 !p-1" :model-value="AdvanceFilterForm" :show-trigger="false"
+                            v-model:is-expanded="showAdvancedFilter"
                             @update:model-value="(filter) => onFilterUpdate(filter as AdvanceFilterFilters)" />
-                    </div>
-                </NavigationMenuContent>
+                    </PopoverContent>
+                </Popover>
             </NavigationMenuItem>
             <NavigationMenuItem>
                 <NavigationMenuLink @click="showAdvanced = true"
@@ -141,6 +142,7 @@
 <script setup lang="ts">
 import ScoreCard from '@/components/ScoreCard.vue';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/shadcn/ui/card'
+import { Popover, PopoverTrigger, PopoverContent } from '@/components/shadcn/ui/popover';
 import { Badge } from '@/components/shadcn/ui/badge';
 import { Search, X, ChevronDown, ChevronUp, PanelLeft } from 'lucide-vue-next'
 import { Input } from '@/components/shadcn/ui/input'

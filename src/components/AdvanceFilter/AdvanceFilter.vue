@@ -8,7 +8,7 @@
         </div>
     </slot>
     <slot name="default">
-        <div v-if="isExpanded" class="p-4 border-t border-gray-200 space-y-6">
+        <div v-if="isExpanded" :class="cn(props.class, 'p-4 space-y-6 overflow-auto')">
             <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <!-- 筛选难度 -->
                 <div>
@@ -63,7 +63,7 @@
             </div>
 
             <!-- 筛选谱面定数 -->
-            <div class="w-96">
+            <div class="w-full">
                 <Label class="block text-sm font-medium text-gray-700 mb-3">
                     筛选谱面定数 <span class="text-xs font-light">滑块可以快速选定常用的定数范围，如果需要其他范围，可以从左右两边手动输入你想要的定数</span>
                 </Label>
@@ -140,6 +140,7 @@ import MultiSelectTags from '@/components/MultiSelectTags.vue'
 import Slider from '@/components/shadcn/ui/slider/Slider.vue'
 import type { AdvanceFilterEmits, AdvanceFilterProps, AdvanceFilterFilters, FilterProps } from '@/types/component'
 import { SongGenreList, SongMapList, SongVersionList } from '@/utils/StrUtil'
+import { cn } from '@/lib/utils'
 
 
 // Model
