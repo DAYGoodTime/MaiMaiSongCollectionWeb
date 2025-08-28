@@ -5,7 +5,7 @@
       <div class="relative items-center shadow-md rounded-xl bg-white border-2 border-blue-100">
         <ComboboxInput
           class="pl-10 py-3 w-full rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all text-base"
-          :display-value="(val) => val?.title ?? ''" placeholder="支持标题、曲师、谱师、别名搜索甚至拼音" @update:model-value="onSearch"
+          :display-value="(val) => val?.title ?? ''" placeholder="支持标题|曲师|谱师|别名甚至拼音" @update:model-value="onSearch"
           v-model:model-value="temp_search" />
         <span class="absolute start-0 inset-y-0 flex items-center justify-center px-3 text-blue-500">
           <Search class="size-5" />

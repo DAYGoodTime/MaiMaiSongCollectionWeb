@@ -7,8 +7,9 @@
                         <img :src="usagiLogo" class="h-5 w-5" />
                         <div>
                             <span>UsagiCard(兔卡) </span>
-                            <span class="block md:inline">{{ selectedSource === 'usagi' ? '(当前默认数据源)' : ''
-                                }}</span>
+                            <span class="block md:inline">
+                                {{ selectedSource === 'usagi' ? '(当前默认数据源)' : '' }}
+                            </span>
                         </div>
                     </div>
                     <div v-if="hasUsagiData" class="flex gap-4">
@@ -57,7 +58,7 @@
                     <DialogTitle>UsagiCard数据源认证</DialogTitle>
                     <DialogDescription>
                         请输入您的UsagiCard账号中的UUID以更新数据源。
-                        <div v-if="NFCEnabled && WebNFCEnabled">
+                        <div v-if="NFCEnabled || WebNFCEnabled">
                             <p>似乎你可以通过读取NFC来读取卡片id</p>
                             <p>将UsagiCard贴到手机NFC识别处既可自动添加凭证</p>
                             <Button v-if="WebNFCEnabled" @click="startScan" :disabled="!NFCEnabled || isScanning">{{
@@ -192,9 +193,12 @@ const handelNFCScanning = async (message: string) => {
     }
 }
 const { isSupported, isScanning, startScan } = useNFC(handelNFCScanning);
-const NFCEnabled = Capacitor.getPlatform() === "web" ? NFC.isSupported() : isSupported
+const NFCEnabled = ref(false)
 const WebNFCEnabled = Capacitor.getPlatform() === "web" ? isSupported : false
 const appStore = useAppStore();
+NFC.isSupported().then(res => {
+    NFCEnabled.value = Capacitor.getPlatform() === "web" ? res.supported : isSupported
+})
 watch(() => appStore.NFCData, (newVal) => {
     if (newVal) {
         handelNFCScanning(newVal)
