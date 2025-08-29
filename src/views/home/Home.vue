@@ -16,8 +16,10 @@ import SongInfo from "@/components/SongInfo.vue";
 import ScoreInfo from "@/components/ScoreInfo.vue";
 import ImportFromResult from "./ImportFromResult.vue";
 import { toast } from "vue-sonner";
+import { useAppStore } from "@/store/appStore";
 const bpmRangeValue = ref([0, 300]);
 const enableBpmFilter = ref(false);
+const appStore = useAppStore()
 const tags = ref<Tag[]>([]);
 const selectedSong = ref<MaiMaiSong>();
 const bpmOption = reactive({
@@ -32,7 +34,11 @@ const SearchRef = useTemplateRef("search")
 const openImportDialog = ref(false)
 const handelOpenImportDialog = () => {
   if (SearchRef.value && SearchRef.value.results.length > 0) {
-    openImportDialog.value = true;
+    appStore.TagComboboxOpen = false;
+    //only timeout to prevent process crash
+    setTimeout(() => {
+      openImportDialog.value = true;
+    }, 100)
   } else {
     toast.warning("没有歌曲可供导入")
   }
@@ -67,6 +73,7 @@ const handelOpenImportDialog = () => {
                           <p>铺面难度: 例如："红13"、"紫12"</p>
                           <p>达成率: 例如："红鸟加"、"白鸟"</p>
                           <p>定数范围: 例如："12-14"、"14.6-14.9"</p>
+                          <p>达成率范围: 例如："100.4-100.4999"、"99.9-99.9999"</p>
                         </div>
                       </HoverCardContent>
                     </HoverCard>

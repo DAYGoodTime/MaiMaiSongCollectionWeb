@@ -25,8 +25,9 @@ import { isValidAchievementRange, LEVEL_MATCH_PATTEN, LEVEL_RANGE_MATCH_PATTEN }
 import { useDataStore } from "@/store/datasource";
 import { toast } from "vue-sonner";
 import { storeToRefs } from "pinia";
+import { useAppStore } from "@/store/appStore";
 const modelValue = defineModel<Tag[]>("tags")
-const open = ref(false);
+const { TagComboboxOpen } = storeToRefs(useAppStore())
 const searchTerm = ref("");
 export interface Tag {
   label: string;
@@ -177,7 +178,7 @@ const onSelectTag = (ev: ListboxItemSelectEvent<AcceptableValue>) => {
     modelValue.value?.push(ev.detail.value as Tag);
   }
   if (filteredTags.value.length === 0) {
-    open.value = false;
+    TagComboboxOpen.value = false;
   }
 }
 const onTagDelete = (item: Tag) => {
@@ -189,7 +190,7 @@ const onTagDelete = (item: Tag) => {
 </script>
 
 <template>
-  <Combobox v-model="modelValue" v-model:open="open" :ignore-filter="true" :open-on-click="true">
+  <Combobox v-model="modelValue" v-model:open="TagComboboxOpen" :ignore-filter="true" :open-on-click="true">
     <ComboboxAnchor as-child>
       <TagsInput v-model="modelValue" class="px-2 gap-2 w-full flex-wrap">
         <div class="flex gap-2 flex-wrap items-center">
