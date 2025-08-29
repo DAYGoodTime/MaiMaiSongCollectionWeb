@@ -150,7 +150,7 @@ import { type Collection, useCollectionStore } from '@/store/collections';
 import { useDataStore } from '@/store/datasource';
 import type { MaiMaiSong, ScoreExtend, SongType } from '@/types/songs';
 import { debounce, toFishStyleId, toLXNSStyleId, useRouterHelper } from '@/utils/functionUtil';
-import { computed, onMounted, onUnmounted, reactive, ref, useTemplateRef, watch } from 'vue';
+import { computed, reactive, ref, useTemplateRef, watch } from 'vue';
 import { toast } from 'vue-sonner';
 import { conventFcFsStr, getSongDiff } from '@/utils/StrUtil';
 import { ACHIEVEMENT, PLAY_BONUS, ACHIEVEMENT_ICON, PLAY_BONUS_ICON } from '@/utils/urlUtils';
@@ -184,7 +184,6 @@ import { storeToRefs } from 'pinia';
 import { createReusableTemplate } from '@vueuse/core';
 import { cn } from '@/lib/utils';
 import CollectionFloatingNav from './component/CollectionFloatingNav.vue';
-import { useAppStore } from '@/store/appStore';
 import { useSidebar } from '@/components/shadcn/ui/sidebar';
 
 
@@ -398,13 +397,6 @@ const initScoreList = () => {
     }
 }
 initScoreList();//立马进行初始化
-const appStore = useAppStore();
-onMounted(() => {
-    appStore.showSideBarTrigger = false;
-})
-onUnmounted(() => {
-    appStore.showSideBarTrigger = true;
-})
 
 // computed
 const getOtherCollections = computed(() => UserCollectionList.value.filter(c => c.label !== route.query.label))

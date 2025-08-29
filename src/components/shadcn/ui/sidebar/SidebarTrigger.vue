@@ -34,11 +34,7 @@ const setUpObserver = () => {
   }
   ObsInstance.value = useIntersectionObserver(triggerRef, ([{ isIntersecting, boundingClientRect }]) => {
     if (!isIntersecting && boundingClientRect.y < 0) {
-      if (appStore.shouldShowFloatingSideBarTrigger) {
-        showSticky.value = true;
-      } else {
-        showSticky.value = false;
-      }
+      showSticky.value = appStore.showGlobalSideBarTrigger
     } else {
       showSticky.value = false;
     }
@@ -46,16 +42,16 @@ const setUpObserver = () => {
     threshold: 0,
   })
 }
+setUpObserver()
 
 
-
-watch(() => appStore.shouldShowFloatingSideBarTrigger, () => {
-  setUpObserver();
+watch(() => appStore.showGlobalSideBarTrigger, () => {
+  setUpObserver()
 })
 </script>
 
 <template>
-  <div v-if="appStore.showSideBarTrigger">
+  <div v-if="appStore.showGlobalSideBarTrigger">
     <md-fab ref="sidebarTrigger" data-sidebar="trigger" @click="handelTriggerToggle" :class="props.class">
       <PanelLeft slot="icon" class="!h-7 !w-7" />
       <span class="sr-only">menu</span>

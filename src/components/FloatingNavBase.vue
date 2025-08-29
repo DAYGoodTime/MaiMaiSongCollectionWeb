@@ -1,16 +1,31 @@
 <script setup lang="ts">
 import { useAppStore } from "@/store/appStore";
-import { useIntersectionObserver } from "@vueuse/core";
-import { onMounted, onUnmounted, watch, type ComponentPublicInstance } from "vue";
+import { useIntersectionObserver, type UseIntersectionObserverReturn } from "@vueuse/core";
+import { storeToRefs } from "pinia";
+import { ref, watch, type ComponentPublicInstance } from "vue";
 
-const appStore = useAppStore()
+const { showCustomSideBarTrigger } = storeToRefs(useAppStore())
 type CommonComponent = ComponentPublicInstance | HTMLElement | null
 const props = defineProps<{ target: CommonComponent }>()
 watch(() => props.target, (newRef) => {
     if (newRef) {
-        useIntersectionObserver(newRef, ([{ isIntersecting, boundingClientRect }]) => {
+        setUpObserver(newRef)
+    }
+})
+const showSticky = defineModel("showSticky")
+//disable floating sidebarTrigger when using navbar as floating element
+watch(() => showCustomSideBarTrigger.value, () => {
+    setUpObserver(props.target)
+})
+const Observer = ref<UseIntersectionObserverReturn>()
+const setUpObserver = (target: CommonComponent) => {
+    if (Observer.value) {
+        Observer.value.stop()
+    }
+    if (target) {
+        Observer.value = useIntersectionObserver(target, ([{ isIntersecting, boundingClientRect }]) => {
             if (!isIntersecting && boundingClientRect.y < 0) {
-                showSticky.value = true;
+                showSticky.value = showCustomSideBarTrigger.value;
             } else {
                 showSticky.value = false;
             }
@@ -18,15 +33,7 @@ watch(() => props.target, (newRef) => {
             threshold: 0,
         })
     }
-})
-const showSticky = defineModel("showSticky")
-//disable floating sidebarTrigger when using navbar as floating element
-onMounted(() => {
-    appStore.shouldShowFloatingSideBarTrigger = false
-})
-onUnmounted(() => {
-    appStore.shouldShowFloatingSideBarTrigger = true
-})
+}
 defineExpose({
     showSticky
 })
