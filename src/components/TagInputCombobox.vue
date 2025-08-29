@@ -187,6 +187,10 @@ const onTagDelete = (item: Tag) => {
     if (i !== -1) modelValue.value.splice(i, 1)
   }
 };
+const handelInteractOutSide = (event: Event) => {
+  event.preventDefault();
+  TagComboboxOpen.value = false
+}
 </script>
 
 <template>
@@ -209,7 +213,7 @@ const onTagDelete = (item: Tag) => {
         </ComboboxInput>
       </TagsInput>
 
-      <ComboboxList class="w-[var(--radix-combobox-trigger-width)]">
+      <ComboboxList class="w-[var(--radix-combobox-trigger-width)]" @interact-outside="handelInteractOutSide">
         <ComboboxEmpty class="py-4 mx-8">
           没有符合的标签
         </ComboboxEmpty>
