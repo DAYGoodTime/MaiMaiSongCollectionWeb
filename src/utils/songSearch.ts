@@ -1,5 +1,5 @@
 import FlexSearch, { Document, type DocumentData } from "flexsearch";
-import { conventLevelPrefix, conventLevelTag, LEVEL_MATCH_PATTEN, RANKING_MATCH_PATTEN, getNoteDesigners, getLevelValue, LEVEL_RANGE_MATCH_PATTEN } from "@/utils/StrUtil";
+import { conventLevelPrefix, conventLevelTag, LEVEL_MATCH_PATTEN, RANKING_MATCH_PATTEN, getNoteDesigners, getLevelValue, LEVEL_RANGE_MATCH_PATTEN, isValidAchievementRange, BASE_NUMBER_RANGE_PATTEN } from "@/utils/StrUtil";
 import { isAllFinal, versionList } from "@/utils/version";
 import { toLXNSStyleId } from "@/utils/functionUtil";
 import { rankingList } from "@/utils/urlUtils";
@@ -9,7 +9,6 @@ import type { AdvanceFilterFilters } from "@/types/component";
 import { useAppStore } from "@/store/appStore";
 import { toRaw } from "vue";
 import { pinyin } from "pinyin-pro";
-
 export interface OrderBadge {
     label: string,
     value: string,
@@ -116,7 +115,15 @@ export const useSongSearch = () => {
                         }
                     }
                 }
-
+                // 成绩范围标签过滤
+                if (isValidAchievementRange(tag)) {
+                    const matched = tag.match(BASE_NUMBER_RANGE_PATTEN);
+                    if (!matched || matched.length !== 3) return false;
+                    const start = parseFloat(matched[1]);
+                    const end = parseFloat(matched[2]);
+                    const scoreList = getScoreList(song.id);
+                    return scoreList.some(s => start <= s.achievements && end >= s.achievements);
+                }
                 // 旧框版本特判
                 if (tag === "ALL FiNALE") {
                     return isAllFinal(song.version);
@@ -353,6 +360,44 @@ export const filterDiffByLevelTag = (song_id: number, diffs: SongDifficulty[] | 
                 const levelEnd = Number(end)
                 if (diff.level_value >= levelStart && diff.level_value <= levelEnd) {
                     result.push(`${song_id}_${diff.type}_${diff.level_index}`)
+                }
+            }
+        }
+    }
+    return result;
+}
+export const filterDiffByAchievementTag = (song_id: number, diffs: SongDifficulty[] | SongDifficultyUtage[], tags: string[]): string[] => {
+    const result: string[] = []
+    const { getScore } = useDataStore()
+    for (const diff of diffs) {
+        let score;
+        if (diff.type === "utage" && ("kanji" in diff)) {
+            //处理宴谱
+            score = getScore(diff.diff_id, diff.type, diff.level_index)
+        } else {
+            score = getScore(song_id, diff.type, diff.level_index);
+        }
+        if (!score) continue;
+        for (const tag of tags) {
+            if (RANKING_MATCH_PATTEN.test(tag)) {
+                const splits = tag.split("_");
+                if (splits.length < 2) continue;
+                const level_index_tag = conventLevelPrefix(splits[0]);
+                const ranking_target = rankingList.find(r => r.id === splits[1]);
+                if (!ranking_target) continue;
+                if (diff.level_index === level_index_tag
+                    && (ranking_target.min <= score.achievements && ranking_target.max >= score.achievements)
+                ) {
+                    result.push(`${score.diff_id}_${diff.type}_${diff.level_index}`)
+                }
+            }
+            if (isValidAchievementRange(tag)) {
+                const matched = tag.match(BASE_NUMBER_RANGE_PATTEN);
+                if (!matched || matched.length !== 3) continue;
+                const start = parseFloat(matched[1]);
+                const end = parseFloat(matched[2]);
+                if (start <= score.achievements && end >= score.achievements) {
+                    result.push(`${score.diff_id}_${diff.type}_${diff.level_index}`)
                 }
             }
         }

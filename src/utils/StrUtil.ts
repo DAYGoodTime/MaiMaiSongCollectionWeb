@@ -7,6 +7,7 @@ export const LEVEL_MATCH_PATTEN =
 export const LEVEL_RANGE_MATCH_PATTEN = /^(?:15(?:\.0)?|1[0-4](?:\.\d)?|[1-9](?:\.\d)?)-(?:15(?:\.0)?|1[0-4](?:\.\d)?|[1-9](?:\.\d)?)$/;
 export const RANKING_MATCH_PATTEN =
   /^[绿黄红紫白]_/;
+export const BASE_NUMBER_RANGE_PATTEN = /^(\d+(?:\.\d{1,4})?)-(\d+(?:\.\d{1,4})?)$/
 export function conventLevelPrefix(prefix: string): number | null {
   switch (prefix) {
     case "绿":
@@ -326,4 +327,12 @@ export function getTotalDxScore(diff?: SongDifficulty | null): number {
   if (diff) {
     return (diff.tap_num + diff.hold_num + diff.slide_num + diff.touch_num + diff.break_num) * 3
   } else return 0;
+}
+export function isValidAchievementRange(tag: string): boolean {
+  if (!tag || typeof tag !== 'string' || tag.length === 0) return false;
+  const matched = tag.match(BASE_NUMBER_RANGE_PATTEN);
+  if (!matched || matched.length !== 3) return false;
+  const start = parseFloat(matched[1]);
+  const end = parseFloat(matched[2]);
+  return (start >= 80 && end >= 80) && (start < end);
 }

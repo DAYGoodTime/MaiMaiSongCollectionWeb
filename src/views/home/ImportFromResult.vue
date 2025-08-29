@@ -10,7 +10,7 @@
                 </DialogDescription>
             </DialogHeader>
             <div class="flex flex-col gap-4">
-                <div v-if="!hasLevelTag">
+                <div v-if="!hasTargetScoreTag">
                     <Label class="block font-bold text-gray-700 mb-2">
                         筛选难度
                     </Label>
@@ -83,7 +83,7 @@ import MultiSelectTags from '@/components/MultiSelectTags.vue'
 import { Button } from '@/components/shadcn/ui/button';
 import { Label } from 'reka-ui';
 import type { MaiMaiSong } from '@/types/songs';
-import { filterDiffByLevelTag, MAX_SEARCH_NUMBER } from '@/utils/songSearch';
+import { filterDiffByAchievementTag, filterDiffByLevelTag, MAX_SEARCH_NUMBER } from '@/utils/songSearch';
 import type { Tag } from '@/components/TagInputCombobox.vue';
 import { computed, ref } from 'vue';
 import { LEVEL_MATCH_PATTEN, LEVEL_RANGE_MATCH_PATTEN } from '@/utils/StrUtil';
@@ -106,6 +106,13 @@ const props = defineProps<{
 }>()
 const hasLevelTag = computed(() => {
     return props.tags.filter(t => LEVEL_MATCH_PATTEN.test(t.value) || LEVEL_RANGE_MATCH_PATTEN.test(t.value)).length > 0
+})
+const hasAchievementTag = computed(() => {
+    return props.tags.filter(t => t.needDs ?? false).length > 0
+})
+// 标签过滤了一些特定的难度|成绩，例如指定鸟加、达成率在一定范围内的、或者需要满足定数需求的
+const hasTargetScoreTag = computed(() => {
+    return hasLevelTag.value || hasAchievementTag.value
 })
 const selectedCollection = ref<string>("")
 const getLevelClass = (level_index: number) => {
@@ -147,20 +154,23 @@ const handelImport = () => {
     open.value = false
 }
 const getScoreId = (song: MaiMaiSong, targetLevels: number[]) => {
-    const result: string[] = []
-    if (targetLevels.includes(-1)) {
-        //若有定数筛选，则宴谱不处理
-        if (hasLevelTag.value) return []
-        Array.prototype.push.apply(result, song.difficulties.utage.map(diff => `${diff.diff_id}_${diff.type}_${diff.level_index}`))
-    }
+    let result: string[] = []
     const diffs = [...song.difficulties.standard, ...song.difficulties.dx]
+    if (!hasLevelTag.value) Array.prototype.push.apply(diffs, song.difficulties.utage)
+    const tags = props.tags.map(t => t.value);
     if (hasLevelTag.value) {
-        const tags = props.tags.map(t => t.value);
-        return filterDiffByLevelTag(song.id, diffs, tags)
+        Array.prototype.push.apply(result, filterDiffByLevelTag(song.id, diffs, tags))
     }
-
-    const filtered = diffs.filter(diff => targetLevels.includes(diff.level_index))
-    Array.prototype.push.apply(result, filtered.map(diff => `${song.id}_${diff.type}_${diff.level_index}`))
+    if (hasAchievementTag.value) {
+        const achievementList = filterDiffByAchievementTag(song.id, diffs, tags);
+        result = result.filter(sid => achievementList.indexOf(sid) > -1);
+    }
+    //这种不需要指定难度
+    if (!hasTargetScoreTag.value) {
+        const filtered = diffs.filter(diff => targetLevels.includes(diff.level_index))
+        const filteredIds = filtered.map(diff => `${song.id}_${diff.type}_${diff.level_index}`);
+        result = result.filter(sid => filteredIds.indexOf(sid) > -1);
+    }
     return result;
 }
 </script>

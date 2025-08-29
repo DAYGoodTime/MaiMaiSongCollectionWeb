@@ -21,7 +21,7 @@ import {
 } from "@/components/shadcn/ui/tags-input";
 import { versionList } from "@/utils/version.ts";
 import { ScrollArea } from "@/components/shadcn/ui/scroll-area";
-import { LEVEL_MATCH_PATTEN, LEVEL_RANGE_MATCH_PATTEN } from "@/utils/StrUtil"
+import { isValidAchievementRange, LEVEL_MATCH_PATTEN, LEVEL_RANGE_MATCH_PATTEN } from "@/utils/StrUtil"
 import { useDataStore } from "@/store/datasource";
 import { toast } from "vue-sonner";
 import { storeToRefs } from "pinia";
@@ -107,6 +107,7 @@ const filteredTags = computed(() => {
     currentTagList = modelValue.value.map(t => t.label)
   }
   if (!modelValue.value) return []
+  //level matching
   if (LEVEL_MATCH_PATTEN.test(searchTerm.value)) {
     return [{
       label: searchTerm.value,
@@ -142,6 +143,15 @@ const filteredTags = computed(() => {
     }
     const filteredRankingTagList = tag_list.filter(r => !currentTagList.includes(r.label))
     filteredRankingTagList.forEach(r => result.add(r))
+  }
+  //match score achievement range
+  if (isValidAchievementRange(searchTerm.value)) {
+    return [{
+      label: searchTerm.value,
+      value: searchTerm.value,
+      alias: searchTerm.value,
+      needDs: true
+    }]
   }
   //try to match version
   const versionFiltered = versionListForTag.filter(
