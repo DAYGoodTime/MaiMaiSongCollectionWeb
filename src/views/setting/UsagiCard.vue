@@ -59,14 +59,13 @@
                     <DialogDescription>
                         请输入您的UsagiCard账号中的UUID以更新数据源。
                         <div v-if="NFCEnabled || WebNFCEnabled">
-                            <p>似乎你可以通过读取NFC来读取卡片id</p>
-                            <p>将UsagiCard贴到手机NFC识别处既可自动添加凭证</p>
-                            <Button v-if="WebNFCEnabled" @click="startScan" :disabled="!NFCEnabled || isScanning">{{
+                            <p class="font-semibold">似乎你可以通过读取NFC来读取卡片id</p>
+                            <p class="font-semibold">将UsagiCard贴到手机NFC识别处既可自动添加凭证</p>
+                            <Button v-if="WebNFCEnabled" @click="startScan" :disabled="isScanning">{{
                                 isScanning ?
                                     '扫描中' :
                                     '通过NFC读取卡片id'
                             }}</Button>
-
                         </div>
 
                         <p><a class="text-blue-600 hover:underline" href="https://uc.turou.fun/"
