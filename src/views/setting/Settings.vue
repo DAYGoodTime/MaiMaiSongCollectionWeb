@@ -162,7 +162,6 @@ import DivingFIshCard from './DivingFIshCard.vue'
 import { useDataStore } from '@/store/datasource'
 import UsagiCard from './UsagiCard.vue'
 import ActionConfirm from '@/components/ActionConfirm.vue'
-import { Capacitor } from '@capacitor/core'
 import { QuerySongs } from '../../api/other'
 import { storeToRefs } from 'pinia'
 
