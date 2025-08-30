@@ -36,15 +36,15 @@ export interface SongDifficulty {
   curve?: null;
 
 };
-export interface ScoreExtend {
-  score: Score;
-  song: MaiMaiSong;
-  score_id: string
-}
 export interface SongDifficultyUtage extends SongDifficulty {
   description: string;
   is_buddy: boolean;
   kanji: string;
   diff_id: number
+}
+export interface ScoreExtend {
+  score: Score;
+  song: MaiMaiSong;
+  score_id: string
 }
 export type SongType = "standard" | "dx" | "utage"

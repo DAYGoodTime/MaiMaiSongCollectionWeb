@@ -6,9 +6,9 @@
             <p v-if="appStore.hasUserName" class="mt-2">
                 欢迎回来：<span class="font-semibold">{{ appStore.UserName }}</span>
             </p>
-            <p v-if="Capacitor.getPlatform() === 'web'" class="text-red-600 font-bold">
+            <!-- <p v-if="Capacitor.getPlatform() === 'web'" class="text-red-600 font-bold">
                 因为api的跨域问题，所以数据源(落雪,水鱼)的更新都需要能够访问海外才可以使用
-            </p>
+            </p> -->
         </div>
 
         <div class="space-y-6">
@@ -30,6 +30,16 @@
                             <p class="text-sm text-muted-foreground">
                                 {{ formatDate(getSongDataList.update_time) }}
                             </p>
+                        </div>
+                        <!-- v-if="Capacitor.getPlatform() !== 'web'" -->
+                        <div>
+                            <ActionConfirm title="你确定要更新歌曲数据源吗?" confirm-text="确认" cancel-text="算了"
+                                @confirm="handelUpdateSongs">
+                                <Button :disabled="UpdatingSongs" class="gap-2">
+                                    <RefreshCw :class="{ 'animate-spin': UpdatingSongs }" class="h-4 w-4" />
+                                    <span>{{ UpdatingSongs ? '更新中...' : '更新' }}</span>
+                                </Button>
+                            </ActionConfirm>
                         </div>
                     </div>
                 </CardContent>
@@ -150,8 +160,11 @@ import { getProjectVersion, formatDate } from '@/utils/StrUtil'
 import LXNSCard from './LXNSCard.vue'
 import DivingFIshCard from './DivingFIshCard.vue'
 import { useDataStore } from '@/store/datasource'
-import { Capacitor } from '@capacitor/core'
 import UsagiCard from './UsagiCard.vue'
+import ActionConfirm from '@/components/ActionConfirm.vue'
+import { Capacitor } from '@capacitor/core'
+import { QuerySongs } from '../../api/other'
+import { storeToRefs } from 'pinia'
 
 // 响应式数据
 const showSetNameDialog = ref(false)
@@ -162,13 +175,15 @@ const DataSourceUpdating = reactive({
     collDataUpload: false
 })
 const { exportCollectionData, uploadCollectionData, downloadCollectionData } = useCollectionStore()
-const { getSongDataList } = useDataStore();
+const { getSongDataList } = storeToRefs(useDataStore());
+const { updateSongList } = useDataStore()
 
 
 //upload
 const appStore = useAppStore();
 const tempUserName = ref("")
 const updateName = () => {
+
     if (tempUserName.value.trim().length === 0) {
         toast.error("请输入用户名");
         return;
@@ -242,6 +257,20 @@ const handelDownloadCollData = () => {
         })
         showSetNameDialog.value = true;
         return;
+    }
+}
+const UpdatingSongs = ref(false)
+const handelUpdateSongs = async () => {
+    if (UpdatingSongs.value) return;
+    UpdatingSongs.value = true;
+    try {
+        const songs = await QuerySongs();
+        updateSongList(songs);
+    } catch (error: any) {
+        toast.error(`歌曲数据源更新失败: ${error.message ? error.message : 'Unknown Error'}`)
+        console.error("歌曲数据源更新失败", error);
+    } finally {
+        UpdatingSongs.value = false;
     }
 }
 </script>

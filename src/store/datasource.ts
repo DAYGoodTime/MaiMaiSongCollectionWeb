@@ -65,16 +65,23 @@ export function flatMapById(list: AnyScore[], songMap: Map<number, MaiMaiSong>):
   }
   return map;
 }
-
+const LOCAL_SONG_UPDATE_TIME = "2025-08-27 23:56:00"
 export const useDataStore = defineStore("datasource", () => {
+  const SONG_LIST: RemovableRef<DataSource<MaiMaiSong[]>> = useLocalStorage("song_list", {
+    list: SONG_DATA as MaiMaiSong[],
+    update_time: LOCAL_SONG_UPDATE_TIME,
+    version: CURRENT_SONG_VERSION
+  })
   const getSongDataList = computed(() => {
-    const source: DataSource<MaiMaiSong[]> = {
-      list: SONG_DATA as MaiMaiSong[],
-      update_time: "2025-08-27 23:56:00",
+    return SONG_LIST.value;
+  })
+  const updateSongList = (list: MaiMaiSong[]) => {
+    SONG_LIST.value = {
+      list,
+      update_time: formatDate(new Date()),
       version: CURRENT_SONG_VERSION
     }
-    return source;
-  })
+  }
   const SONG_MAP = new Map<number, MaiMaiSong>();
   SONG_DATA.forEach(song => {
     SONG_MAP.set(song.id, song as MaiMaiSong)
@@ -229,6 +236,7 @@ export const useDataStore = defineStore("datasource", () => {
   }
   return {
     selectedSource,
+    updateSongList,
     getSongDataList,
     DivingFishSource,
     getDivingFishScoreList,
