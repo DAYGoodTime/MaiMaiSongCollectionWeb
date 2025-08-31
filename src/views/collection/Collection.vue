@@ -46,7 +46,8 @@
                 </NavigationMenuItem>
             </NavigationMenuList>
         </NavigationMenu>
-        <div class="flex gap-4 flex-wrap justify-center" ref="panel">
+        <div :class="cn(isFilterExpended ? 'items-start' : 'items-stretch', 'flex gap-4 flex-wrap justify-center')"
+            ref="panel">
             <Card class="flex-auto w-96">
                 <CardHeader>
                     <CardTitle>合集: {{ CurrentCollectionLabel }}</CardTitle>
@@ -63,12 +64,13 @@
                     <div>
                         <div class="w-full max-w-4xl mx-auto bg-white border border-gray-200 rounded-lg">
                             <AdvanceFilter :model-value="AdvanceFilterForm" :show-trigger="true"
+                                v-model:is-expanded="isFilterExpended"
                                 @update:model-value="(filter) => onFilterUpdate(filter as AdvanceFilterFilters)" />
                         </div>
                     </div>
                 </CardContent>
             </Card>
-            <ScoreStatisticsCard class="w-96 max-h-fit" :status-board="statusBoard" />
+            <ScoreStatisticsCard class="w-96" :status-board="statusBoard" />
         </div>
         <!-- 成绩列表 -->
         <InfiniteScrollArea class="px-0 w-full my-8 rounded-xl border shadow hover:shadow-xl py-2"
@@ -206,7 +208,7 @@ const showAdvanced = ref(false)
 const listVersion = ref(0)
 const showAdvancedFilter = ref(true)
 const supportPcCount = ref(false)
-const statusExpended = ref(false)
+const isFilterExpended = ref(false)
 
 //排序
 const OrderBadges = ref<OrderBadge[]>([
