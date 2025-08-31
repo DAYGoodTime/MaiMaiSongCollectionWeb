@@ -68,7 +68,7 @@
                     </div>
                 </CardContent>
             </Card>
-            <ScoreStatisticsCard class="w-96" :status-board="statusBoard" />
+            <ScoreStatisticsCard class="w-96 max-h-fit" :status-board="statusBoard" />
         </div>
         <!-- 成绩列表 -->
         <InfiniteScrollArea class="px-0 w-full my-8 rounded-xl border shadow hover:shadow-xl py-2"
@@ -206,6 +206,7 @@ const showAdvanced = ref(false)
 const listVersion = ref(0)
 const showAdvancedFilter = ref(true)
 const supportPcCount = ref(false)
+const statusExpended = ref(false)
 
 //排序
 const OrderBadges = ref<OrderBadge[]>([
@@ -258,6 +259,7 @@ const statusBoard = reactive<StatusBoard>({
         { icon: PLAY_BONUS_ICON.SYNC, current: 0, alt: "Sync", require: PLAY_BONUS.SYNC }
     ],
     noteDesigners: new Map<string, number>(),
+    totalAchievements: 0,
     total: 0
 })
 const calcStatusBoard = (score: Score, song: MaiMaiSong) => {
@@ -265,7 +267,7 @@ const calcStatusBoard = (score: Score, song: MaiMaiSong) => {
     statusBoard.rank_second.forEach(status => { if (score.achievements >= status.require) status.current++; });
     statusBoard.apfc.forEach(status => { if (conventFcFsStr(score.fc) === status.require) status.current++; });
     statusBoard.fs.forEach(status => { if (conventFcFsStr(score.fs) === status.require) status.current++; });
-
+    statusBoard.totalAchievements += score.achievements
     const diff = getSongDiff(song, score);
     const noteDesigner = diff ? diff.note_designer : "";
     if (noteDesigner.length > 1) {
@@ -316,6 +318,7 @@ const initStatus = () => {
     supportPcCount.value = false
     for (const key of Object.keys(statusBoard)) {
         if (key === "total") statusBoard.total = 0;
+        else if (key === "totalAchievements") statusBoard.totalAchievements = 0;
         else if (key === "noteDesigners") statusBoard.noteDesigners.clear();
         else {
             (statusBoard[key as keyof StatusBoard] as StatusValue[]).forEach(s => s.current = 0)
@@ -356,6 +359,7 @@ const initScoreList = () => {
 
     if (rawCollection.value) {
         const result: ScoreExtend[] = [];
+        let unplayedCount = 0;
         for (const level_str of rawCollection.value.list) {
             const [diff_id, song_type, level_index_str] = level_str.split("_");
             if (!diff_id || !song_type || !level_index_str) continue;
@@ -368,12 +372,14 @@ const initScoreList = () => {
             if (score) {
                 calcStatusBoard(score, song);
             } else {
+                unplayedCount++;
                 score = createUnplayedScore(song, song_type as SongType, level_index);
             }
             result.push({ score, song, score_id: level_str });
         }
         updateIndex(result);
-        statusBoard.total = result.length;
+        // 因为默认不算“未游玩的成绩，所以需要减去”
+        statusBoard.total = result.length - unplayedCount;
         listVersion.value++;
         if (result.length > 0) {
             const score = result[0];
