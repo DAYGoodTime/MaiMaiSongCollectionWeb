@@ -8,16 +8,16 @@
                         <div>
                             <span>UsagiCard(兔卡) </span>
                             <span class="block md:inline">
-                                {{ selectedSource === 'usagi' ? '(当前默认数据源)' : '' }}
+                                {{ ScoreStore.selectedSource === 'usagi' ? '(当前默认数据源)' : '' }}
                             </span>
                         </div>
                     </div>
-                    <div v-if="hasUsagiData" class="flex gap-4">
-                        <Button variant="outline" @click="exportUsagiData">
+                    <div v-if="ScoreStore.hasUsagiData" class="flex gap-4">
+                        <Button variant="outline" @click="ScoreStore.exportScores('usagi')">
                             导出
                         </Button>
                         <ActionConfirm title="你确定要删除该数据源吗?" confirm-text="删除" cancel-text="保留"
-                            @confirm="ClearDataSource('usagi')">
+                            @confirm="ScoreStore.ClearDataSource('usagi')">
                             <Button variant="destructive">
                                 删除
                             </Button>
@@ -34,12 +34,13 @@
                     <div class="space-y-1">
                         <p class="text-sm font-medium">最后更新时间</p>
                         <p class="text-sm text-muted-foreground">
-                            {{ formatDate(getUsagiScoreList.value.update_time) }}
+                            {{ formatDate(ScoreStore.UsagiScores.update_time) }}
                         </p>
                     </div>
                     <div class="flex items-center gap-2">
-                        <Button v-if="hasUsagiData && selectedSource !== 'usagi'" variant="outline"
-                            @click="() => switchDataSource('usagi')" :disabled="!hasUsagiData">
+                        <Button v-if="ScoreStore.hasUsagiData && ScoreStore.selectedSource !== 'usagi'"
+                            variant="outline" @click="() => ScoreStore.switchDataSource('usagi')"
+                            :disabled="!ScoreStore.hasUsagiData">
                             设为默认
                         </Button>
                         <Button @click="handelUpdate" :disabled="DataSourceUpdating" class="gap-2">
@@ -105,36 +106,29 @@ import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, D
 import { RefreshCw } from 'lucide-vue-next'
 import { Checkbox } from "@/components/shadcn/ui/checkbox";
 import { formatDate } from '@/utils/StrUtil';
-import { MAX_ERROR_COUNT, useDataStore } from '@/store/datasource'
-import { ref, watch } from 'vue'
+import { MAX_ERROR_COUNT } from '@/store/datasources/scores'
+import { onMounted, ref, watch } from 'vue'
 import { toast } from 'vue-sonner'
-import { storeToRefs } from 'pinia'
 import ActionConfirm from '@/components/ActionConfirm.vue'
 import UsagiService from '@/api/usagi';
 import { NFC } from '@day_time/capacitor-nfc-day';
 import { Capacitor } from '@capacitor/core';
 import { useNFC } from '@/utils/functionUtil';
 import { useAppStore } from '@/store/appStore';
-const {
-    updateUsagiData,
-    exportUsagiData,
-    switchDataSource,
-    ClearDataSource,
-    removeCredentials,
-    hasCredentials
-} = useDataStore();
-const { getUsagiScoreList, hasUsagiData, selectedSource, DataSourceCredentials } = storeToRefs(useDataStore())
+import { useScores } from '@/store/datasources/scores';
+import { useOAuthStore } from '@/store/oauth';
+const OAuthStore = useOAuthStore()
+const ScoreStore = useScores();
 const DataSourceUpdating = ref(false)
 const showUsagiDialog = ref(false)
 const Credentials = ref('')
 const ErrorCount = ref(0)
 const remember = ref(false)
 
-
 const handelUpdate = async () => {
-    if (hasCredentials("usagi")) {
+    if (OAuthStore.hasCredentials("usagi")) {
         //尝试直接更新
-        Credentials.value = DataSourceCredentials.value.usagi;
+        Credentials.value = OAuthStore.DataSourceCredentials.usagi;
         await updateData();
     } else {
         showUsagiDialog.value = true;
@@ -151,12 +145,12 @@ const updateData = async () => {
     try {
         const result = await UsagiService.queryUsagiUserScore(Credentials.value)
         if (result) {
-            updateUsagiData(result)
+            ScoreStore.updateScores(result, 'usagi')
             // 显示成功提示
             toast.success('Usagi数据源更新成功！')
             if (showUsagiDialog.value && remember.value) {
                 //保存凭证
-                DataSourceCredentials.value.usagi = Credentials.value
+                OAuthStore.DataSourceCredentials.usagi = Credentials.value
             }
             // 关闭对话框
             showUsagiDialog.value = false
@@ -167,9 +161,9 @@ const updateData = async () => {
         ErrorCount.value++;
         toast.error('Usagi数据源更新失败', { position: "top-center" })
         console.error(error);
-        if (ErrorCount.value >= MAX_ERROR_COUNT && hasCredentials("usagi")) {
+        if (ErrorCount.value >= MAX_ERROR_COUNT && OAuthStore.hasCredentials("usagi")) {
             toast.warning("错误次数过多,已为你删除缓存凭证")
-            removeCredentials("usagi")
+            OAuthStore.removeCredentials("usagi")
         }
     } finally {
         DataSourceUpdating.value = false

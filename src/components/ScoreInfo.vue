@@ -1,7 +1,7 @@
 <template>
     <div class="space-y-4">
         <Card :class="getClassColorByIndex(diff.difficulty.level_index, diff.isUtage)"
-            v-for="diff in processedDifficulties" :key="diff.difficulty.level_index">
+            v-for="diff in processedDifficulties(props.difficulties)" :key="diff.difficulty.level_index">
             <CardContent class="px-4 pb-2 pt-1">
                 <div class="flex items-start sm:items-center justify-between">
                     <div class="flex items-center gap-3 text-center">
@@ -11,7 +11,8 @@
                         <span class="text-2xl font-bold">{{ diff.levelDisplay }}</span>
                     </div>
                     <div class="flex gap-2" v-if="diff.score">
-                        <FCFSPanel class="w-10 h-10" :fc="diff.score.fc" :fs="diff.score.fs" />
+                        <img class="h-7 w-7" :src="getFCFSIcon(conventFcFsStr(diff.score.fc))" />
+                        <img class="h-7 w-7" :src="getFCFSIcon(conventFcFsStr(diff.score.fs))" />
                     </div>
                 </div>
 
@@ -80,6 +81,8 @@
     </div>
 </template>
 <script setup lang="ts">
+import { conventFcFsStr } from '@/utils/StrUtil';
+import { getFCFSIcon } from '@/utils/urlUtils';
 import { Card, CardContent } from '@/components/shadcn/ui/card'
 import { DropdownMenu, DropdownMenuTrigger, DropdownMenuItem, DropdownMenuContent } from './shadcn/ui/dropdown-menu';
 import { Button } from './shadcn/ui/button';
@@ -87,27 +90,24 @@ import { getAchievementIcon, getDxScoreIcon } from '@/utils/urlUtils';
 import type { MaiMaiSong, SongDifficulty, SongDifficultyUtage } from '@/types/songs';
 import { formatDxRating, formatLevelValue, getTotalDxScore, LevelIndexToLabel } from '@/utils/StrUtil';
 import { conventVersionByInt } from '@/utils/version';
-import { computed } from 'vue';
-import { useDataStore } from '@/store/datasource';
 import { useCollectionStore } from '@/store/collections';
 import { toast } from 'vue-sonner';
-import { defineAsyncComponent } from 'vue';
 import { useCopyHelper } from '@/utils/functionUtil';
 import { storeToRefs } from 'pinia';
+import { useScores } from '@/store/datasources/scores';
 const { handelCopy } = useCopyHelper()
-const FCFSPanel = defineAsyncComponent(() => import('./FCFSPanel.vue'));
 
 const props = defineProps<{
     song: MaiMaiSong,
     difficulties: SongDifficulty[] | SongDifficultyUtage[],
 }>();
 
-const { getScore } = useDataStore();
+const { getScoreByUni } = useScores();
 
-const processedDifficulties = computed(() => {
-    return [...props.difficulties].reverse().map(difficulty => {
+const processedDifficulties = (diffs: SongDifficulty[] | SongDifficultyUtage[]) => {
+    return [...diffs].reverse().map(difficulty => {
         const isUtageVal = difficulty.type === 'utage';
-        const score = getScore(isUtageVal ? (difficulty as SongDifficultyUtage).diff_id : props.song.id, difficulty.type, difficulty.level_index);
+        const score = getScoreByUni(isUtageVal ? (difficulty as SongDifficultyUtage).diff_id : props.song.id, difficulty.type, difficulty.level_index);
         let label = '';
         if (isUtageVal) {
             label = `U·TA·GE ${`[${(difficulty as SongDifficultyUtage).kanji ?? ''}]`}${(difficulty as SongDifficultyUtage).is_buddy ? `[双]` : ''}`;
@@ -131,7 +131,7 @@ const processedDifficulties = computed(() => {
             }
         };
     });
-});
+};
 
 
 function getClassColorByIndex(index: number, isUtage: boolean) {

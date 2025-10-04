@@ -8,16 +8,17 @@
                         <Fish class="h-5 w-5" />
                         <div>
                             <span>水鱼数据源 </span>
-                            <span class="block md:inline">{{ selectedSource === 'divingfish' ? '(当前默认数据源)' : ''
-                            }}</span>
+                            <span class="block md:inline">{{ ScoreStore.selectedSource === 'divingfish' ? '(当前默认数据源)' :
+                                ''
+                                }}</span>
                         </div>
                     </div>
-                    <div v-if="hasDivingFishData" class="flex gap-4">
-                        <Button variant="outline" @click="exportDivingFishData">
+                    <div v-if="ScoreStore.hasDivingFishData" class="flex gap-4">
+                        <Button variant="outline" @click="ScoreStore.exportScores('divingfish')">
                             导出
                         </Button>
                         <ActionConfirm title="你确定要删除该数据源吗?" confirm-text="删除" cancel-text="保留"
-                            @confirm="ClearDataSource('divingfish')">
+                            @confirm="ScoreStore.ClearDataSource('divingfish')">
                             <Button variant="destructive">
                                 删除
                             </Button>
@@ -34,12 +35,13 @@
                     <div class="space-y-1">
                         <p class="text-sm font-medium">最后更新时间</p>
                         <p class="text-sm text-muted-foreground">
-                            {{ formatDate(getDivingFishScoreList.value.update_time) }}
+                            {{ formatDate(ScoreStore.DivingFishScores.update_time) }}
                         </p>
                     </div>
                     <div class="flex items-center gap-2">
-                        <Button v-if="hasDivingFishData && selectedSource !== 'divingfish'" variant="outline"
-                            @click="() => switchDataSource('divingfish')" :disabled="!hasDivingFishData">
+                        <Button v-if="ScoreStore.hasDivingFishData && ScoreStore.selectedSource !== 'divingfish'"
+                            variant="outline" @click="() => ScoreStore.switchDataSource('divingfish')"
+                            :disabled="!ScoreStore.hasDivingFishData">
                             设为默认
                         </Button>
                         <Button @click="handelUpdate" :disabled="DataSourceUpdating" class="gap-2">
@@ -94,22 +96,15 @@ import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, D
 import { Fish, RefreshCw } from 'lucide-vue-next'
 import { Checkbox } from "@/components/shadcn/ui/checkbox";
 import { formatDate } from '@/utils/StrUtil';
-import { MAX_ERROR_COUNT, useDataStore } from '@/store/datasource'
 import { ref } from 'vue'
 import { toast } from 'vue-sonner'
-import { storeToRefs } from 'pinia'
 import ActionConfirm from '@/components/ActionConfirm.vue'
 import DivingFishService from '@/api/fish'
 import { HttpError } from '@/api/base'
-const {
-    updateDivingFishData,
-    exportDivingFishData,
-    switchDataSource,
-    ClearDataSource,
-    hasCredentials,
-    removeCredentials
-} = useDataStore();
-const { getDivingFishScoreList, hasDivingFishData, selectedSource, DataSourceCredentials } = storeToRefs(useDataStore())
+import { useOAuthStore } from '@/store/oauth'
+import { MAX_ERROR_COUNT, useScores } from '@/store/datasources/scores'
+const OAuthStore = useOAuthStore();
+const ScoreStore = useScores()
 const DataSourceUpdating = ref(false)
 const showFishDialog = ref(false)
 const fishCredentials = ref('')
@@ -126,11 +121,11 @@ const updateFishDataSource = async () => {
     try {
         const result = await DivingFishService.queryFishUserScores(fishCredentials.value);
         if (result) {
-            updateDivingFishData(result.records)
+            ScoreStore.updateScores(result.records, 'divingfish')
             toast.success('水鱼数据源更新成功！', { position: "top-center" })
             if (showFishDialog.value && remember.value) {
                 //保存凭证
-                DataSourceCredentials.value.divingfish = fishCredentials.value
+                OAuthStore.DataSourceCredentials.divingfish = fishCredentials.value
             }
             // 关闭对话框
             showFishDialog.value = false
@@ -147,18 +142,18 @@ const updateFishDataSource = async () => {
         toast.error('水鱼数据源更新失败', { position: "top-center" })
         console.error(error);
         ErrorCount.value++;
-        if (ErrorCount.value >= MAX_ERROR_COUNT && hasCredentials("divingfish")) {
+        if (ErrorCount.value >= MAX_ERROR_COUNT && OAuthStore.hasCredentials("divingfish")) {
             toast.warning("错误次数过多,已为你删除缓存凭证")
-            removeCredentials("divingfish")
+            OAuthStore.removeCredentials("divingfish")
         }
     } finally {
         DataSourceUpdating.value = false
     }
 }
 const handelUpdate = async () => {
-    if (hasCredentials("divingfish")) {
+    if (OAuthStore.hasCredentials("divingfish")) {
         //尝试直接更新
-        fishCredentials.value = DataSourceCredentials.value.divingfish;
+        fishCredentials.value = OAuthStore.DataSourceCredentials.divingfish;
         await updateFishDataSource();
     } else {
         showFishDialog.value = true;

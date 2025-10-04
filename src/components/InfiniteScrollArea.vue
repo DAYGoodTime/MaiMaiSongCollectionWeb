@@ -1,9 +1,7 @@
 <template>
     <ScrollArea :class="cn('w-full rounded-md border p-4', props.class)">
-        <!-- 使用 slot 渲染已加载的内容 -->
         <div class="space-y-4">
             <slot name="default" :items="bufferItems" :loading="loading" :has-more="hasMore" :error="error">
-                <!-- 默认渲染 -->
                 <div v-for="item in bufferItems" :key="(item as any).id || Math.random()"
                     class="flex items-center space-x-4 rounded-lg border p-4">
                     <div class="flex-shrink-0">
@@ -19,43 +17,12 @@
                 </div>
             </slot>
         </div>
-
-        <!-- 加载状态的骨架屏 -->
-        <slot name="loading" :loading="loading">
-            <div v-if="loading" class="space-y-4 mt-4">
-                <div v-for="n in 3" :key="`skeleton-${n}`" class="flex items-center space-x-4 rounded-lg border p-4">
-                    <Skeleton class="h-10 w-10 rounded-full" />
-                    <div class="flex-1 space-y-2">
-                        <Skeleton class="h-4 w-3/4" />
-                        <Skeleton class="h-3 w-1/2" />
-                    </div>
-                </div>
-            </div>
-        </slot>
-
-        <!-- 没有更多数据的提示 -->
-        <slot name="no-more" :has-more="hasMore" :items="bufferItems">
-            <div v-if="!hasMore && items.length > 0" class="text-center py-4 text-muted-foreground">
-                没有更多数据了
-            </div>
-        </slot>
-
-        <!-- 错误状态 -->
-        <slot name="error" :error="error" :retry="loadMore">
-            <div v-if="error" class="text-center py-4 text-red-500">
-                加载失败，请重试
-                <button @click="loadMore" class="ml-2 text-blue-500 hover:underline">
-                    重新加载
-                </button>
-            </div>
-        </slot>
     </ScrollArea>
 </template>
 
 <script setup lang="ts" generic="T = any">
 import { ref, computed, watchEffect, watch } from 'vue'
 import { ScrollArea } from '@/components/shadcn/ui/scroll-area'
-import { Skeleton } from '@/components/shadcn/ui/skeleton'
 import { cn } from '@/lib/utils';
 import { useWindowScroll } from '@vueuse/core';
 
@@ -64,7 +31,7 @@ interface Props<T> {
     items: T[],
     pageSize?: number
     threshold?: number // 距离底部多少像素时触发加载
-    class: string
+    class: string,
 }
 
 // 定义 slots 的类型
@@ -127,17 +94,6 @@ const loadMore = () => {
 }
 
 
-// 滚动事件处理
-// const handleScroll = async (event: Event) => {
-//     const target = event.target as HTMLElement
-//     const { scrollTop, scrollHeight, clientHeight } = target
-//     const distanceToBottom = scrollHeight - scrollTop - clientHeight
-
-//     // 当距离底部小于阈值时触发加载
-//     if (distanceToBottom < props.threshold && !loading.value && hasMore.value) {
-//         loadMore()
-//     }
-// }
 const { arrivedState } = useWindowScroll({ offset: { bottom: props.threshold } })
 
 watch(() => arrivedState.bottom, (bool) => {

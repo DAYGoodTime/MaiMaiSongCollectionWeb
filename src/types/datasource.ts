@@ -7,7 +7,6 @@ export interface DataSource<T> {
     update_time: Date | string,
     version: number
 }
-export type SongType = "standard" | "dx" | "utage"
 export type AnyScore = LXNSScore | FishScore | UsagiScore
 export type DataSourceType = AvailableDataSourceType | "empty";
 export type AvailableDataSourceType = "divingfish" | "lxns" | "usagi"

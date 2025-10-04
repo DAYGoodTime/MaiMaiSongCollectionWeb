@@ -28,10 +28,9 @@
                         <div class="space-y-1">
                             <p class="text-sm font-medium">最后更新时间</p>
                             <p class="text-sm text-muted-foreground">
-                                {{ formatDate(getSongDataList.update_time) }}
+                                {{ formatDate(SongStore.SONG_LIST.update_time) }}
                             </p>
                         </div>
-                        <!-- v-if="Capacitor.getPlatform() !== 'web'" -->
                         <div>
                             <ActionConfirm title="你确定要更新歌曲数据源吗?" confirm-text="确认" cancel-text="算了"
                                 @confirm="handelUpdateSongs">
@@ -159,11 +158,9 @@ import { useAppStore } from '@/store/appStore'
 import { getProjectVersion, formatDate } from '@/utils/StrUtil'
 import LXNSCard from './LXNSCard.vue'
 import DivingFIshCard from './DivingFIshCard.vue'
-import { useDataStore } from '@/store/datasource'
 import UsagiCard from './UsagiCard.vue'
 import ActionConfirm from '@/components/ActionConfirm.vue'
-import { QuerySongs } from '../../api/other'
-import { storeToRefs } from 'pinia'
+import { useSongStore } from '@/store/datasources/song'
 
 // 响应式数据
 const showSetNameDialog = ref(false)
@@ -174,8 +171,9 @@ const DataSourceUpdating = reactive({
     collDataUpload: false
 })
 const { exportCollectionData, uploadCollectionData, downloadCollectionData } = useCollectionStore()
-const { getSongDataList } = storeToRefs(useDataStore());
-const { updateSongList } = useDataStore()
+const { updateSongFromAPI } = useSongStore()
+const SongStore = useSongStore();
+
 
 
 //upload
@@ -263,8 +261,12 @@ const handelUpdateSongs = async () => {
     if (UpdatingSongs.value) return;
     UpdatingSongs.value = true;
     try {
-        const songs = await QuerySongs();
-        updateSongList(songs);
+        await updateSongFromAPI()
+        toast.success("歌曲数据源更新完成")
+        new Promise(() => {
+            appStore.updateSongIndex()
+            toast.success("歌曲索引更新完成")
+        })
     } catch (error: any) {
         toast.error(`歌曲数据源更新失败: ${error.message ? error.message : 'Unknown Error'}`)
         console.error("歌曲数据源更新失败", error);

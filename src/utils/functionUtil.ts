@@ -1,12 +1,13 @@
-import type { AnyScore, Score, SongType } from "@/types/datasource";
+import type { AnyScore, Score } from "@/types/datasource";
 import { Clipboard } from "@capacitor/clipboard"
 import { useRoute, useRouter, type RouteLocationRaw } from "vue-router";
 import { toast } from "vue-sonner";
-import { getSongDiff } from "./StrUtil";
-import type { MaiMaiSong } from "@/types/songs";
+import { getSongDiffUniId } from "./StrUtil";
+import type { MaiMaiSong, SongType } from "@/types/songs";
 import { fcMapping, fsMapping, rateMapping } from "@/api/usagi";
-import { useDataStore } from "@/store/datasource";
 import { ref } from "vue";
+import { useScores } from "@/store/datasources/scores";
+import { useSongStore } from "@/store/datasources/song";
 
 type DebouncedFunction<T extends any[]> = (...args: T) => void;
 
@@ -66,6 +67,7 @@ export function useCopyHelper() {
   return { handelCopy }
 }
 export function conventToScore(score: AnyScore, song: MaiMaiSong): Score {
+  const SongStore = useSongStore();
   let rate_type;
   if ("rate" in score) {
     //usagi or fish
@@ -108,7 +110,7 @@ export function conventToScore(score: AnyScore, song: MaiMaiSong): Score {
     fs,
     level: score.level,
     level_index: score.level_index,
-    level_value: ("ds" in score) ? score.ds : getSongDiff(song, score)?.level_value,
+    level_value: ("ds" in score) ? score.ds : SongStore.getDiffById(getSongDiffUniId(song, score))?.level_value,
     rate_type,
     dx_score: ("dxScore" in score) ? score.dxScore : score.dx_score,
     dx_rating: ("ra" in score) ? score.ra : score.dx_rating,
@@ -152,7 +154,7 @@ function toLXNSType(type: string) {
   }
 }
 export function showCurrentStyleId(id: number) {
-  if (useDataStore().selectedSource === 'divingfish') return toFishStyleId(id);
+  if (useScores().selectedSource === 'divingfish') return toFishStyleId(id);
   else return id
 }
 /**

@@ -4,11 +4,12 @@ import { isAllFinal, versionList } from "@/utils/version";
 import { toLXNSStyleId } from "@/utils/functionUtil";
 import { rankingList } from "@/utils/urlUtils";
 import type { MaiMaiSong, ScoreExtend, SongDifficulty, SongDifficultyUtage } from "@/types/songs";
-import { useDataStore } from "@/store/datasource";
 import type { AdvanceFilterFilters } from "@/types/component";
 import { useAppStore } from "@/store/appStore";
 import { toRaw } from "vue";
 import { pinyin } from "pinyin-pro";
+import { useSongStore } from "@/store/datasources/song";
+import { useScores } from "@/store/datasources/scores";
 export interface OrderBadge {
     label: string,
     value: string,
@@ -17,22 +18,19 @@ export interface OrderBadge {
 
 export const MAX_SEARCH_NUMBER = 200;
 
-let SONG_DATA: MaiMaiSong[] = []
-
 export const useSongSearch = () => {
     const appStore = useAppStore();
+    const SongStore = useSongStore()
+    const ScoreStore = useScores()
     const SongIndex = toRaw(appStore.SongIndex)
-    let songMap = new Map();
-    const { getSongDataList, getScoreList } = useDataStore()
-    SONG_DATA = getSongDataList.list
-    songMap = new Map<number, MaiMaiSong>(SONG_DATA.map(s => [s.id, s]))
+    const SONG_DATA = SongStore.getSongList()
     const searchSong = (keyword: string) => {
         const searchLower = keyword.toLowerCase().trim();
         const searchNumber = !isNaN(Number(keyword)) ? toLXNSStyleId(Number(keyword)) : null;
         let songsToShow: MaiMaiSong[] = [];
         if (searchNumber !== null) {
             // 如果搜索为id，则直接映射
-            const songById = songMap.get(searchNumber);
+            const songById = SongStore.SONG_LIST.list[searchNumber]
             // 若存在对应id则直接返回结果
             if (songById) {
                 songsToShow.push(songById)
@@ -54,7 +52,15 @@ export const useSongSearch = () => {
                 });
             });
             //根据排序后的id结构映射为实际列表
-            songsToShow = orderedIds.map(id => songMap.get(id)).filter(Boolean) as MaiMaiSong[];
+            songsToShow = orderedIds.map(id => {
+                const song = SongStore.SONG_LIST.list[id];
+                if (song) {
+                    return song
+                } else {
+                    console.warn("id", id);
+
+                }
+            }).reverse() as MaiMaiSong[];
         } else {
             // Use the static SONG_DATA
             songsToShow = SONG_DATA;
@@ -106,7 +112,7 @@ export const useSongSearch = () => {
                         const level_index_tag = conventLevelPrefix(splits[0]);
                         const ranking_target = rankingList.find(r => r.id === splits[1]);
                         if (ranking_target) {
-                            const scoreList = getScoreList(song.id);
+                            const scoreList = ScoreStore.getScoreList(song.id);
                             return scoreList.some(
                                 s => s.level_index === level_index_tag &&
                                     s.achievements > ranking_target.min &&
@@ -121,7 +127,7 @@ export const useSongSearch = () => {
                     if (!matched || matched.length !== 3) return false;
                     const start = parseFloat(matched[1]);
                     const end = parseFloat(matched[2]);
-                    const scoreList = getScoreList(song.id);
+                    const scoreList = ScoreStore.getScoreList(song.id);
                     return scoreList.some(s => start <= s.achievements && end >= s.achievements);
                 }
                 // 旧框版本特判
@@ -150,8 +156,7 @@ export const useSongSearch = () => {
     return {
         searchSong,
         filterByTag,
-        MAX_SEARCH_NUMBER,
-        SONG_DATA
+        MAX_SEARCH_NUMBER
     }
 }
 export const useScoreSearch = () => {
@@ -173,28 +178,30 @@ export const useScoreSearch = () => {
                 ]
             },
         });
-        scoreList.forEach(item => {
-            const { song, score_id } = item;
-            const aliasesPinYin = []
-            if (Array.isArray(song.aliases)) {
-                for (const alias of song.aliases) {
-                    const py = pinyin(alias as string, { toneType: 'none', nonZh: "removed", separator: "", v: true });
-                    if (py.length > 0) {
-                        aliasesPinYin.push(py)
+        return new Promise<void>(() => {
+            scoreList.forEach(item => {
+                const { song, score_id } = item;
+                const aliasesPinYin = []
+                if (Array.isArray(song.aliases)) {
+                    for (const alias of song.aliases) {
+                        const py = pinyin(alias as string, { toneType: 'none', nonZh: "removed", separator: "", v: true });
+                        if (py.length > 0) {
+                            aliasesPinYin.push(py)
+                        }
                     }
                 }
-            }
-            const indexedDoc = {
-                score_id: score_id,
-                title: song.title,
-                titlePinYin: pinyin(song.title, { toneType: 'none', nonZh: "removed", separator: "", v: true }),
-                artist: song.artist,
-                aliasesLower: song.aliases?.join(" ").toLowerCase() || "",
-                aliasesPinYin,
-                noteDesigners: getNoteDesigners(song)
-            };
-            (scoreIndex as Document).add(indexedDoc);
-        });
+                const indexedDoc = {
+                    score_id: score_id,
+                    title: song.title,
+                    titlePinYin: pinyin(song.title, { toneType: 'none', nonZh: "removed", separator: "", v: true }),
+                    artist: song.artist,
+                    aliasesLower: song.aliases?.join(" ").toLowerCase() || "",
+                    aliasesPinYin,
+                    noteDesigners: getNoteDesigners(song)
+                };
+                (scoreIndex as Document).add(indexedDoc);
+            });
+        })
     }
 
     const searchScore = (keyword: string) => {
@@ -368,14 +375,14 @@ export const filterDiffByLevelTag = (song_id: number, diffs: SongDifficulty[] | 
 }
 export const filterDiffByAchievementTag = (song_id: number, diffs: SongDifficulty[] | SongDifficultyUtage[], tags: string[]): string[] => {
     const result: string[] = []
-    const { getScore } = useDataStore()
+    const ScoreStore = useScores()
     for (const diff of diffs) {
         let score;
         if (diff.type === "utage" && ("kanji" in diff)) {
             //处理宴谱
-            score = getScore(diff.diff_id, diff.type, diff.level_index)
+            score = ScoreStore.getScoreByUni(diff.diff_id, diff.type, diff.level_index)
         } else {
-            score = getScore(song_id, diff.type, diff.level_index);
+            score = ScoreStore.getScoreByUni(song_id, diff.type, diff.level_index);
         }
         if (!score) continue;
         for (const tag of tags) {

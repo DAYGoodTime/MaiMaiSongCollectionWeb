@@ -8,16 +8,17 @@
                         <Snowflake class="h-5 w-5" />
                         <div>
                             <span>落雪数据源 </span>
-                            <span class="block md:inline">{{ selectedSource === 'lxns' ? '(当前默认数据源)' : '' }}</span>
+                            <span class="block md:inline">{{ ScoreStore.selectedSource === 'lxns' ? '(当前默认数据源)' : ''
+                                }}</span>
                         </div>
 
                     </div>
-                    <div v-if="hasLXNSData" class="flex gap-4">
-                        <Button variant="outline" @click="exportLXNSData">
+                    <div v-if="ScoreStore.hasLXNSData" class="flex gap-4">
+                        <Button variant="outline" @click="ScoreStore.exportScores('lxns')">
                             导出
                         </Button>
                         <ActionConfirm title="你确定要删除该数据源吗?" confirm-text="删除" cancel-text="保留"
-                            @confirm="ClearDataSource('lxns')">
+                            @confirm="ScoreStore.ClearDataSource('lxns')">
                             <Button variant="destructive">
                                 删除
                             </Button>
@@ -33,12 +34,12 @@
                     <div class="space-y-1">
                         <p class="text-sm font-medium">最后更新时间</p>
                         <p class="text-sm text-muted-foreground">
-                            {{ formatDate(getLXNSScoreList.value.update_time) }}
+                            {{ formatDate(ScoreStore.LXNSScores.update_time) }}
                         </p>
                     </div>
                     <div class="flex items-center gap-2">
-                        <Button v-if="hasLXNSData && selectedSource !== 'lxns'" variant="outline"
-                            @click="() => switchDataSource('lxns')" :disabled="!hasLXNSData">
+                        <Button v-if="ScoreStore.hasLXNSData && ScoreStore.selectedSource !== 'lxns'" variant="outline"
+                            @click="() => ScoreStore.switchDataSource('lxns')" :disabled="!ScoreStore.hasLXNSData">
                             设为默认
                         </Button>
                         <Button @click="handelLXNSDialog" :disabled="DataSourceUpdating" class="gap-2">
@@ -122,7 +123,6 @@ import { Input } from '@/components/shadcn/ui/input'
 import { Label } from '@/components/shadcn/ui/label'
 import { ref } from 'vue';
 import { RefreshCw, Snowflake } from 'lucide-vue-next'
-import { MAX_ERROR_COUNT, useDataStore } from '@/store/datasource';
 import { Checkbox } from "@/components/shadcn/ui/checkbox";
 import { toast } from 'vue-sonner';
 import { formatDate } from '@/utils/StrUtil';
@@ -132,6 +132,7 @@ import LXNSService, { type LXNSAuthType } from '@/api/lxns'
 import { storeToRefs } from 'pinia'
 import ActionConfirm from '@/components/ActionConfirm.vue'
 import { HttpError } from '@/api/base'
+import { MAX_ERROR_COUNT, useScores } from '@/store/datasources/scores'
 const DataSourceUpdating = ref(false)
 const showLxnsDialog = ref(false)
 const showLxnsOAuthDialog = ref(false)
@@ -139,15 +140,8 @@ const lxnsCredentials = ref("")
 const ErrorCount = ref(0);
 const remember = ref(false)
 const LXNS_OAUTH_URI = import.meta.env.VITE_LXNS_OAUTH_URI
-const {
-    exportLXNSData,
-    switchDataSource,
-    updateLXNSData,
-    ClearDataSource,
-    hasCredentials,
-    removeCredentials
-} = useDataStore();
-const { getLXNSScoreList, hasLXNSData, selectedSource, DataSourceCredentials } = storeToRefs(useDataStore())
+const OAuthStore = useOAuthStore()
+const ScoreStore = useScores();
 const { isAccessTokenExpired, isRefreshTokenExpired, getLXNSToken, cleanLXNSOAuth } = useOAuthStore();
 const { hasLXNSOAuth, LXNSOAuth } = storeToRefs(useOAuthStore())
 const { handelCopy } = useCopyHelper()
@@ -165,11 +159,11 @@ const updateLXNSDataSource = async (type: LXNSAuthType = 'Token') => {
         if (result) {
             if (result.success) {
                 //存入数据
-                updateLXNSData(result.data)
+                ScoreStore.updateScores(result.data, "lxns")
                 toast.success('落雪数据源更新成功！')
                 if (showLxnsDialog.value && remember.value) {
                     //保存凭证
-                    DataSourceCredentials.value.lxns = lxnsCredentials.value
+                    OAuthStore.DataSourceCredentials.lxns = lxnsCredentials.value
                 }
                 // 关闭对话框
                 showLxnsDialog.value = false
@@ -199,9 +193,9 @@ const updateLXNSDataSource = async (type: LXNSAuthType = 'Token') => {
         }
         console.error(error);
         if (type === 'Token') ErrorCount.value++;
-        if (ErrorCount.value >= MAX_ERROR_COUNT && hasCredentials("lxns") && type === 'Token') {
+        if (ErrorCount.value >= MAX_ERROR_COUNT && OAuthStore.hasCredentials("lxns") && type === 'Token') {
             toast.warning("错误次数过多,已为你删除缓存凭证")
-            removeCredentials("lxns")
+            OAuthStore.removeCredentials("lxns")
         }
     } finally {
         DataSourceUpdating.value = false
@@ -235,9 +229,9 @@ const handelLXNSDialog = async () => {
         toast.info("使用OAuth更新中~")
         await updateLXNSDataSource('OAuth')
     } else {
-        if (hasCredentials("lxns")) {
+        if (OAuthStore.hasCredentials("lxns")) {
             //尝试使用本地缓存更新
-            lxnsCredentials.value = DataSourceCredentials.value.lxns
+            lxnsCredentials.value = OAuthStore.DataSourceCredentials.lxns
             await updateLXNSDataSource("Token")
         } else showLxnsDialog.value = true
 

@@ -82,15 +82,11 @@ export function formatLevelValue(level_value: number | undefined) {
   }
   return "NAN"
 }
-export const getSongDiff = (song: MaiMaiSong, score: Score | AnyScore) => {
+export const getSongDiffUniId = (song: MaiMaiSong, score: Score | AnyScore) => {
   if (song.difficulties) {
-    return song.difficulties[score.type as keyof {
-      standard: SongDifficulty[];
-      dx: SongDifficulty[];
-      utage: SongDifficulty[];
-    }].find(level => level.level_index === score.level_index)
+    return `${song.id}_${score.type}_${score.level_index}`
   }
-  return null;
+  return "0_dx_-1";
 }
 const toPy = (str: string) => pinyin(str, { toneType: 'none', separator: '', v: true })
 const commonNoteDesignerAliasMapping = new Map([
@@ -125,7 +121,8 @@ export function getNoteDesigners(song: MaiMaiSong) {
   })
   return [...list].reverse();
 }
-export function getNoteDesigner(diff: SongDifficulty) {
+export function getNoteDesigner(diff?: SongDifficulty) {
+  if (!diff) return ""
   if (diff.note_designer && diff.note_designer !== '-') {
     return diff.note_designer
   } else return ""
