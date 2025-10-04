@@ -73,39 +73,39 @@
             <ScoreStatisticsCard class="w-96" :status-board="statusBoard" />
         </div>
         <!-- 成绩列表 -->
-        <InfiniteScrollArea class="px-0 w-full my-8 rounded-xl border shadow hover:shadow-xl py-2"
-            :items="filteredScoreList" :page-size="60">
-            <template #default="{ items }">
-                <div
-                    class="grid sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-2 p-2 justify-items-center">
-                    <div v-for="card in items" :key="card.score_id">
-                        <ContextMenu>
-                            <ContextMenuTrigger>
-                                <ScoreCard :score="card"
-                                    class="transition-shadow rounded-xl shadow hover:shadow-xl bg-white/90" />
-                            </ContextMenuTrigger>
-                            <ContextMenuContent>
-                                <ContextMenuItem class="text-red-600" @click="handelRemoveScore(card.score_id)">
-                                    从合集中删除
-                                </ContextMenuItem>
-                                <ContextMenuSub>
-                                    <ContextMenuSubTrigger>
-                                        添加至其它合集
-                                    </ContextMenuSubTrigger>
-                                    <ContextMenuSubContent>
-                                        <ContextMenuItem
-                                            @click="() => handelMoveToOtherCollection(coll.label, card.score_id)"
-                                            v-for="coll in getOtherCollections">{{ coll.label }}
-                                        </ContextMenuItem>
-                                    </ContextMenuSubContent>
-                                </ContextMenuSub>
-                            </ContextMenuContent>
-                        </ContextMenu>
-                    </div>
-                    <p class="flex items-center text-center justify-center" v-if="isEmpty">暂无任何成绩捏~</p>
-                </div>
-            </template>
-        </InfiniteScrollArea>
+        <ContextMenu>
+            <ContextMenuTrigger>
+                <InfiniteScrollArea class="px-0 w-full my-8 rounded-xl border shadow hover:shadow-xl py-2"
+                    :items="filterScoreList" :page-size="60">
+                    <template #default="{ items }">
+                        <div
+                            class="grid sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-2 p-2 justify-items-center">
+                            <ScoreCard v-for="(card, index) in items" :key="card.score_id" :score="card"
+                                class="transition-shadow rounded-xl shadow hover:shadow-xl bg-white/90"
+                                @copy="handelCopy" @db-click="onMenu" @right-click="onContextMenu" />
+
+                            <p class="flex items-center text-center justify-center" v-if="isEmpty">暂无任何成绩捏~</p>
+                        </div>
+                    </template>
+                </InfiniteScrollArea>
+            </ContextMenuTrigger>
+            <ContextMenuContent :reference="ContextMenuTarget">
+                <ContextMenuItem class="text-red-600" @click="handelRemoveScore(ContextMenuTargetScoreId)">
+                    从合集中删除
+                </ContextMenuItem>
+                <ContextMenuSub>
+                    <ContextMenuSubTrigger>
+                        添加至其它合集
+                    </ContextMenuSubTrigger>
+                    <ContextMenuSubContent>
+                        <ContextMenuItem
+                            @click="() => handelMoveToOtherCollection(coll.label, ContextMenuTargetScoreId)"
+                            v-for="coll in getOtherCollections">{{ coll.label }}
+                        </ContextMenuItem>
+                    </ContextMenuSubContent>
+                </ContextMenuSub>
+            </ContextMenuContent>
+        </ContextMenu>
     </div>
     <CollectionFloatingNav :target="PanelRef">
         <template #other>
@@ -140,21 +140,43 @@
             </NavigationMenuItem>
         </template>
     </CollectionFloatingNav>
+
+    <!-- Song Info Menu -->
+    <Dialog v-model:open="openSongInfoMenu">
+        <DialogContent class="lg:w-full">
+            <DialogHeader>
+                <DialogTitle>
+                    <p>歌曲信息</p>
+                    <p class="mt-4" v-if="SongInfoNoteDesigner">该难度谱师: <span class="cursor-pointer hover:opacity-50"
+                            @click="handelCopy(SongInfoNoteDesigner, '已成功复制谱师到剪切板中')">{{ SongInfoNoteDesigner
+                            }}</span>
+                    </p>
+                </DialogTitle>
+            </DialogHeader>
+            <SongInfo :song="SongInfoSong" :infoOnly="true" />
+        </DialogContent>
+    </Dialog>
 </template>
 <script setup lang="ts">
+import {
+    Dialog,
+    DialogContent,
+    DialogHeader,
+    DialogTitle,
+} from '@/components/shadcn/ui/dialog'
 import ScoreCard from '@/components/ScoreCard.vue';
+import SongInfo from '@/components/SongInfo.vue';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/shadcn/ui/card'
 import { Popover, PopoverTrigger, PopoverContent } from '@/components/shadcn/ui/popover';
 import { Badge } from '@/components/shadcn/ui/badge';
 import { Search, X, ChevronDown, ChevronUp, PanelLeft } from 'lucide-vue-next'
 import { Input } from '@/components/shadcn/ui/input'
 import { type Collection, useCollectionStore } from '@/store/collections';
-import { useDataStore } from '@/store/datasource';
 import type { MaiMaiSong, ScoreExtend, SongType } from '@/types/songs';
-import { debounce, toFishStyleId, toLXNSStyleId, useRouterHelper } from '@/utils/functionUtil';
-import { computed, reactive, ref, useTemplateRef, watch } from 'vue';
+import { debounce, toFishStyleId, toLXNSStyleId, useCopyHelper, useRouterHelper } from '@/utils/functionUtil';
+import { computed, reactive, ref, shallowRef, useTemplateRef, watch } from 'vue';
 import { toast } from 'vue-sonner';
-import { conventFcFsStr, getSongDiff } from '@/utils/StrUtil';
+import { conventFcFsStr, getSongDiffUniId } from '@/utils/StrUtil';
 import { ACHIEVEMENT, PLAY_BONUS, ACHIEVEMENT_ICON, PLAY_BONUS_ICON } from '@/utils/urlUtils';
 import {
     ContextMenu,
@@ -187,10 +209,12 @@ import { createReusableTemplate } from '@vueuse/core';
 import { cn } from '@/lib/utils';
 import CollectionFloatingNav from './component/CollectionFloatingNav.vue';
 import { useSidebar } from '@/components/shadcn/ui/sidebar';
+import { useScores } from '@/store/datasources/scores';
+import { useSongStore } from '@/store/datasources/song';
 
 
 const { route, backHome } = useRouterHelper()
-const { getScore, getSongListAsMap } = useDataStore()
+
 const { getCollectionByLabel, removeFromCollection, pushScoreToCollection } = useCollectionStore()
 const { CurrentCollectionLabel, UserCollectionList } = storeToRefs(useCollectionStore())
 const { updateIndex, searchScore, orderBy, advanceFilter } = useScoreSearch()
@@ -198,7 +222,7 @@ const { toggleSidebar } = useSidebar()
 const PanelRef = useTemplateRef("panel")
 const [DefineSortingTemplate, ReuseSortingTemplate] = createReusableTemplate()
 const [DefineSearchTemplate, ReuseSearchTemplate] = createReusableTemplate()
-const SONG_MAP = getSongListAsMap();
+
 
 //状态
 const rawCollection = ref<Collection>()
@@ -209,6 +233,12 @@ const listVersion = ref(0)
 const showAdvancedFilter = ref(true)
 const supportPcCount = ref(false)
 const isFilterExpended = ref(false)
+const filterScoreList = shallowRef<ScoreExtend[]>([])
+
+
+//Store
+const SongStore = useSongStore()
+const ScoreStore = useScores()
 
 //排序
 const OrderBadges = ref<OrderBadge[]>([
@@ -265,12 +295,21 @@ const statusBoard = reactive<StatusBoard>({
     total: 0
 })
 const calcStatusBoard = (score: Score, song: MaiMaiSong) => {
-    statusBoard.rank_first.forEach(status => { if (score.achievements >= status.require) status.current++; });
-    statusBoard.rank_second.forEach(status => { if (score.achievements >= status.require) status.current++; });
-    statusBoard.apfc.forEach(status => { if (conventFcFsStr(score.fc) === status.require) status.current++; });
-    statusBoard.fs.forEach(status => { if (conventFcFsStr(score.fs) === status.require) status.current++; });
+    new Promise(() => {
+        statusBoard.rank_first.forEach(status => { if (score.achievements >= status.require) status.current++; });
+    })
+    new Promise(() => {
+        statusBoard.rank_second.forEach(status => { if (score.achievements >= status.require) status.current++; });
+    })
+    new Promise(() => {
+        statusBoard.apfc.forEach(status => { if (conventFcFsStr(score.fc) === status.require) status.current++; });
+    })
+    new Promise(() => {
+        statusBoard.fs.forEach(status => { if (conventFcFsStr(score.fs) === status.require) status.current++; });
+    })
+
     statusBoard.totalAchievements += score.achievements
-    const diff = getSongDiff(song, score);
+    const diff = SongStore.getDiffById(getSongDiffUniId(song, score));
     const noteDesigner = diff ? diff.note_designer : "";
     if (noteDesigner.length > 1) {
         const map = statusBoard.noteDesigners;
@@ -366,11 +405,11 @@ const initScoreList = () => {
             const [diff_id, song_type, level_index_str] = level_str.split("_");
             if (!diff_id || !song_type || !level_index_str) continue;
             const song_id = toLXNSStyleId(Number(diff_id))
-            const song = SONG_MAP.get(song_id);
+            const song = SongStore.getSong(song_id)
             if (!song) continue;
 
             const level_index = Number(level_index_str);
-            let score = getScore(song_type === "utage" ? Number(diff_id) : song_id, song_type as SongType, level_index);
+            let score = ScoreStore.getScoreByUni(song_type === "utage" ? Number(diff_id) : song_id, song_type as SongType, level_index);
             if (score) {
                 calcStatusBoard(score, song);
             } else {
@@ -379,8 +418,8 @@ const initScoreList = () => {
             }
             result.push({ score, song, score_id: level_str });
         }
-        updateIndex(result);
-        // 因为默认不算“未游玩的成绩，所以需要减去”
+        updateIndex(result)
+        // 因为默认不算“未游玩的成绩"。所以需要减去
         statusBoard.total = result.length - unplayedCount;
         listVersion.value++;
         if (result.length > 0) {
@@ -404,32 +443,87 @@ const initScoreList = () => {
         }
     }
 }
-initScoreList();//立马进行初始化
 
 // computed
 const getOtherCollections = computed(() => UserCollectionList.value.filter(c => c.label !== route.query.label))
+// const filteredScoreList = computed(() => {
+//     listVersion.value;
+//     let result = searchScore(search.value);
+//     result = advanceFilter(AdvanceFilterForm.value, result);
+//     if (selectedOrder.value.status_index !== 0) {
+//         return orderBy(result, selectedOrder.value);
+//     }
+//     return Array.from(result);
+// });
+const isEmpty = computed(() => filterScoreList.value.length === 0)
 
-const filteredScoreList = computed(() => {
-    listVersion.value;
+//hooks
+// watch(() => filterScoreList.value, (newList) => {
+//     initStatus();
+//     newList.forEach(item => {
+//         calcStatusBoard(item.score, item.song)
+//     });
+//     statusBoard.total = newList.length
+// })
+//filterScoreList
+const onSearchList = () => {
     let result = searchScore(search.value);
     result = advanceFilter(AdvanceFilterForm.value, result);
     if (selectedOrder.value.status_index !== 0) {
-        return orderBy(result, selectedOrder.value);
+        filterScoreList.value = orderBy(result, selectedOrder.value);
     }
-    return Array.from(result);
-});
-const isEmpty = computed(() => filteredScoreList.value.length === 0)
-
-//hooks
-watch(() => filteredScoreList.value, (newList) => {
-    initStatus();
-    newList.forEach(item => {
-        calcStatusBoard(item.score, item.song)
-    });
-    statusBoard.total = newList.length
+    filterScoreList.value = result;
+}
+watch(() => search.value, () => {
+    onSearchList()
 })
-
+watch(() => AdvanceFilterForm.value, () => {
+    onSearchList()
+})
+watch(() => selectedOrder.value, () => {
+    onSearchList()
+})
 watch(() => route.query.label, () => {
     initScoreList();
+    onSearchList();
+}, { immediate: true })
+//ScoreCard Event
+const { handelCopy } = useCopyHelper()
+//menu
+const openSongInfoMenu = ref(false)
+const SongInfoNoteDesigner = ref("")
+const SongInfoSong = ref<MaiMaiSong>({
+    id: 0,
+    title: '',
+    artist: '',
+    genre: '',
+    bpm: 0,
+    map: null,
+    version: '',
+    rights: null,
+    aliases: [],
+    disabled: false,
+    difficulties: {
+        standard: [],
+        dx: [],
+        utage: []
+    },
+    level_0: [],
+    level_1: [],
+    level_2: [],
+    level_3: [],
+    level_4: []
 })
+const onMenu = (_ref: HTMLDivElement | null, song: MaiMaiSong, noteDesigner: string) => {
+    openSongInfoMenu.value = true
+    SongInfoNoteDesigner.value = noteDesigner;
+    SongInfoSong.value = song;
+}
+//context
+const ContextMenuTarget = ref()
+const ContextMenuTargetScoreId = ref("")
+const onContextMenu = (_event: Event, ref: HTMLDivElement | null, score_id: string) => {
+    ContextMenuTargetScoreId.value = score_id
+    ContextMenuTarget.value = ref;
+}
 </script>
