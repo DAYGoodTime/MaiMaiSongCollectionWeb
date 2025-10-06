@@ -129,7 +129,7 @@ const handelCollectionJump = (coll: Collection) => {
       label: coll.label
     }
   }).then((_result) => {
-    if (Capacitor.getPlatform() !== "web") {
+    if (Capacitor.getPlatform() !== "web" || isSmallDevice.value) {
       toggleSidebar()
     }
 
@@ -137,7 +137,7 @@ const handelCollectionJump = (coll: Collection) => {
 }
 const handelPageJump = (e: Event, route: RouteLocationRaw) => {
   JumpToFromEvent(e, route).then((_result) => {
-    if (Capacitor.getPlatform() !== "web") {
+    if (Capacitor.getPlatform() !== "web" || isSmallDevice.value) {
       toggleSidebar()
     }
   })
@@ -148,6 +148,10 @@ const handelLevelImportDialog = (label: string) => {
   CurrentCollectionLabel.value = label;
   importDialogShow.value = true
 }
+const isSmallDevice = ref(true);
+watch(() => window.innerWidth, (newWidth) => {
+  isSmallDevice.value = newWidth < 1024
+}, { immediate: true })
 </script>
 
 <template>
