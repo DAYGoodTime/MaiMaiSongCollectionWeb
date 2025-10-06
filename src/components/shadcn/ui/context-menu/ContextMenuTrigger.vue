@@ -4,16 +4,10 @@ import { ContextMenuTrigger, type ContextMenuTriggerProps, useForwardProps } fro
 const props = defineProps<ContextMenuTriggerProps>()
 
 const forwardedProps = useForwardProps(props)
-const onContextMenu = (e: PointerEvent) => {
-  const target = (e.target as HTMLElement).closest('[data-component="ScoreCard"]')
-  if (!target) {
-    e.preventDefault()
-  }
-}
 </script>
 
 <template>
-  <ContextMenuTrigger v-bind="forwardedProps" @contextmenu="onContextMenu">
+  <ContextMenuTrigger v-bind="forwardedProps">
     <slot />
   </ContextMenuTrigger>
 </template>

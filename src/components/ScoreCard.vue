@@ -61,10 +61,7 @@
                     </div>
                 </div>
             </div>
-            <!-- <div v-show="openMenu" class="p-2 bg-gray-50" ref="target">
-                <Textarea @update:model-value="onUpdateMessage" v-model="message" placeholder="关于这个铺子的一些心得？"
-                    class="w-full" />
-            </div> -->
+
         </div>
 
 
@@ -75,7 +72,6 @@
 import type { MaiMaiSong, ScoreExtend } from '@/types/songs';
 import { conventFcFsStr, getTotalDxScore } from '@/utils/StrUtil';
 import { getDxScoreIcon, getFCFSIcon } from '@/utils/urlUtils';
-import Textarea from './shadcn/ui/textarea/Textarea.vue';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/shadcn/ui/tooltip';
 import { computed, useTemplateRef } from 'vue';
 import { getAchievementIcon, getImageAssertUrl, getImageCoverUrl } from '@/utils/urlUtils';
@@ -130,17 +126,6 @@ const dxScoreIcon = computed(() => {
 
 const played = computed(() => props.score.score.is_played === undefined ? true : props.score.score.is_played);
 
-const toggleDescMenu = () => {
-    const CollectionMessageMap = collectionStore.CollectionMessageMap;
-
-    const msgObj = CollectionMessageMap[props.score.score_id];
-    if (!msgObj) {
-        CollectionMessageMap[props.score.score_id] = { message: "" };
-    }
-
-    message.value = CollectionMessageMap[props.score.score_id].message;
-    openMenu.value = !openMenu.value;
-}
 const emit = defineEmits<{
     (e: 'dbClick', ref: HTMLDivElement | null, song: MaiMaiSong, noteDesigner: string): void
     (e: 'copy', text: string, message: string): void

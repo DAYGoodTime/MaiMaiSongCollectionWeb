@@ -11,7 +11,7 @@
     <DefineSearchTemplate>
         <div class="relative w-full max-w-sm mx-auto items-center">
             <Input id="search" type="text" placeholder="搜索成绩..." class="pl-10" @update:model-value="onSearch"
-                v-model:model-value="keyword" />
+                v-model:model-value="searchInput" />
             <span class="absolute start-0 inset-y-0 flex items-center justify-center px-2">
                 <Search class="size-6 text-muted-foreground" />
             </span>
@@ -74,7 +74,7 @@
         </div>
         <!-- 成绩列表 -->
         <ContextMenu>
-            <ContextMenuTrigger>
+            <ContextMenuTrigger @contextmenu="onContextMenuTrigger">
                 <InfiniteScrollArea class="px-0 w-full my-8 rounded-xl border shadow hover:shadow-xl py-2"
                     :items="filterScoreList" :page-size="60">
                     <template #default="{ items }">
@@ -86,8 +86,18 @@
 
                             <p class="flex items-center text-center justify-center" v-if="isEmpty">暂无任何成绩捏~</p>
                         </div>
+                        <!-- <Popover>
+                            <PopoverTrigger>
+
+                            </PopoverTrigger>
+                            <PopoverContent>
+                                <Textarea @update:model-value="onUpdateMessage" v-model="scoreMessage"
+                                    placeholder="关于这个铺子的一些心得？" class="w-full" />
+                            </PopoverContent>
+                        </Popover> -->
                     </template>
                 </InfiniteScrollArea>
+
             </ContextMenuTrigger>
             <ContextMenuContent :reference="ContextMenuTarget">
                 <ContextMenuItem class="text-red-600" @click="handelRemoveScore(ContextMenuTargetScoreId)">
@@ -171,7 +181,7 @@ import { Popover, PopoverTrigger, PopoverContent } from '@/components/shadcn/ui/
 import { Badge } from '@/components/shadcn/ui/badge';
 import { Search, X, ChevronDown, ChevronUp, PanelLeft } from 'lucide-vue-next'
 import { Input } from '@/components/shadcn/ui/input'
-import { type Collection, useCollectionStore } from '@/store/collections';
+import { useCollectionStore } from '@/store/collections';
 import type { MaiMaiSong, ScoreExtend, SongType } from '@/types/songs';
 import { debounce, toFishStyleId, toLXNSStyleId, useCopyHelper, useRouterHelper } from '@/utils/functionUtil';
 import { computed, reactive, ref, shallowRef, useTemplateRef, watch } from 'vue';
@@ -225,9 +235,8 @@ const [DefineSearchTemplate, ReuseSearchTemplate] = createReusableTemplate()
 
 
 //状态
-const rawCollection = ref<Collection>()
-const keyword = ref("")
-const search = ref("")
+const searchInput = ref("")
+const searchValue = ref("")
 const showAdvanced = ref(false)
 const listVersion = ref(0)
 const showAdvancedFilter = ref(true)
@@ -319,12 +328,12 @@ const calcStatusBoard = (score: Score, song: MaiMaiSong) => {
 
 //handler
 const onSearch = debounce((val: string | number) => {
-    search.value = String(val)
+    searchValue.value = String(val)
 }, 200);
 
 const onReset = () => {
-    keyword.value = ""
-    search.value = ""
+    searchInput.value = ""
+    searchValue.value = ""
 }
 
 const handleOrderStatus = (_order: OrderBadge, index: number) => {
@@ -396,12 +405,10 @@ const initScoreList = () => {
         return;
     }
     CurrentCollectionLabel.value = coll.label
-    rawCollection.value = coll;
-
-    if (rawCollection.value) {
+    if (coll) {
         const result: ScoreExtend[] = [];
         let unplayedCount = 0;
-        for (const level_str of rawCollection.value.list) {
+        for (const level_str of coll.list) {
             const [diff_id, song_type, level_index_str] = level_str.split("_");
             if (!diff_id || !song_type || !level_index_str) continue;
             const song_id = toLXNSStyleId(Number(diff_id))
@@ -442,39 +449,21 @@ const initScoreList = () => {
             OrderBadges.value.splice(index, 1)
         }
     }
+    onSearchList();
 }
 
 // computed
 const getOtherCollections = computed(() => UserCollectionList.value.filter(c => c.label !== route.query.label))
-// const filteredScoreList = computed(() => {
-//     listVersion.value;
-//     let result = searchScore(search.value);
-//     result = advanceFilter(AdvanceFilterForm.value, result);
-//     if (selectedOrder.value.status_index !== 0) {
-//         return orderBy(result, selectedOrder.value);
-//     }
-//     return Array.from(result);
-// });
 const isEmpty = computed(() => filterScoreList.value.length === 0)
 
-//hooks
-// watch(() => filterScoreList.value, (newList) => {
-//     initStatus();
-//     newList.forEach(item => {
-//         calcStatusBoard(item.score, item.song)
-//     });
-//     statusBoard.total = newList.length
-// })
-//filterScoreList
 const onSearchList = () => {
-    let result = searchScore(search.value);
+    let result = searchScore(searchValue.value);
     result = advanceFilter(AdvanceFilterForm.value, result);
     if (selectedOrder.value.status_index !== 0) {
         filterScoreList.value = orderBy(result, selectedOrder.value);
-    }
-    filterScoreList.value = result;
+    } else filterScoreList.value = result;
 }
-watch(() => search.value, () => {
+watch(() => searchValue.value, () => {
     onSearchList()
 })
 watch(() => AdvanceFilterForm.value, () => {
@@ -482,10 +471,9 @@ watch(() => AdvanceFilterForm.value, () => {
 })
 watch(() => selectedOrder.value, () => {
     onSearchList()
-})
+}, { deep: true })
 watch(() => route.query.label, () => {
     initScoreList();
-    onSearchList();
 }, { immediate: true })
 //ScoreCard Event
 const { handelCopy } = useCopyHelper()
@@ -526,4 +514,27 @@ const onContextMenu = (_event: Event, ref: HTMLDivElement | null, score_id: stri
     ContextMenuTargetScoreId.value = score_id
     ContextMenuTarget.value = ref;
 }
+const onContextMenuTrigger = (e: PointerEvent) => {
+    const target = (e.target as HTMLElement).closest('[data-component="ScoreCard"]')
+    if (!target) {
+        e.preventDefault()
+    }
+}
+//Score message
+// const scoreMessage = ref("")
+// const scoreMessageValue = ref("")
+// const onUpdateMessage = debounce((val: string | number) => {
+//     scoreMessageValue.value = String(val)
+// }, 200);
+// const toggleDescMenu = () => {
+//     const CollectionMessageMap = collectionStore.CollectionMessageMap;
+
+//     const msgObj = CollectionMessageMap[props.score.score_id];
+//     if (!msgObj) {
+//         CollectionMessageMap[props.score.score_id] = { message: "" };
+//     }
+
+//     message.value = CollectionMessageMap[props.score.score_id].message;
+//     openMenu.value = !openMenu.value;
+// }
 </script>
