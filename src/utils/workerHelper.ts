@@ -65,10 +65,9 @@ export const useScoreSearchWorker = (searchKeyWord: MaybeRefOrGetter<string>, fi
             searchWorker.postMessage({ type: 'search', payload: newSearch })
         }
     })
-    watch(() => toValue(filter), (newFilter) => {
+    watch(() => toValue(filter), (_newFilter) => {
         isLoading.value = true;
-        searchResults.value = advanceFilter(newFilter, searchResults.value);
-        isLoading.value = false;
+        search();
     }, { deep: true })
     watch(() => toValue(order), (newOrder) => {
         isLoading.value = true;
