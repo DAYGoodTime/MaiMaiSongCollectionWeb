@@ -50,7 +50,7 @@
             ref="panel">
             <Card class="flex-auto w-96">
                 <CardHeader>
-                    <CardTitle>合集: {{ CurrentCollectionLabel }} {{ isLoading ? '搜索中' : '搜索完成' }}</CardTitle>
+                    <CardTitle>合集: {{ CurrentCollectionLabel }}</CardTitle>
                 </CardHeader>
                 <CardContent class="space-y-4">
                     <div>
@@ -302,7 +302,7 @@ const statusBoard = reactive<StatusBoard>({
 })
 
 //helper
-const { isLoading, searchResults, search, updateIndex } = useScoreSearchWorker(searchValue, AdvanceFilterForm, selectedOrder)
+const { searchResults, search, updateIndex } = useScoreSearchWorker(searchValue, AdvanceFilterForm, selectedOrder)
 
 const calcStatusBoard = (score: Score, song: MaiMaiSong) => {
     new Promise(() => {

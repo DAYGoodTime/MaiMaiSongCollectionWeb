@@ -182,3 +182,5 @@ export const useScores = defineStore("scores", () => {
         ClearDataSource
     }
 })
+
+export type ScoreStore = ReturnType<typeof useScores>

@@ -262,10 +262,7 @@ const handelUpdateSongs = async () => {
     UpdatingSongs.value = true;
     try {
         await updateSongFromAPI()
-        new Promise(() => {
-            appStore.updateSongIndex()
-            toast.success("歌曲数据源更新完成")
-        })
+        toast.success("歌曲数据源更新完成")
     } catch (error: any) {
         toast.error(`歌曲数据源更新失败: ${error.message ? error.message : 'Unknown Error'}`)
         console.error("歌曲数据源更新失败", error);

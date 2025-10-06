@@ -83,7 +83,7 @@ import MultiSelectTags from '@/components/MultiSelectTags.vue'
 import { Button } from '@/components/shadcn/ui/button';
 import { Label } from 'reka-ui';
 import type { MaiMaiSong } from '@/types/songs';
-import { filterDiffByAchievementTag, filterDiffByLevelTag, MAX_SEARCH_NUMBER } from '@/utils/songSearch';
+import { filterDiffByAchievementTag, filterDiffByLevelTag } from '@/utils/songSearch';
 import type { Tag } from '@/components/TagInputCombobox.vue';
 import { computed, ref } from 'vue';
 import { LEVEL_MATCH_PATTEN, LEVEL_RANGE_MATCH_PATTEN } from '@/utils/StrUtil';
@@ -91,6 +91,7 @@ import type { FilterProps } from '@/types/component';
 import { storeToRefs } from 'pinia';
 import { useCollectionStore } from '@/store/collections';
 import { toast } from 'vue-sonner';
+import { MAX_SEARCH_NUMBER } from '@/utils/consts';
 
 const { UserCollectionList } = storeToRefs(useCollectionStore())
 
