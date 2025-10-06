@@ -50,7 +50,7 @@
             ref="panel">
             <Card class="flex-auto w-96">
                 <CardHeader>
-                    <CardTitle>合集: {{ CurrentCollectionLabel }}</CardTitle>
+                    <CardTitle>合集: {{ CurrentCollectionLabel }} {{ isLoading ? '搜索中' : '搜索完成' }}</CardTitle>
                 </CardHeader>
                 <CardContent class="space-y-4">
                     <div>
@@ -76,7 +76,7 @@
         <ContextMenu>
             <ContextMenuTrigger @contextmenu="onContextMenuTrigger">
                 <InfiniteScrollArea class="px-0 w-full my-8 rounded-xl border shadow hover:shadow-xl py-2"
-                    :items="filterScoreList" :page-size="60">
+                    :items="searchResults" :page-size="60">
                     <template #default="{ items }">
                         <div
                             class="grid sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-2 p-2 justify-items-center">
@@ -213,7 +213,7 @@ import type { AdvanceFilterFilters } from '@/types/component';
 import type { StatusBoard, StatusValue } from '@/views/collection/component/ScoreStatisticsCard.vue';
 import ScoreStatisticsCard from '@/views/collection/component/ScoreStatisticsCard.vue';
 import AdvanceFeature from './component/AdvanceFeature.vue';
-import { useScoreSearch, type OrderBadge } from '@/utils/songSearch';
+import { type OrderBadge } from '@/utils/songSearch';
 import { storeToRefs } from 'pinia';
 import { createReusableTemplate } from '@vueuse/core';
 import { cn } from '@/lib/utils';
@@ -221,18 +221,17 @@ import CollectionFloatingNav from './component/CollectionFloatingNav.vue';
 import { useSidebar } from '@/components/shadcn/ui/sidebar';
 import { useScores } from '@/store/datasources/scores';
 import { useSongStore } from '@/store/datasources/song';
+import { useScoreSearchWorker } from '@/utils/workerHelper';
 
 
 const { route, backHome } = useRouterHelper()
 
 const { getCollectionByLabel, removeFromCollection, pushScoreToCollection } = useCollectionStore()
 const { CurrentCollectionLabel, UserCollectionList } = storeToRefs(useCollectionStore())
-const { updateIndex, searchScore, orderBy, advanceFilter } = useScoreSearch()
 const { toggleSidebar } = useSidebar()
 const PanelRef = useTemplateRef("panel")
 const [DefineSortingTemplate, ReuseSortingTemplate] = createReusableTemplate()
 const [DefineSearchTemplate, ReuseSearchTemplate] = createReusableTemplate()
-
 
 //状态
 const searchInput = ref("")
@@ -303,6 +302,10 @@ const statusBoard = reactive<StatusBoard>({
     totalAchievements: 0,
     total: 0
 })
+
+//helper
+const { isLoading, searchResults, search, updateIndex } = useScoreSearchWorker(searchValue, AdvanceFilterForm, selectedOrder)
+
 const calcStatusBoard = (score: Score, song: MaiMaiSong) => {
     new Promise(() => {
         statusBoard.rank_first.forEach(status => { if (score.achievements >= status.require) status.current++; });
@@ -425,6 +428,7 @@ const initScoreList = () => {
             }
             result.push({ score, song, score_id: level_str });
         }
+        //更新索引
         updateIndex(result)
         // 因为默认不算“未游玩的成绩"。所以需要减去
         statusBoard.total = result.length - unplayedCount;
@@ -449,29 +453,23 @@ const initScoreList = () => {
             OrderBadges.value.splice(index, 1)
         }
     }
-    onSearchList();
+    //触发搜索
+    search()
 }
 
 // computed
 const getOtherCollections = computed(() => UserCollectionList.value.filter(c => c.label !== route.query.label))
-const isEmpty = computed(() => filterScoreList.value.length === 0)
+const isEmpty = computed(() => searchResults.value.length === 0)
 
-const onSearchList = () => {
-    let result = searchScore(searchValue.value);
-    result = advanceFilter(AdvanceFilterForm.value, result);
-    if (selectedOrder.value.status_index !== 0) {
-        filterScoreList.value = orderBy(result, selectedOrder.value);
-    } else filterScoreList.value = result;
-}
-watch(() => searchValue.value, () => {
-    onSearchList()
-})
-watch(() => AdvanceFilterForm.value, () => {
-    onSearchList()
-})
-watch(() => selectedOrder.value, () => {
-    onSearchList()
-}, { deep: true })
+// const onSearchList = () => {
+//     let result = searchScore(searchValue.value);
+//     result = advanceFilter(AdvanceFilterForm.value, result);
+//     if (selectedOrder.value.status_index !== 0) {
+//         filterScoreList.value = orderBy(result, selectedOrder.value);
+//     } else filterScoreList.value = result;
+// }
+
+
 watch(() => route.query.label, () => {
     initScoreList();
 }, { immediate: true })
