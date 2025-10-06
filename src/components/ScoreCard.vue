@@ -47,7 +47,6 @@
                         <!-- <TooltipProvider>
                             <Tooltip v-model:open="openDxScoreTooltips" :delay-duration="0">
                                 <TooltipTrigger>
-                                    
                                 </TooltipTrigger>
                                 <TooltipContent>
                                     <p>{{ `${details.sc.current}/${cardData.dxScore.total}` }}</p>
@@ -61,10 +60,7 @@
                     </div>
                 </div>
             </div>
-
         </div>
-
-
     </div>
 </template>
 
@@ -75,12 +71,10 @@ import { getDxScoreIcon, getFCFSIcon } from '@/utils/urlUtils';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/shadcn/ui/tooltip';
 import { computed, useTemplateRef } from 'vue';
 import { getAchievementIcon, getImageAssertUrl, getImageCoverUrl } from '@/utils/urlUtils';
-import { formatAchievement, formatDxRating, formatLevelValue, getSongDiffUniId, getNoteDesigner } from '@/utils/StrUtil';
-import { showCurrentStyleId } from '@/utils/functionUtil';
+import { formatAchievement, formatDxRating, formatLevelValue, getNoteDesigner } from '@/utils/StrUtil';
+import { getSongDiffByScoreEx, showCurrentStyleId } from '@/utils/functionUtil';
 import { ref } from 'vue';
-import { useCollectionStore } from '@/store/collections';
 import { useScores } from '@/store/datasources/scores';
-import { useSongStore } from '@/store/datasources/song';
 
 const props = defineProps<{
     score: ScoreExtend
@@ -88,25 +82,19 @@ const props = defineProps<{
 
 const ScoreCardRef = useTemplateRef('ScoreCardRef')
 const ScoreStore = useScores();
-const SongStore = useSongStore()
-const openMenu = ref(false);
-const message = ref("");
 const openTitleTooltips = ref(false)
 
 const isUtage = computed(() => props.score.score.type === 'utage');
 
-const collectionStore = useCollectionStore();
 
 const cardClass = computed(() => {
     let baseClass = "flex flex-col rounded-t-lg";
-
     if (isUtage.value) return baseClass + ' bg-UTAGE';
-
     const colors = ['bg-BASIC', 'bg-ADVANCED', 'bg-EXPERT', 'bg-MASTER', 'bg-REMASTER'];
     return baseClass + ` ${colors[props.score.score.level_index]}`;
 });
 const SongDiff = computed(() => {
-    return SongStore.getDiffById(getSongDiffUniId(props.score.song, props.score.score));
+    return getSongDiffByScoreEx(props.score);
 })
 
 const details = computed(() => {

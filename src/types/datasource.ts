@@ -1,5 +1,6 @@
 import type { FishScore } from "./divingfish";
 import type { LXNSScore } from "./lxns";
+import type { SongType } from "./songs";
 import type { UsagiScore } from "./usagi";
 
 export interface DataSource<T> {

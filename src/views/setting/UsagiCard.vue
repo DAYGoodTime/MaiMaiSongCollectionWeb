@@ -107,7 +107,7 @@ import { RefreshCw } from 'lucide-vue-next'
 import { Checkbox } from "@/components/shadcn/ui/checkbox";
 import { formatDate } from '@/utils/StrUtil';
 import { MAX_ERROR_COUNT } from '@/store/datasources/scores'
-import { onMounted, ref, watch } from 'vue'
+import { ref, watch } from 'vue'
 import { toast } from 'vue-sonner'
 import ActionConfirm from '@/components/ActionConfirm.vue'
 import UsagiService from '@/api/usagi';

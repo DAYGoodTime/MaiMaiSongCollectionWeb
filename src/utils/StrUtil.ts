@@ -1,6 +1,7 @@
 import type { AnyScore, Score } from "@/types/datasource";
 import type { MaiMaiSong, ScoreExtend, SongDifficulty } from "@/types/songs";
 import { pinyin } from "pinyin-pro";
+import { getSongDiffByScoreEx } from "./functionUtil";
 
 export const LEVEL_MATCH_PATTEN =
   /^[绿黄红紫白](?:(?:1[0-5]|[1-9])\+|(?:1[0-5]|[1-9])(?:\.\d)?)$/;
@@ -128,7 +129,7 @@ export function getNoteDesigner(diff?: SongDifficulty) {
   } else return ""
 }
 export const getLevelValue = (sc: ScoreExtend) => {
-  const diff = getSongDiff(sc.song, sc.score);
+  const diff = getSongDiffByScoreEx(sc);
   if (diff) return diff.level_value;
   return 0
 }

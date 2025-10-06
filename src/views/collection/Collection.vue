@@ -80,7 +80,7 @@
                     <template #default="{ items }">
                         <div
                             class="grid sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-2 p-2 justify-items-center">
-                            <ScoreCard v-for="(card, index) in items" :key="card.score_id" :score="card"
+                            <ScoreCard v-for="(card, _index) in items" :key="card.score_id" :score="card"
                                 class="transition-shadow rounded-xl shadow hover:shadow-xl bg-white/90"
                                 @copy="handelCopy" @db-click="onMenu" @right-click="onContextMenu" />
 
@@ -183,10 +183,10 @@ import { Search, X, ChevronDown, ChevronUp, PanelLeft } from 'lucide-vue-next'
 import { Input } from '@/components/shadcn/ui/input'
 import { useCollectionStore } from '@/store/collections';
 import type { MaiMaiSong, ScoreExtend, SongType } from '@/types/songs';
-import { debounce, toFishStyleId, toLXNSStyleId, useCopyHelper, useRouterHelper } from '@/utils/functionUtil';
-import { computed, reactive, ref, shallowRef, useTemplateRef, watch } from 'vue';
+import { debounce, getSongDiffByScore, toFishStyleId, toLXNSStyleId, useCopyHelper, useRouterHelper } from '@/utils/functionUtil';
+import { computed, reactive, ref, useTemplateRef, watch } from 'vue';
 import { toast } from 'vue-sonner';
-import { conventFcFsStr, getSongDiffUniId } from '@/utils/StrUtil';
+import { conventFcFsStr } from '@/utils/StrUtil';
 import { ACHIEVEMENT, PLAY_BONUS, ACHIEVEMENT_ICON, PLAY_BONUS_ICON } from '@/utils/urlUtils';
 import {
     ContextMenu,
@@ -241,8 +241,6 @@ const listVersion = ref(0)
 const showAdvancedFilter = ref(true)
 const supportPcCount = ref(false)
 const isFilterExpended = ref(false)
-const filterScoreList = shallowRef<ScoreExtend[]>([])
-
 
 //Store
 const SongStore = useSongStore()
@@ -321,7 +319,7 @@ const calcStatusBoard = (score: Score, song: MaiMaiSong) => {
     })
 
     statusBoard.totalAchievements += score.achievements
-    const diff = SongStore.getDiffById(getSongDiffUniId(song, score));
+    const diff = getSongDiffByScore(song, score);
     const noteDesigner = diff ? diff.note_designer : "";
     if (noteDesigner.length > 1) {
         const map = statusBoard.noteDesigners;

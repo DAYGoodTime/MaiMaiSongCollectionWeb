@@ -3,11 +3,10 @@ import { Clipboard } from "@capacitor/clipboard"
 import { useRoute, useRouter, type RouteLocationRaw } from "vue-router";
 import { toast } from "vue-sonner";
 import { getSongDiffUniId } from "./StrUtil";
-import type { MaiMaiSong, SongType } from "@/types/songs";
+import type { MaiMaiSong, ScoreExtend, SongDifficultyAny, SongType } from "@/types/songs";
 import { fcMapping, fsMapping, rateMapping } from "@/api/usagi";
 import { ref } from "vue";
 import { useScores } from "@/store/datasources/scores";
-import { useSongStore } from "@/store/datasources/song";
 
 type DebouncedFunction<T extends any[]> = (...args: T) => void;
 
@@ -67,7 +66,6 @@ export function useCopyHelper() {
   return { handelCopy }
 }
 export function conventToScore(score: AnyScore, song: MaiMaiSong): Score {
-  const SongStore = useSongStore();
   let rate_type;
   if ("rate" in score) {
     //usagi or fish
@@ -110,7 +108,7 @@ export function conventToScore(score: AnyScore, song: MaiMaiSong): Score {
     fs,
     level: score.level,
     level_index: score.level_index,
-    level_value: ("ds" in score) ? score.ds : SongStore.getDiffById(getSongDiffUniId(song, score))?.level_value,
+    level_value: ("ds" in score) ? score.ds : getSongDiffByScore(song, score)?.level_value,
     rate_type,
     dx_score: ("dxScore" in score) ? score.dxScore : score.dx_score,
     dx_rating: ("ra" in score) ? score.ra : score.dx_rating,
@@ -257,4 +255,12 @@ export const useNFC = (callback: (message: string) => void) => {
     startScan,
     stopScan
   }
+}
+export const getSongDiffByScoreEx = (score: ScoreExtend): SongDifficultyAny | undefined => {
+  const uni_id = getSongDiffUniId(score.song, score.score)
+  return score.song[uni_id as keyof MaiMaiSong] as unknown as SongDifficultyAny | undefined;
+}
+export const getSongDiffByScore = (song: MaiMaiSong, score: Score | AnyScore): SongDifficultyAny | undefined => {
+  const uni_id = getSongDiffUniId(song, score)
+  return song[uni_id as keyof MaiMaiSong] as unknown as SongDifficultyAny | undefined;
 }
