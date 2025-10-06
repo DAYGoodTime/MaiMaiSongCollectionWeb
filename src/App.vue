@@ -16,8 +16,10 @@ onMounted(async () => {
 })
 const ScoreStore = useScores()
 const SongStore = useSongStore()
+const appStore = useAppStore()
 const checkUpdate = async () => {
   if (SongStore.checkSongUpdate()) {
+    console.log("正在尝试更新歌曲源");
     await SongStore.updateSongFromAPI()
   }
   let needReSync = ScoreStore.checkScoreVersion()
@@ -25,7 +27,7 @@ const checkUpdate = async () => {
     toast.warning("本地数据源结构与当前版本不一致,为了避免错误，我们对本地的数据源进行了重置，请根据需要重新进行获取。")
   }
 }
-const appStore = useAppStore()
+
 NFC.onRead((data) => {
   console.log("NFC Data", data.string());
   toast.success("正在读取NFC数据", { position: "top-center" })

@@ -55,7 +55,7 @@ export const useAppStore = defineStore("app", () => {
   const updateSongIndex = async () => {
     SongIndex.clear()
     new Promise(() => {
-      for (const song of SONG_DATA) {
+      for (const song of SongStore.getSongList()) {
         const noteDesigners = getNoteDesigners(song)
         const indexedDoc = {
           id: song.id,
