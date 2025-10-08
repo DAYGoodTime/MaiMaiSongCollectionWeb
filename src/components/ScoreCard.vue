@@ -2,9 +2,10 @@
     <div ref="ScoreCardRef" @click.right.native="(e) => emit('rightClick', e, ScoreCardRef, props.score.score_id)"
         data-component="ScoreCard">
         <div class="w-72 sm:w-64 rounded-lg shadow-lg transition-all duration-300 hover:shadow-xl"
-            @click="() => openTitleTooltips = true"
             @dblclick="() => emit('dbClick', ScoreCardRef, props.score.song, getNoteDesigner(SongDiff))">
-            <div :class="cardClass" @click="emit('singleClick', ScoreCardRef)" class="cursor-pointer p-2">
+            <div :class="cardClass" @click="handleTitleEnter(score.song.title)"
+                @mouseenter="handleTitleEnter(score.song.title)" @mouseleave="handleMouseLeave()"
+                class="cursor-pointer p-2">
                 <div class="flex gap-1">
                     <div class="w-12 h-12 rounded overflow-hidden flex-shrink-0">
                         <img :src="getImageCoverUrl(props.score.song.id ?? 0)" alt="Song Cover"
@@ -12,17 +13,8 @@
                     </div>
                     <div class="flex-1 text-white min-w-0">
                         <div class="flex justify-between items-start">
-                            <TooltipProvider>
-                                <Tooltip v-model:open="openTitleTooltips" :delay-duration="0">
-                                    <TooltipTrigger class="font-bold truncate text-left">
-                                        {{ score.song.title }}
-                                    </TooltipTrigger>
-                                    <TooltipContent class="cursor-pointer hover:opacity-50"
-                                        @click="() => emit('copy', score.song.title, '已成功复制歌曲名到剪切板中')">
-                                        <p>{{ score.song.title }}</p>
-                                    </TooltipContent>
-                                </Tooltip>
-                            </TooltipProvider>
+                            <span class="font-bold text-left truncate" :title="score.song.title">{{
+                                score.song.title }}</span>
                             <img class="w-auto h-5"
                                 :src="getImageAssertUrl(props.score.score.type === 'dx' ? 'DX' : 'SD')"
                                 alt="Song Type" />
@@ -68,13 +60,12 @@
 import type { MaiMaiSong, ScoreExtend } from '@/types/songs';
 import { conventFcFsStr, getTotalDxScore } from '@/utils/StrUtil';
 import { getDxScoreIcon, getFCFSIcon } from '@/utils/urlUtils';
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/shadcn/ui/tooltip';
 import { computed, useTemplateRef } from 'vue';
 import { getAchievementIcon, getImageAssertUrl, getImageCoverUrl } from '@/utils/urlUtils';
 import { formatAchievement, formatDxRating, formatLevelValue, getNoteDesigner } from '@/utils/StrUtil';
 import { getSongDiffByScoreEx, showCurrentStyleId } from '@/utils/functionUtil';
-import { ref } from 'vue';
 import { useScores } from '@/store/datasources/scores';
+import { showTooltip, hideTooltip } from '@/lib/useTooltip';
 
 const props = defineProps<{
     score: ScoreExtend
@@ -82,7 +73,15 @@ const props = defineProps<{
 
 const ScoreCardRef = useTemplateRef('ScoreCardRef')
 const ScoreStore = useScores();
-const openTitleTooltips = ref(false)
+
+const handleTitleEnter = (title: string) => {
+    const copyFn = () => emit('copy', title, '已成功复制歌曲名到剪切板中');
+    showTooltip(ScoreCardRef.value as HTMLElement, title, copyFn);
+};
+
+const handleMouseLeave = () => {
+    hideTooltip();
+};
 
 const isUtage = computed(() => props.score.score.type === 'utage');
 

@@ -9,6 +9,7 @@ import { NFC } from '@day_time/capacitor-nfc-day';
 import { useAppStore } from './store/appStore';
 import { useScores } from './store/datasources/scores';
 import { useSongStore } from './store/datasources/song';
+import GlobalTooltip from './components/GlobalTooltip.vue';
 onMounted(async () => {
   checkUpdate();
   const userAgent = navigator.userAgent;
@@ -38,6 +39,7 @@ NFC.onRead((data) => {
 
 <template>
   <Toaster />
+  <GlobalTooltip />
   <nav>
     <SidebarProvider>
       <AppSidebar />
