@@ -80,11 +80,17 @@
                     <template #default="{ items }">
                         <div
                             class="grid sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-2 p-2 justify-items-center">
-                            <ScoreCard v-for="(card, _index) in items" :key="card.score_id" :score="card"
-                                class="transition-shadow rounded-xl shadow hover:shadow-xl bg-white/90"
-                                @copy="handelCopy" @db-click="onMenu" @right-click="onContextMenu" />
+                            <div v-if="isLoadingPage || isLoading"
+                                class="col-span-full flex justify-center items-center py-10">
+                                <div class="animate-spin rounded-full h-10 w-10 border-b-2 border-primary"></div>
+                            </div>
+                            <template v-else>
+                                <ScoreCard v-for="(card, _index) in items" :key="card.score_id" :score="card"
+                                    class="transition-shadow rounded-xl shadow hover:shadow-xl bg-white/90"
+                                    @copy="handelCopy" @db-click="onMenu" @right-click="onContextMenu" />
 
-                            <p class="flex items-center text-center justify-center" v-if="isEmpty">暂无任何成绩捏~</p>
+                                <p class="flex items-center text-center justify-center" v-if="isEmpty">暂无任何成绩捏~</p>
+                            </template>
                         </div>
                         <!-- <Popover>
                             <PopoverTrigger>
@@ -184,7 +190,7 @@ import { Input } from '@/components/shadcn/ui/input'
 import { useCollectionStore } from '@/store/collections';
 import type { MaiMaiSong, ScoreExtend, SongType } from '@/types/songs';
 import { debounce, getSongDiffByScore, toFishStyleId, toLXNSStyleId, useCopyHelper, useRouterHelper } from '@/utils/functionUtil';
-import { computed, reactive, ref, useTemplateRef, watch } from 'vue';
+import { computed, reactive, ref, toRaw, useTemplateRef, watch } from 'vue';
 import { toast } from 'vue-sonner';
 import { conventFcFsStr } from '@/utils/StrUtil';
 import { ACHIEVEMENT, PLAY_BONUS, ACHIEVEMENT_ICON, PLAY_BONUS_ICON } from '@/utils/urlUtils';
@@ -237,10 +243,10 @@ const [DefineSearchTemplate, ReuseSearchTemplate] = createReusableTemplate()
 const searchInput = ref("")
 const searchValue = ref("")
 const showAdvanced = ref(false)
-const listVersion = ref(0)
 const showAdvancedFilter = ref(true)
 const supportPcCount = ref(false)
 const isFilterExpended = ref(false)
+const isLoadingPage = ref(true)
 
 //Store
 const SongStore = useSongStore()
@@ -302,29 +308,43 @@ const statusBoard = reactive<StatusBoard>({
 })
 
 //helper
-const { searchResults, search, updateIndex } = useScoreSearchWorker(searchValue, AdvanceFilterForm, selectedOrder)
+const { searchResults, isLoading, updateIndex } = useScoreSearchWorker(searchValue, AdvanceFilterForm, selectedOrder)
 
 const calcStatusBoard = (score: Score, song: MaiMaiSong) => {
-    new Promise(() => {
-        statusBoard.rank_first.forEach(status => { if (score.achievements >= status.require) status.current++; });
-    })
-    new Promise(() => {
-        statusBoard.rank_second.forEach(status => { if (score.achievements >= status.require) status.current++; });
-    })
-    new Promise(() => {
-        statusBoard.apfc.forEach(status => { if (conventFcFsStr(score.fc) === status.require) status.current++; });
-    })
-    new Promise(() => {
-        statusBoard.fs.forEach(status => { if (conventFcFsStr(score.fs) === status.require) status.current++; });
-    })
+    // 使用单个循环处理所有状态统计，避免重复遍历
+    statusBoard.rank_first.forEach(status => {
+        if (score.achievements >= status.require) status.current++;
+    });
 
-    statusBoard.totalAchievements += score.achievements
+    statusBoard.rank_second.forEach(status => {
+        if (score.achievements >= status.require) status.current++;
+    });
+
+    const fcStr = conventFcFsStr(score.fc);
+    statusBoard.apfc.forEach(status => {
+        if (fcStr === status.require) status.current++;
+    });
+
+    const fsStr = conventFcFsStr(score.fs);
+    statusBoard.fs.forEach(status => {
+        if (fsStr === status.require) status.current++;
+    });
+
+    // 累加总达成率
+    statusBoard.totalAchievements += score.achievements;
+
+    // 统计谱师信息
     const diff = getSongDiffByScore(song, score);
-    const noteDesigner = diff ? diff.note_designer : "";
-    if (noteDesigner.length > 1) {
-        const map = statusBoard.noteDesigners;
-        map.set(noteDesigner, (map.get(noteDesigner) || 0) + 1);
+    const noteDesigner = diff?.note_designer || "";
+    if (noteDesigner) {
+        statusBoard.noteDesigners.set(
+            noteDesigner,
+            (statusBoard.noteDesigners.get(noteDesigner) || 0) + 1
+        );
     }
+
+    // 增加总数统计
+    statusBoard.total++;
 }
 
 //handler
@@ -397,7 +417,8 @@ const createUnplayedScore = (song: MaiMaiSong, song_type: SongType, level_index:
         is_played: false
     }
 }
-const initScoreList = () => {
+const initScoreList = async () => {
+
     initStatus();
     const coll = getCollectionByLabel(route.query.label as string)
     if (!coll) {
@@ -424,13 +445,17 @@ const initScoreList = () => {
                 unplayedCount++;
                 score = createUnplayedScore(song, song_type as SongType, level_index);
             }
-            result.push({ score, song, score_id: level_str });
+
+            result.push({
+                score: toRaw(score),
+                song: toRaw(song),
+                score_id: level_str
+            });
         }
         //更新索引
         updateIndex(result)
         // 因为默认不算“未游玩的成绩"。所以需要减去
         statusBoard.total = result.length - unplayedCount;
-        listVersion.value++;
         if (result.length > 0) {
             const score = result[0];
             if (score.score.play_count || score.score.play_count === 0) {
@@ -451,25 +476,16 @@ const initScoreList = () => {
             OrderBadges.value.splice(index, 1)
         }
     }
-    //触发搜索
-    search()
+    isLoadingPage.value = false;
 }
 
 // computed
 const getOtherCollections = computed(() => UserCollectionList.value.filter(c => c.label !== route.query.label))
 const isEmpty = computed(() => searchResults.value.length === 0)
 
-// const onSearchList = () => {
-//     let result = searchScore(searchValue.value);
-//     result = advanceFilter(AdvanceFilterForm.value, result);
-//     if (selectedOrder.value.status_index !== 0) {
-//         filterScoreList.value = orderBy(result, selectedOrder.value);
-//     } else filterScoreList.value = result;
-// }
-
-
 watch(() => route.query.label, () => {
-    initScoreList();
+    isLoadingPage.value = true;
+    initScoreList().then(() => isLoadingPage.value = false);
 }, { immediate: true })
 //ScoreCard Event
 const { handelCopy } = useCopyHelper()

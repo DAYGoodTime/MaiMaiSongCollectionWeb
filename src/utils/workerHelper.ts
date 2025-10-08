@@ -2,7 +2,7 @@ import type { AdvanceFilterFilters } from '@/types/component';
 import type { MaiMaiSong, ScoreExtend } from '@/types/songs';
 import ScoreSearchWorker from '@/utils/scoreSearchWorker?worker'
 import SongSearchWorker from '@/utils/songSearchWorker?worker'
-import { onUnmounted, ref, toValue, watch, type MaybeRefOrGetter } from 'vue';
+import { onUnmounted, ref, toRaw, toValue, watch, type MaybeRefOrGetter } from 'vue';
 import type { OrderBadge } from './songSearch';
 import { BASE_NUMBER_RANGE_PATTEN, conventLevelPrefix, conventLevelTag, getLevelValue, isValidAchievementRange, LEVEL_MATCH_PATTEN, LEVEL_RANGE_MATCH_PATTEN, RANKING_MATCH_PATTEN } from './StrUtil';
 import type { SearchOptions } from '@/components/SongSearch.vue';
@@ -19,13 +19,13 @@ export const useScoreSearchWorker = (searchKeyWord: MaybeRefOrGetter<string>, fi
     const searchResults = ref<ScoreExtend[]>([]);
     let ready = false;
 
-    const updateIndex = (scoreList: ScoreExtend[]) => {
+    const updateIndex = async (scoreList: MaybeRefOrGetter<ScoreExtend[]>) => {
         if (!searchWorker) {
             initWorker();
         }
         if (searchWorker) {
             ready = false;
-            searchWorker.postMessage({ type: 'init', payload: JSON.parse(JSON.stringify(scoreList)) })
+            searchWorker.postMessage({ type: 'init', payload: structuredClone(toValue(scoreList)) })
         }
     }
     const initWorker = () => {
@@ -168,47 +168,45 @@ const advanceFilter = (filter: AdvanceFilterFilters, list: ScoreExtend[]): Score
     }
     return result;
 }
+//sorting
+type SortField = 'achievement' | 'dx_rating' | 'level' | 'play_count';
+const sortByAchievement = (a: ScoreExtend, b: ScoreExtend, isAscending: boolean) => {
+    const result = b.score.achievements - a.score.achievements;
+    return isAscending ? -result : result;
+};
+
+const sortByDxRating = (a: ScoreExtend, b: ScoreExtend, isAscending: boolean) => {
+    const result = b.score.dx_rating - a.score.dx_rating;
+    return isAscending ? -result : result;
+};
+
+const sortByLevel = (a: ScoreExtend, b: ScoreExtend, isAscending: boolean) => {
+    const result = getLevelValue(b) - getLevelValue(a);
+    return isAscending ? -result : result;
+};
+
+const sortByPlayCount = (a: ScoreExtend, b: ScoreExtend, isAscending: boolean) => {
+    const aCount = a.score.play_count ?? 0;
+    const bCount = b.score.play_count ?? 0;
+    const result = bCount - aCount;
+    return isAscending ? -result : result;
+};
 const orderBy = (list: ScoreExtend[], orderBy: OrderBadge) => {
-    let ordered = [...list];
-    switch (orderBy.value) {
-        case 'achievement':
-            ordered = ordered.sort((a, b) => {
-                if (orderBy.status_index == 2) {
-                    return a.score.achievements - b.score.achievements
-                } else {
-                    return b.score.achievements - a.score.achievements
-                }
-            });
-            break;
-        case 'dx_rating':
-            ordered = ordered.sort((a, b) => {
-                if (orderBy.status_index == 2) {
-                    return a.score.dx_rating - b.score.dx_rating
-                } else {
-                    return b.score.dx_rating - a.score.dx_rating
-                }
-            });
-            break;
-        case 'level':
-            ordered = ordered.sort((a, b) => {
-                if (orderBy.status_index == 2) {
-                    return getLevelValue(a) - getLevelValue(b)
-                } else {
-                    return getLevelValue(b) - getLevelValue(a)
-                }
-            });
-            break;
-        case 'play_count':
-            if (ordered.length > 1 && (ordered[0].score.play_count || ordered[0].score.play_count != 0)) {
-                ordered = ordered.sort((a, b) => {
-                    if (orderBy.status_index == 2) {
-                        return (a.score.play_count ?? 0) - (b.score.play_count ?? 0)
-                    } else {
-                        return (b.score.play_count ?? 0) - (a.score.play_count ?? 0)
-                    }
-                });
-            }
-            break;
+    const ordered = [...list];
+    const isAscending = orderBy.status_index === 2; // 2 表示升序
+    const sortField = orderBy.value as SortField;
+
+    const sortFunctions = new Map<SortField, (a: ScoreExtend, b: ScoreExtend) => number>([
+        ['achievement', (a, b) => sortByAchievement(a, b, isAscending)],
+        ['dx_rating', (a, b) => sortByDxRating(a, b, isAscending)],
+        ['level', (a, b) => sortByLevel(a, b, isAscending)],
+        ['play_count', (a, b) => sortByPlayCount(a, b, isAscending)]
+    ]);
+    const sortFunction = sortFunctions.get(sortField);
+    if (sortFunction) {
+        ordered.sort(sortFunction);
+    } else {
+        console.warn(`Unknown sort field: ${sortField}`);
     }
     return ordered;
 }
@@ -226,7 +224,7 @@ export const useSongSearchWorker = (searchKeyWord: MaybeRefOrGetter<string>, sea
         }
         if (searchWorker) {
             ready = false;
-            searchWorker.postMessage({ type: 'init', payload: { records: JSON.parse(JSON.stringify(songMap)), searchLimit: MAX_SEARCH_NUMBER } })
+            searchWorker.postMessage({ type: 'init', payload: { records: structuredClone(toRaw(songMap)), searchLimit: MAX_SEARCH_NUMBER } })
         }
     }
     const initWorker = () => {
