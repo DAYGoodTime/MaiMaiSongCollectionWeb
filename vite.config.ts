@@ -2,6 +2,7 @@ import { defineConfig } from "vite";
 import vue from "@vitejs/plugin-vue";
 import path from "node:path";
 import vueJsx from '@vitejs/plugin-vue-jsx'
+import legacy from '@vitejs/plugin-legacy'
 // import { visualizer } from "rollup-plugin-visualizer";
 // cap not support gzip compressed file
 // https://vite.dev/config/
@@ -15,6 +16,9 @@ export default defineConfig({
       },
     }),
     vueJsx(),
+    legacy({
+      targets: ['chrome > 61'],
+    })
     // visualizer({
     //   open: true, // 在默认浏览器中自动打开报告
     //   gzipSize: true, // 显示 Gzip 压缩后的大小
