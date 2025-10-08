@@ -12,14 +12,26 @@ type DebouncedFunction<T extends any[]> = (...args: T) => void;
 
 export function debounce<T extends any[]>(
   fn: (...args: T) => void,
-  delay: number = 300
+  delay: number = 300,
+  immediate: boolean = false
 ): DebouncedFunction<T> {
   let timeoutId: ReturnType<typeof setTimeout>;
+  let isFirstCall = true;
+
   return (...args: T) => {
+    const callNow = immediate && isFirstCall;
+    isFirstCall = false;
+
     clearTimeout(timeoutId);
-    timeoutId = setTimeout(() => {
+
+    if (callNow) {
       fn.apply(null, args);
-    }, delay);
+    } else {
+      timeoutId = setTimeout(() => {
+        fn.apply(null, args);
+        isFirstCall = true;
+      }, delay);
+    }
   };
 }
 export function useRouterHelper() {

@@ -23,8 +23,8 @@
       @interact-outside="handelInteractOutSide">
       <ComboboxEmpty class="mx-8"> 没有找到符合的歌曲 </ComboboxEmpty>
       <ComboboxGroup>
-        <ComboboxVirtualizer v-slot="{ option }" :options="searchResults" :text-content="(x) => x.title"
-          :estimate-size="96" :overscan="10">
+        <ComboboxVirtualizer v-slot="{ option }" :options="searchResults.slice(0, MAX_SEARCH_NUMBER)"
+          :text-content="(x) => x.title" :estimate-size="96" :overscan="10">
           <ComboboxItem :value="option" class="hover:bg-blue-50 transition-colors rounded-lg py-2 w-full">
             <div class="flex items-center gap-3 p-3 w-full overflow-hidden">
               <div class="shrink-0">
@@ -75,6 +75,7 @@ import { ComboboxCancel } from "@/components/shadcn/ui/combobox";
 import type { Tag } from "./TagInputCombobox.vue";
 import { useAppStore } from '@/store/appStore';
 import { useSongSearchWorker } from "@/utils/workerHelper";
+import { MAX_SEARCH_NUMBER } from "@/utils/consts";
 
 export interface SearchOptions {
   selected_tags: Tag[],
@@ -91,7 +92,7 @@ const searchValue = ref("")
 const temp_search = ref("")
 const onSearch = debounce((val: string) => {
   searchValue.value = String(val);
-}, 100);
+}, 100, true);
 const { searchResults, search } = useSongSearchWorker(searchValue, props)
 const handelCleanSearch = (e: Event) => {
   e.preventDefault();
