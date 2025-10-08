@@ -80,7 +80,7 @@
                     <template #default="{ items }">
                         <div
                             class="grid sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-2 p-2 justify-items-center">
-                            <div v-if="isLoadingPage || isLoading"
+                            <div v-if="(isLoadingPage || isLoading) && items.length <= 20"
                                 class="col-span-full flex justify-center items-center py-10">
                                 <div class="animate-spin rounded-full h-10 w-10 border-b-2 border-primary"></div>
                             </div>
@@ -140,8 +140,10 @@
             </NavigationMenuItem>
             <NavigationMenuItem class="hidden md:block">
                 <Popover>
-                    <PopoverTrigger class="">高级筛选</PopoverTrigger>
-                    <PopoverContent class="w-3/4 pr-0">
+                    <PopoverTrigger
+                        class="w-max h-9 px-4 py-2 text-sm font-medium rounded-md transition-colors hover:bg-accent">
+                        高级筛选</PopoverTrigger>
+                    <PopoverContent class=" w-3/4 pr-0">
                         <AdvanceFilter class="h-96 !p-1" :model-value="AdvanceFilterForm" :show-trigger="false"
                             v-model:is-expanded="showAdvancedFilter"
                             @update:model-value="(filter) => onFilterUpdate(filter as AdvanceFilterFilters)" />

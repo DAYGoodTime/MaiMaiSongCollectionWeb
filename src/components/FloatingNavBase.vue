@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { useAppStore } from "@/store/appStore";
+import { debounce } from "@/utils/functionUtil";
 import { useIntersectionObserver, type UseIntersectionObserverReturn } from "@vueuse/core";
 import { storeToRefs } from "pinia";
 import { ref, watch, type ComponentPublicInstance } from "vue";
@@ -27,7 +28,7 @@ const setUpObserver = (target: CommonComponent) => {
             if (!isIntersecting && boundingClientRect.y < 0) {
                 showSticky.value = showCustomSideBarTrigger.value;
             } else {
-                showSticky.value = false;
+                setTimeout(() => showSticky.value = false, 500)
             }
         }, {
             threshold: 0,

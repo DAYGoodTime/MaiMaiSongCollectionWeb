@@ -40,7 +40,7 @@ export const useScoreSearchWorker = (searchKeyWord: MaybeRefOrGetter<string>, fi
                 }
                 case 'search_results': {
                     searchResults.value = afterSearchScore(results, toValue(filter), toValue(order));
-                    isLoading.value = false;
+                    setTimeout(() => isLoading.value = false, 200)
                     break;
                 }
             }
