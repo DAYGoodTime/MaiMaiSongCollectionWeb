@@ -170,6 +170,7 @@ const getScoreId = (song: MaiMaiSong, targetLevels: number[]) => {
     if (!hasTargetScoreTag.value) {
         const filtered = diffs.filter(diff => targetLevels.includes(diff.level_index))
         const filteredIds = filtered.map(diff => `${song.id}_${diff.type}_${diff.level_index}`);
+        Array.prototype.push.apply(result, filteredIds)
         result = result.filter(sid => filteredIds.indexOf(sid) > -1);
     }
     return result;
