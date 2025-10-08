@@ -78,7 +78,7 @@ const init = (songMap: Record<number, MaiMaiSong>, limit: number) => {
 const searchSongs = (input: string, search_limit?: number) => {
     const SearchLimit = search_limit ?? searchLimit
     if (!ready || input.trim().length === 0 || !songIndex) {
-        self.postMessage({ type: 'search_results', results: SONG_LIST.slice(0, SearchLimit) });
+        self.postMessage({ type: 'search_results', results: SONG_LIST });
         return;
     }
     const searchLower = input.trim().toLowerCase();
