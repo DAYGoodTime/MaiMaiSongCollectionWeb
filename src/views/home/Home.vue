@@ -53,6 +53,19 @@ const handelOpenImportDialog = () => {
     <div class="space-y-6 lg:mx-32">
       <Card>
         <CardContent class="flex flex-col gap-4">
+          <div class="flex flex-col gap-4 pt-4">
+            <div class="flex justify-between">
+              <div class="flex items-center gap-2">
+                <Search class="h-5 w-5" />
+                <span class="text-lg font-semibold">歌曲搜索</span>
+              </div>
+              <div>
+                <Button variant="outline" @click="handelOpenImportDialog">导入到合集</Button>
+              </div>
+            </div>
+            <SongSearch ref="search" class="mx-auto" v-model:selected="selectedSong" :selected_tags="tags"
+              :bpm="bpmOption" />
+          </div>
           <Accordion type="single" collapsible class="w-full">
             <AccordionItem value="item-1">
               <AccordionTrigger>
@@ -102,19 +115,6 @@ const handelOpenImportDialog = () => {
               </AccordionContent>
             </AccordionItem>
           </Accordion>
-          <div class="flex flex-col gap-4">
-            <div class="flex justify-between">
-              <div class="flex items-center gap-2">
-                <Search class="h-5 w-5" />
-                <span class="text-lg font-semibold">歌曲搜索</span>
-              </div>
-              <div>
-                <Button variant="outline" @click="handelOpenImportDialog">导入到合集</Button>
-              </div>
-            </div>
-            <SongSearch ref="search" class="mx-auto" v-model:selected="selectedSong" :selected_tags="tags"
-              :bpm="bpmOption" />
-          </div>
         </CardContent>
       </Card>
       <div v-if="selectedSong">
