@@ -253,20 +253,20 @@ export const useSongSearchWorker = (searchKeyWord: MaybeRefOrGetter<string>, sea
             console.error("SongSearchWorker:Error", e);
         }
     }
-    const search = () => {
+    const search = (limit?: number) => {
         if (!searchWorker) {
             initWorker();
         }
         if (ready && searchWorker) {
             isLoading.value = true;
-            searchWorker.postMessage({ type: 'search', payload: toValue(searchKeyWord) })
+            const payload = limit ? { input: toValue(searchKeyWord), searchLimit: limit } : toValue(searchKeyWord)
+            searchWorker.postMessage({ type: 'search', payload: payload })
         }
     }
     const afterSearchSong = (results: MaiMaiSong[]) => {
         const options = toValue(searchOptions)
         const list: MaiMaiSong[] = []
         for (const song of results) {
-            if (list.length >= MAX_SEARCH_NUMBER) break;
             if (options.bpm.enable) {
                 if (song.bpm > options.bpm.range[1] || song.bpm < options.bpm.range[0])
                     continue;

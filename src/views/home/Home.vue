@@ -31,10 +31,12 @@ const tooltipsOpen = ref(false)
 const SelectedType = ref<SongType>("standard")
 const getScoreList = computed(() => selectedSong.value?.difficulties[SelectedType.value] ?? []);
 const SearchRef = useTemplateRef("search")
+const SEARCH_NUMBER_LIMIT = 300;
 const openImportDialog = ref(false)
 const handelOpenImportDialog = () => {
   if (SearchRef.value && SearchRef.value.results.length > 0) {
     appStore.TagComboboxOpen = false;
+    SearchRef.value.triggerSearch(SEARCH_NUMBER_LIMIT)
     //only timeout to prevent process crash
     setTimeout(() => {
       openImportDialog.value = true;
@@ -46,7 +48,8 @@ const handelOpenImportDialog = () => {
 </script>
 <template>
   <div class="container mx-auto px-4 py-2">
-    <ImportFromResult :list="SearchRef?.results ?? []" :tags="tags" v-model:open="openImportDialog" />
+    <ImportFromResult :list="SearchRef?.results ?? []" :tags="tags" v-model:open="openImportDialog"
+      :max_limit="SEARCH_NUMBER_LIMIT" />
     <div class="space-y-6 lg:mx-32">
       <Card>
         <CardContent class="flex flex-col gap-4">

@@ -21,7 +21,13 @@ self.onmessage = ({ data }) => {
             init(records, searchLimit);
             break;
         }
-        case 'search': searchScores(payload); break;
+        case 'search': {
+            const onlyText = typeof payload === 'string'
+            const input = onlyText ? payload : payload.input
+            const search_limit = (!onlyText && "searchLimit" in payload) ? payload.searchLimit : void 0;
+            searchSongs(input, search_limit);
+            break;
+        }
         default: console.warn(`scoreWorkers:未知的指令 ${type}`);
     }
 }
@@ -69,9 +75,10 @@ const init = (songMap: Record<number, MaiMaiSong>, limit: number) => {
     ready = true;
 }
 
-const searchScores = (input: string) => {
+const searchSongs = (input: string, search_limit?: number) => {
+    const SearchLimit = search_limit ?? searchLimit
     if (!ready || input.trim().length === 0 || !songIndex) {
-        self.postMessage({ type: 'search_results', results: SONG_LIST.slice(0, searchLimit) });
+        self.postMessage({ type: 'search_results', results: SONG_LIST.slice(0, SearchLimit) });
         return;
     }
     const searchLower = input.trim().toLowerCase();
@@ -86,7 +93,7 @@ const searchScores = (input: string) => {
             return songsToShow;
         }
     }
-    const searchResults = (songIndex as Document).search(searchLower, { limit: MAX_SEARCH_NUMBER });
+    const searchResults = (songIndex as Document).search(searchLower, { limit: SearchLimit });
     const orderedIds: string[] = [];
     const addedIds = new Set<string>();
     searchResults.forEach(fieldResult => {

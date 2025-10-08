@@ -4,8 +4,8 @@
             <DialogHeader>
                 <DialogTitle>将搜索结果导入到合集当中</DialogTitle>
                 <DialogDescription>
-                    <p v-if="props.list.length === MAX_SEARCH_NUMBER" class="text-red-600">
-                        注意：当前搜索结果数量达到上限，这可能会导致遗漏，建议缩小搜索范围。</p>
+                    <p v-if="props.list.length >= props.max_limit" class="text-red-600">
+                        注意：当前搜索结果数量达到上限 ({{ props.max_limit }}) ，这可能会导致遗漏，建议缩小搜索范围。</p>
                     <p>准备导入的歌曲数量为 : {{ props.list.length }}</p>
                 </DialogDescription>
             </DialogHeader>
@@ -91,7 +91,6 @@ import type { FilterProps } from '@/types/component';
 import { storeToRefs } from 'pinia';
 import { useCollectionStore } from '@/store/collections';
 import { toast } from 'vue-sonner';
-import { MAX_SEARCH_NUMBER } from '@/utils/consts';
 
 const { UserCollectionList } = storeToRefs(useCollectionStore())
 
@@ -103,7 +102,8 @@ const diffOptions: FilterProps<number>[] = [{ label: 'BASIC', value: 0 }, { labe
 const selectedDiffs = ref<FilterProps<number>[]>([])
 const props = defineProps<{
     list: MaiMaiSong[] | []
-    tags: Tag[] | []
+    tags: Tag[] | [],
+    max_limit: number
 }>()
 const hasLevelTag = computed(() => {
     return props.tags.filter(t => LEVEL_MATCH_PATTEN.test(t.value) || LEVEL_RANGE_MATCH_PATTEN.test(t.value)).length > 0

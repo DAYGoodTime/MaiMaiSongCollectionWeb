@@ -1,1 +1,1 @@
-export const MAX_SEARCH_NUMBER = 300
+export const MAX_SEARCH_NUMBER = 100

@@ -87,16 +87,16 @@ const props = defineProps<SearchOptions>();
 const appStore = useAppStore();
 const selectedSong = defineModel<MaiMaiSong>("selected");
 //filter and search
-const search = ref("")
+const searchValue = ref("")
 const temp_search = ref("")
 const onSearch = debounce((val: string) => {
-  search.value = String(val);
+  searchValue.value = String(val);
 }, 100);
-const { searchResults } = useSongSearchWorker(search, props)
+const { searchResults, search } = useSongSearchWorker(searchValue, props)
 const handelCleanSearch = (e: Event) => {
   e.preventDefault();
   selectedSong.value = undefined;
-  search.value = ""
+  searchValue.value = ""
   temp_search.value = ""
 }
 const handelInteractOutSide = (event: Event) => {
@@ -104,6 +104,9 @@ const handelInteractOutSide = (event: Event) => {
   appStore.ComboboxOpen = false
 }
 defineExpose({
-  results: searchResults
+  results: searchResults,
+  triggerSearch: (number: number) => {
+    search(number)
+  }
 })
 </script>
