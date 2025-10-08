@@ -4,8 +4,7 @@
         <div class="w-72 sm:w-64 rounded-lg shadow-lg transition-all duration-300 hover:shadow-xl"
             @dblclick="() => emit('dbClick', ScoreCardRef, props.score.song, getNoteDesigner(SongDiff))">
             <div :class="cardClass" @click="handleTitleEnter(score.song.title)"
-                @mouseenter="handleTitleEnter(score.song.title)" @mouseleave="handleMouseLeave()"
-                class="cursor-pointer p-2">
+                @mouseenter="handleTitleEnter(score.song.title)" @mouseleave="hideTooltip()" class="cursor-pointer p-2">
                 <div class="flex gap-1">
                     <div class="w-12 h-12 rounded overflow-hidden flex-shrink-0">
                         <img :src="getImageCoverUrl(props.score.song.id ?? 0)" alt="Song Cover"
@@ -32,19 +31,12 @@
                 </div>
             </div>
             <div class="bg-white rounded-b-lg p-2">
-                <div class="flex w-full justify-between items-center">
-                    <div class="flex justify-between items-center">
+                <div class="flex w-full items-center">
+                    <div class="flex flex-1 justify-between items-center pr-2" @mouseenter="handleDxScoreEnter()"
+                        @mouseleave="hideTooltip(200)" ref="DetailCardRef">
                         <span class="text-left text-sm text-gray-600">{{ details }}</span>
-                        <img v-if="ScoreStore.selectedSource !== 'usagi'" :src="dxScoreIcon" loading="lazy" />
-                        <!-- <TooltipProvider>
-                            <Tooltip v-model:open="openDxScoreTooltips" :delay-duration="0">
-                                <TooltipTrigger>
-                                </TooltipTrigger>
-                                <TooltipContent>
-                                    <p>{{ `${details.sc.current}/${cardData.dxScore.total}` }}</p>
-                                </TooltipContent>
-                            </Tooltip>
-                        </TooltipProvider> -->
+                        <img v-if="!ScoreStore.isSupportPlayCount" class="w-auto h-4" :src="dxScoreIcon"
+                            loading="lazy" />
                     </div>
                     <div class="flex w-12">
                         <img class="h-7 w-7" :src="getFCFSIcon(conventFcFsStr(score.score.fc))" />
@@ -56,11 +48,11 @@
     </div>
 </template>
 
-<script setup lang="ts">
+<script setup lang="tsx">
 import type { MaiMaiSong, ScoreExtend } from '@/types/songs';
 import { conventFcFsStr, getTotalDxScore } from '@/utils/StrUtil';
 import { getDxScoreIcon, getFCFSIcon } from '@/utils/urlUtils';
-import { computed, useTemplateRef } from 'vue';
+import { computed, useTemplateRef, type VNode } from 'vue';
 import { getAchievementIcon, getImageAssertUrl, getImageCoverUrl } from '@/utils/urlUtils';
 import { formatAchievement, formatDxRating, formatLevelValue, getNoteDesigner } from '@/utils/StrUtil';
 import { getSongDiffByScoreEx, showCurrentStyleId } from '@/utils/functionUtil';
@@ -72,15 +64,25 @@ const props = defineProps<{
 }>()
 
 const ScoreCardRef = useTemplateRef('ScoreCardRef')
+const DetailCardRef = useTemplateRef('DetailCardRef')
 const ScoreStore = useScores();
 
 const handleTitleEnter = (title: string) => {
     const copyFn = () => emit('copy', title, '已成功复制歌曲名到剪切板中');
     showTooltip(ScoreCardRef.value as HTMLElement, title, copyFn);
 };
+const handleDxScoreEnter = () => {
+    const imgClass = dxScoreIcon.value.includes("UI_GAM_DXScoreIcon_2_5") ? "w-auto" : "w-auto h-4"
+    const template: VNode =
+        <div>{ScoreStore.isSupportPlayCount ?
+            <div class={'flex justify-between items-center gap-2'}>
+                <p>{dxScoreText.value}</p>
+                <img class={imgClass} src={dxScoreIcon.value} loading="lazy" />
+            </div>
+            : <p>{dxScoreText.value}</p>}
+        </div>
 
-const handleMouseLeave = () => {
-    hideTooltip();
+    showTooltip(DetailCardRef.value as HTMLElement, template);
 };
 
 const isUtage = computed(() => props.score.score.type === 'utage');
@@ -99,16 +101,19 @@ const SongDiff = computed(() => {
 const details = computed(() => {
     const diff = SongDiff.value
     const levelValue = diff ? formatLevelValue(diff.level_value) : '';
-    const dxScoreOrPc = props.score.score.play_count ? `pc:${props.score.score.play_count}` : ''
-    let baseDetails = `#${showCurrentStyleId(props.score.song.id)} ${levelValue} → ${formatDxRating(props.score.score.dx_rating)} ${dxScoreOrPc}`;
+    const dxScoreOrPc = ScoreStore.isSupportPlayCount ? `pc:${props.score.score.play_count}` : `${dxScoreText.value}`
+    let baseDetails = `#${showCurrentStyleId(props.score.song.id)} ${levelValue} → ${formatDxRating(props.score.score.dx_rating)} ${dxScoreOrPc} `;
     if (props.score.score.type === "utage") {
-        baseDetails = `#${props.score.score.diff_id} ${props.score.score.level}      ${dxScoreOrPc}`;
+        baseDetails = `#${props.score.score.diff_id} ${props.score.score.level} ${dxScoreOrPc}`;
     }
     return baseDetails;
 });
 const dxScoreIcon = computed(() => {
     const diff = SongDiff.value
     return getDxScoreIcon(props.score.score.dx_score, getTotalDxScore(diff)) ?? "";
+})
+const dxScoreText = computed(() => {
+    return `${props.score.score.dx_score} / ${getTotalDxScore(SongDiff.value)}`
 })
 
 const played = computed(() => props.score.score.is_played === undefined ? true : props.score.score.is_played);

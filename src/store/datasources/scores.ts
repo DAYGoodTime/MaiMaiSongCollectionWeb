@@ -163,6 +163,8 @@ export const useScores = defineStore("scores", () => {
     const getScoreByUni = (id: number, type: SongType, level_index: number) => {
         return getDataSource.value.value.list[`${id}_${type}_${level_index}`]
     }
+    const PC_SUPPORT_SOURCES: DataSourceType[] = ["usagi"]
+    const isSupportPlayCount = computed(() => PC_SUPPORT_SOURCES.includes(selectedSource.value))
     return {
         UsagiScores,
         hasUsagiData,
@@ -179,7 +181,8 @@ export const useScores = defineStore("scores", () => {
         getDataSource,
         getSelectableSource,
         switchDataSource,
-        ClearDataSource
+        ClearDataSource,
+        isSupportPlayCount
     }
 })
 
