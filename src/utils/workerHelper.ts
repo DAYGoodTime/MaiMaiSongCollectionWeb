@@ -4,7 +4,7 @@ import ScoreSearchWorker from '@/utils/scoreSearchWorker?worker'
 import SongSearchWorker from '@/utils/songSearchWorker?worker'
 import { onUnmounted, ref, toRaw, toValue, watch, type MaybeRefOrGetter } from 'vue';
 import type { OrderBadge } from './songSearch';
-import { BASE_NUMBER_RANGE_PATTEN, conventLevelPrefix, conventLevelTag, getLevelValue, getTotalDxScore, isValidAchievementRange, LEVEL_MATCH_PATTEN, LEVEL_RANGE_MATCH_PATTEN, RANKING_MATCH_PATTEN } from './StrUtil';
+import { BASE_NUMBER_RANGE_PATTEN, conventLevelPrefix, conventLevelTag, getDxScoreRadio, getLevelValue, getTotalDxScore, isValidAchievementRange, LEVEL_MATCH_PATTEN, LEVEL_RANGE_MATCH_PATTEN, RANKING_MATCH_PATTEN } from './StrUtil';
 import type { SearchOptions } from '@/components/SongSearch.vue';
 import { rankingList } from './urlUtils';
 import { isAllFinal, versionList } from './version';
@@ -185,12 +185,6 @@ type SortField = 'achievement' | 'dx_rating' | 'level' | 'play_count' | 'dx_scor
 const sortByNumber = (a: number | undefined, b: number | undefined, isAscending: boolean) => {
     const result = (a ?? 0) - (b ?? 0);
     return isAscending ? -result : result;
-}
-const getDxScoreRadio = (ex: ScoreExtend) => {
-    const totalDxScore = getTotalDxScore(getSongDiffByScoreEx(ex));
-    const radio = ex.score.dx_score / totalDxScore
-    if (radio > 1) return 0;
-    return radio;
 }
 const orderBy = (list: ScoreExtend[], orderBy: OrderBadge) => {
     const ordered = [...list];

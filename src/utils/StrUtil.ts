@@ -326,6 +326,12 @@ export function getTotalDxScore(diff?: SongDifficulty | null): number {
     return (diff.tap_num + diff.hold_num + diff.slide_num + diff.touch_num + diff.break_num) * 3
   } else return 1;
 }
+export function getDxScoreRadio(ex: ScoreExtend) {
+  const totalDxScore = getTotalDxScore(getSongDiffByScoreEx(ex));
+  const radio = ex.score.dx_score / totalDxScore
+  if (radio > 1) return 0;
+  return radio;
+}
 export function isValidAchievementRange(tag: string): boolean {
   if (!tag || typeof tag !== 'string' || tag.length === 0) return false;
   const matched = tag.match(BASE_NUMBER_RANGE_PATTEN);

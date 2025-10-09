@@ -52,7 +52,7 @@
 
 <script setup lang="tsx">
 import type { MaiMaiSong, ScoreExtend } from '@/types/songs';
-import { conventFcFsStr, getTotalDxScore } from '@/utils/StrUtil';
+import { conventFcFsStr, getDxScoreRadio, getTotalDxScore } from '@/utils/StrUtil';
 import { getDxScoreIcon, getFCFSIcon } from '@/utils/urlUtils';
 import { computed, useTemplateRef, type VNode } from 'vue';
 import { getAchievementIcon, getImageAssertUrl, getImageCoverUrl } from '@/utils/urlUtils';
@@ -116,7 +116,7 @@ const dxScoreIcon = computed(() => {
     return getDxScoreIcon(props.score.score.dx_score, getTotalDxScore(diff)) ?? "";
 })
 const dxScoreText = computed(() => {
-    return `${props.score.score.dx_score} / ${getTotalDxScore(SongDiff.value)}`
+    return `${props.score.score.dx_score} / ${getTotalDxScore(SongDiff.value)} ${(getDxScoreRadio(props.score) * 100).toFixed(2)}%`
 })
 
 const played = computed(() => props.score.score.is_played === undefined ? true : props.score.score.is_played);
