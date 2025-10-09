@@ -59,7 +59,7 @@ export const useSongStore = defineStore("ds_song", () => {
         if (SONG_LIST.value.version !== CURRENT_SONG_VERSION) return true;
         const now = new Date().getTime()
         // 7 day
-        return now - LastSongUpdateTime.value >= 3600 * 24 * 7;
+        return now - LastSongUpdateTime.value >= 1000 * 3600 * 24 * 7;
     }
     return {
         SONG_LIST,
