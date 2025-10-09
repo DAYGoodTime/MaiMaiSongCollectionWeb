@@ -11,8 +11,8 @@
                 <div class="flex-1 w-full">
                     <div class="flex items-center gap-3 mb-2">
                         <div class="bg-pink-500 text-white text-xs px-3 py-1 rounded-full shadow inline-block cursor-pointer hover:opacity-50"
-                            @click="() => handelCopy(String(showCurrentStyleId(song.id)), '已成功复制歌曲id到剪切板中')">
-                            {{ `No ${showCurrentStyleId(song.id)}` }}
+                            @click="() => handelCopy(currentStyleId, '已成功复制歌曲id到剪切板中')">
+                            {{ `No ${currentStyleId}` }}
                         </div>
                     </div>
                     <h2 class="text-2xl font-extrabold text-gray-900 mb-1 tracking-tight hover:opacity-50 cursor-pointer"
@@ -90,9 +90,9 @@ import { Badge } from '@/components/shadcn/ui/badge'
 import { getImageCoverUrl } from '@/utils/urlUtils'
 
 import type { MaiMaiSong, SongType } from '@/types/songs'
-import { onMounted, reactive, ref, watch } from 'vue'
+import { computed, onMounted, reactive, ref, watch } from 'vue'
 import { SelectItem, SelectLabel, SelectTrigger, Select, SelectValue, SelectContent } from './shadcn/ui/select'
-import { showCurrentStyleId, useCopyHelper } from '@/utils/functionUtil'
+import { useCopyHelper } from '@/utils/functionUtil'
 import type { AcceptableValue } from 'reka-ui'
 import type { DataSourceType } from '@/types/datasource'
 import { useScores } from '@/store/datasources/scores'
@@ -119,6 +119,10 @@ type TypeValue = typeof typeList[number]["value"];
 const isSelectedType = (type: TypeValue) => {
     return type === SelectedType.value;
 }
+
+const currentStyleId = computed(() => {
+    return String(ScoreStore.showCurrentStyleId(song.id))
+})
 
 const handelDataSourceSwitch = (ds: AcceptableValue) => {
     ScoreStore.switchDataSource(ds as DataSourceType);

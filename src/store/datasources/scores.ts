@@ -1,6 +1,6 @@
 import type { AnyScore, AvailableDataSourceType, DataSource, DataSourceType, Score } from "@/types/datasource"
 import type { MaiMaiSong, SongType } from "@/types/songs"
-import { conventToScore, exportFile, toLXNSStyleId } from "@/utils/functionUtil"
+import { conventToScore, exportFile, toFishStyleId, toLXNSStyleId } from "@/utils/functionUtil"
 import { formatDate } from "@/utils/StrUtil"
 import { useLocalStorage, type RemovableRef } from "@vueuse/core"
 import { defineStore } from "pinia"
@@ -163,6 +163,10 @@ export const useScores = defineStore("scores", () => {
     const getScoreByUni = (id: number, type: SongType, level_index: number) => {
         return getDataSource.value.value.list[`${id}_${type}_${level_index}`]
     }
+    const showCurrentStyleId = (id: number) => {
+        if (selectedSource.value === 'divingfish') return toFishStyleId(id);
+        else return id
+    }
     const PC_SUPPORT_SOURCES: DataSourceType[] = ["usagi"]
     const isSupportPlayCount = computed(() => PC_SUPPORT_SOURCES.includes(selectedSource.value))
     return {
@@ -182,7 +186,8 @@ export const useScores = defineStore("scores", () => {
         getSelectableSource,
         switchDataSource,
         ClearDataSource,
-        isSupportPlayCount
+        isSupportPlayCount,
+        showCurrentStyleId
     }
 })
 

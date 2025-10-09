@@ -55,7 +55,7 @@ import { getDxScoreIcon, getFCFSIcon } from '@/utils/urlUtils';
 import { computed, useTemplateRef, type VNode } from 'vue';
 import { getAchievementIcon, getImageAssertUrl, getImageCoverUrl } from '@/utils/urlUtils';
 import { formatAchievement, formatDxRating, formatLevelValue, getNoteDesigner } from '@/utils/StrUtil';
-import { getSongDiffByScoreEx, showCurrentStyleId } from '@/utils/functionUtil';
+import { getSongDiffByScoreEx } from '@/utils/functionUtil';
 import { useScores } from '@/store/datasources/scores';
 import { showTooltip, hideTooltip } from '@/lib/useTooltip';
 
@@ -102,7 +102,7 @@ const details = computed(() => {
     const diff = SongDiff.value
     const levelValue = diff ? formatLevelValue(diff.level_value) : '';
     const dxScoreOrPc = ScoreStore.isSupportPlayCount ? `pc:${props.score.score.play_count}` : `${dxScoreText.value}`
-    let baseDetails = `#${showCurrentStyleId(props.score.song.id)} ${levelValue} → ${formatDxRating(props.score.score.dx_rating)} ${dxScoreOrPc} `;
+    let baseDetails = `#${ScoreStore.showCurrentStyleId(props.score.song.id)} ${levelValue} → ${formatDxRating(props.score.score.dx_rating)} ${dxScoreOrPc} `;
     if (props.score.score.type === "utage") {
         baseDetails = `#${props.score.score.diff_id} ${props.score.score.level} ${dxScoreOrPc}`;
     }

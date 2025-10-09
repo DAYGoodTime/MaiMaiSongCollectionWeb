@@ -6,7 +6,8 @@ import { getSongDiffUniId } from "./StrUtil";
 import type { MaiMaiSong, ScoreExtend, SongDifficultyAny, SongType } from "@/types/songs";
 import { fcMapping, fsMapping, rateMapping } from "@/api/usagi";
 import { ref } from "vue";
-import { useScores } from "@/store/datasources/scores";
+import type { LXNSScore } from "@/types/lxns";
+import type { UsagiScore } from "@/types/usagi";
 
 type DebouncedFunction<T extends any[]> = (...args: T) => void;
 
@@ -77,55 +78,59 @@ export function useCopyHelper() {
   }
   return { handelCopy }
 }
-export function conventToScore(score: AnyScore, song: MaiMaiSong): Score {
-  let rate_type;
-  if ("rate" in score) {
-    //usagi or fish
-    if (Number.isInteger(score.rate)) {
-      //usagi
-      rate_type = rateMapping[score.rate as number]
-    } else {
-      //fish
-      rate_type = score.rate as string
+
+function getRateType(score: AnyScore): string {
+  if ("rate" in score && Number.isInteger(score.rate)) return rateMapping[score.rate as number] //usagi style
+  if ("rate" in score && typeof score.rate === "string") return score.rate //fish style
+  return (score as LXNSScore).rate_type ?? "d" // lxns style
+}
+
+function getFcFsType(fcfs: string | number | null, type: "fc" | "fs"): string | null {
+  if (fcfs === null || fcfs === undefined) return null;
+  if (typeof fcfs === 'number' && Number.isInteger(fcfs)) {
+    switch (type) {
+      case "fc":
+        return fcMapping[fcfs] ?? null;
+      case "fs":
+        return fsMapping[fcfs] ?? null;
+      default:
+        return null;
     }
-  } else {
-    //lxns
-    rate_type = score.rate_type
   }
-  let fc
-  if (Number.isInteger(score.fc)) {
-    //usagi
-    fc = fcMapping[score.fc as number]
-  } else {
-    fc = score.fc as string | null
-  }
-  let fs
-  if (Number.isInteger(score.fs)) {
-    //usagi
-    fs = fsMapping[score.fs as number]
-  } else {
-    fs = score.fs as string | null
-  }
-  const song_id = ("song_id" in score) ? toLXNSStyleId(score.song_id) : toLXNSStyleId(score.id)
+  return typeof fcfs === 'string' ? fcfs : null;
+}
+export function conventToScore(score: AnyScore, song: MaiMaiSong): Score {
+  const song_id = ("song_id" in score)
+    ? toLXNSStyleId(score.song_id)
+    : toLXNSStyleId(score.id)
   const raw_id = ("song_id" in score) ? score.song_id : score.id
   let type = toLXNSType(score.type) as SongType
-  //why your type is wrong
+  //why your type is this
   if ("level_label" in score && score.level_label === "Utage") type = "utage"
   return {
     id: song_id,
     fish_id: ("song_id" in score) ? score.song_id : toFishStyleId(score.id),
-    song_name: ("title" in score) ? score.title : score.song_name,
-    achievements: score.achievements,
-    fc,
-    fs,
-    level: score.level,
-    level_index: score.level_index,
-    level_value: ("ds" in score) ? score.ds : getSongDiffByScore(song, score)?.level_value,
-    rate_type,
-    dx_score: ("dxScore" in score) ? score.dxScore : score.dx_score,
-    dx_rating: ("ra" in score) ? score.ra : score.dx_rating,
+    song_name: ("title" in score) ? score.title : score.song_name ?? "Unknown",
+    achievements: score.achievements ?? 0,
+    fc: getFcFsType(score.fc, "fc"),
+    fs: getFcFsType(score.fs, "fs"),
+    level: score.level ?? "0?",
+    level_index: score.level_index ?? 0,
+    level_value: ("ds" in score)
+      ? score.ds
+      : getSongDiffByScore(song, score)?.level_value
+      ?? 0,
+    rate_type: getRateType(score),
+    dx_score: ("dxScore" in score)
+      ? score.dxScore
+      : score.dx_score
+      ?? 0,
+    dx_rating: ("ra" in score)
+      ? score.ra
+      : score.dx_rating
+      ?? 0,
     type,
-    play_count: ("play_count" in score) ? score.play_count : void 0,
+    play_count: (score as UsagiScore).play_count,
     diff_id: raw_id
   }
 }
@@ -162,38 +167,6 @@ function toLXNSType(type: string) {
     case "UTAGE": return "utage";
     default: return type;
   }
-}
-export function showCurrentStyleId(id: number) {
-  if (useScores().selectedSource === 'divingfish') return toFishStyleId(id);
-  else return id
-}
-/**
- * 对数组进行分页处理
- * @param array 需要分页的原始数组
- * @param currentPage 当前页码（从1开始，默认值1）
- * @param itemsPerPage 每页元素数量（默认值10）
- * @returns 当前页对应的数据子集
- */
-export function paginateArray<T>(
-  array: T[],
-  currentPage: number = 1,
-  itemsPerPage: number = 10
-): T[] {
-  // 参数有效性校验
-  if (!Number.isInteger(currentPage) || currentPage < 1) {
-    throw new Error("currentPage must be a positive integer")
-  }
-
-  if (!Number.isInteger(itemsPerPage) || itemsPerPage <= 0) {
-    throw new Error("itemsPerPage must be a positive integer")
-  }
-
-  // 计算分页边界
-  const startIndex = (currentPage - 1) * itemsPerPage
-  const endIndex = startIndex + itemsPerPage
-
-  // 返回分页结果
-  return array.slice(startIndex, endIndex)
 }
 export const useNFC = (callback: (message: string) => void) => {
   const isSupported = 'NDEFReader' in window;
