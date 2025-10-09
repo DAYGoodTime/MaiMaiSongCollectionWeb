@@ -18,7 +18,7 @@ export default defineConfig({
     vueJsx(),
     legacy({
       targets: ['chrome > 61'],
-    })
+    }),
     // visualizer({
     //   open: true, // 在默认浏览器中自动打开报告
     //   gzipSize: true, // 显示 Gzip 压缩后的大小
@@ -47,7 +47,7 @@ export default defineConfig({
       output: {
         manualChunks(id) {
           // 将大的 JSON 文件单独打包
-          if (id.includes("song_data_extra.json")) {
+          if (id.includes("song_data_default.json")) {
             return "song-data";
           }
           // 将 vue 全家桶和核心依赖打包到一起
