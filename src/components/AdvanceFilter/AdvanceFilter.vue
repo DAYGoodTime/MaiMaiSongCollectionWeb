@@ -231,4 +231,5 @@ const resetAllFilters = () => {
 watch(() => props.modelValue, (newValue) => {
     Object.assign(filters, { ...defaultFilters, ...newValue })
 }, { deep: true })
+defineExpose({ resetAllFilters })
 </script>

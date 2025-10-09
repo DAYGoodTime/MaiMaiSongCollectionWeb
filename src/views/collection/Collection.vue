@@ -63,7 +63,7 @@
                     </div>
                     <div>
                         <div class="w-full max-w-4xl mx-auto bg-white border border-gray-200 rounded-lg">
-                            <AdvanceFilter :model-value="AdvanceFilterForm" :show-trigger="true"
+                            <AdvanceFilter ref="AdvanceFilterRef" :model-value="AdvanceFilterForm" :show-trigger="true"
                                 v-model:is-expanded="isFilterExpended"
                                 @update:model-value="(filter) => onFilterUpdate(filter as AdvanceFilterFilters)" />
                         </div>
@@ -238,6 +238,7 @@ const { getCollectionByLabel, removeFromCollection, pushScoreToCollection } = us
 const { CurrentCollectionLabel, UserCollectionList } = storeToRefs(useCollectionStore())
 const { toggleSidebar } = useSidebar()
 const PanelRef = useTemplateRef("panel")
+const AdvanceFilterRef = useTemplateRef("AdvanceFilterRef")
 const [DefineSortingTemplate, ReuseSortingTemplate] = createReusableTemplate()
 const [DefineSearchTemplate, ReuseSearchTemplate] = createReusableTemplate()
 
@@ -259,7 +260,7 @@ const OrderBadges = ref<OrderBadge[]>([
     { label: "达成率", value: "achievement", status_index: 2 },
     { label: "Dx Rating", value: "dx_rating", status_index: 0 },
     { label: "定数", value: "level", status_index: 0 },
-
+    { label: "dx分", value: "dx_score", status_index: 0 },
 ])
 const selectedOrder = ref<OrderBadge>(OrderBadges.value[0])
 
@@ -487,6 +488,9 @@ const isEmpty = computed(() => searchResults.value.length === 0)
 
 watch(() => route.query.label, () => {
     isLoadingPage.value = true;
+    if (AdvanceFilterRef.value) {
+        AdvanceFilterRef.value.resetAllFilters()
+    }
     initScoreList().then(() => isLoadingPage.value = false);
 }, { immediate: true })
 //ScoreCard Event

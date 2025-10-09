@@ -33,10 +33,12 @@
             <div class="bg-white rounded-b-lg p-2">
                 <div class="flex w-full items-center">
                     <div class="flex flex-1 justify-between items-center pr-2" @mouseenter="handleDxScoreEnter()"
-                        @mouseleave="hideTooltip(200)" ref="DetailCardRef">
-                        <span class="text-left text-sm text-gray-600">{{ details }}</span>
-                        <img v-if="!ScoreStore.isSupportPlayCount" class="w-auto h-4" :src="dxScoreIcon"
-                            loading="lazy" />
+                        @mouseleave="hideTooltip(200)">
+                        <span ref="CardDetailRef" class="text-left text-sm text-gray-600">{{ details }}</span>
+                        <div ref="DxScoreIconRef">
+                            <img v-if="!ScoreStore.isSupportPlayCount" class="w-auto h-4" :src="dxScoreIcon"
+                                loading="lazy" />
+                        </div>
                     </div>
                     <div class="flex w-12">
                         <img class="h-7 w-7" :src="getFCFSIcon(conventFcFsStr(score.score.fc))" />
@@ -64,7 +66,8 @@ const props = defineProps<{
 }>()
 
 const ScoreCardRef = useTemplateRef('ScoreCardRef')
-const DetailCardRef = useTemplateRef('DetailCardRef')
+const DxScoreIconRef = useTemplateRef('DxScoreIconRef')
+const CardDetailRef = useTemplateRef('CardDetailRef')
 const ScoreStore = useScores();
 
 const handleTitleEnter = (title: string) => {
@@ -81,8 +84,8 @@ const handleDxScoreEnter = () => {
             </div>
             : <p>{dxScoreText.value}</p>}
         </div>
-
-    showTooltip(DetailCardRef.value as HTMLElement, template);
+    const targetRef = ScoreStore.isSupportPlayCount ? CardDetailRef.value : DxScoreIconRef.value
+    showTooltip(targetRef as HTMLElement, template);
 };
 
 const isUtage = computed(() => props.score.score.type === 'utage');
@@ -101,10 +104,10 @@ const SongDiff = computed(() => {
 const details = computed(() => {
     const diff = SongDiff.value
     const levelValue = diff ? formatLevelValue(diff.level_value) : '';
-    const dxScoreOrPc = ScoreStore.isSupportPlayCount ? `pc:${props.score.score.play_count}` : `${dxScoreText.value}`
-    let baseDetails = `#${ScoreStore.showCurrentStyleId(props.score.song.id)} ${levelValue} → ${formatDxRating(props.score.score.dx_rating)} ${dxScoreOrPc} `;
+    const palyCount = ScoreStore.isSupportPlayCount ? `pc:${props.score.score.play_count}` : ''
+    let baseDetails = `#${ScoreStore.showCurrentStyleId(props.score.song.id)} ${levelValue} → ${formatDxRating(props.score.score.dx_rating)} ${palyCount} `;
     if (props.score.score.type === "utage") {
-        baseDetails = `#${props.score.score.diff_id} ${props.score.score.level} ${dxScoreOrPc}`;
+        baseDetails = `#${props.score.score.diff_id} ${props.score.score.level} ${palyCount}`;
     }
     return baseDetails;
 });

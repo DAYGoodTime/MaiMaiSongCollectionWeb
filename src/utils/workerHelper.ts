@@ -4,13 +4,14 @@ import ScoreSearchWorker from '@/utils/scoreSearchWorker?worker'
 import SongSearchWorker from '@/utils/songSearchWorker?worker'
 import { onUnmounted, ref, toRaw, toValue, watch, type MaybeRefOrGetter } from 'vue';
 import type { OrderBadge } from './songSearch';
-import { BASE_NUMBER_RANGE_PATTEN, conventLevelPrefix, conventLevelTag, getLevelValue, isValidAchievementRange, LEVEL_MATCH_PATTEN, LEVEL_RANGE_MATCH_PATTEN, RANKING_MATCH_PATTEN } from './StrUtil';
+import { BASE_NUMBER_RANGE_PATTEN, conventLevelPrefix, conventLevelTag, getLevelValue, getTotalDxScore, isValidAchievementRange, LEVEL_MATCH_PATTEN, LEVEL_RANGE_MATCH_PATTEN, RANKING_MATCH_PATTEN } from './StrUtil';
 import type { SearchOptions } from '@/components/SongSearch.vue';
 import { rankingList } from './urlUtils';
 import { isAllFinal, versionList } from './version';
 import { useScores } from '@/store/datasources/scores';
 import { useSongStore } from '@/store/datasources/song';
 import { MAX_SEARCH_NUMBER } from './consts';
+import { getSongDiffByScoreEx } from './functionUtil';
 
 //Score Worker
 export const useScoreSearchWorker = (searchKeyWord: MaybeRefOrGetter<string>, filter: MaybeRefOrGetter<AdvanceFilterFilters>, order: MaybeRefOrGetter<OrderBadge>) => {
@@ -106,101 +107,102 @@ const afterSearchScore = (results: ScoreExtend[], filter: AdvanceFilterFilters, 
     if (order.status_index !== 0) list = orderBy(list, order)
     return list;
 }
+const getNumericLevelValue = (score: ScoreExtend['score']): number | null => {
+    if (score.type !== "utage" && typeof score.level_value === 'number') {
+        return score.level_value;
+    }
+    // 针对 'utage' 或其他没有 level_value 的情况，解析 level 字符串
+    const levelStr = score.level;
+    // '13+'
+    if (levelStr.includes('+')) {
+        const baseLevel = parseFloat(levelStr);
+        return !isNaN(baseLevel) ? baseLevel + 0.6 : null;
+    }
+    const level = parseFloat(levelStr);
+    return !isNaN(level) ? level : null;
+};
 const advanceFilter = (filter: AdvanceFilterFilters, list: ScoreExtend[]): ScoreExtend[] => {
-    let result = list;
-    //level
-    const level_filter = filter.difficulty.map(f => f.value);
-    if (level_filter.length > 0) {
-        result = result.filter(s => level_filter.includes(s.score.level_index))
-    }
-    //categories
-    const category_filter = filter.musicCategories.map(f => f.value)
-    if (category_filter.length > 0) {
-        result = result.filter(s => category_filter.includes(s.song.genre ?? ""))
-    }
-    //version
-    const version_filter = filter.version.map(f => f.value)
-    if (version_filter.length > 0) {
-        result = result.filter(s => version_filter.includes(s.song.version))
-    }
-    //map
-    const map_filter = filter.mapCategories.map(f => f.value);
-    if (map_filter.length > 0) {
-        result = result.filter(s => map_filter.includes(s.song.map ?? ""))
-    }
-    //level_value_rang
-    result = result.filter(s => {
-        if (s.score.type !== "utage" && s.score.level_value) {
-            return s.score.level_value >= filter.difficultyRange[0] && s.score.level_value <= filter.difficultyRange[1]
+    const levelFilter = new Set(filter.difficulty.map(f => f.value));
+    const categoryFilter = new Set(filter.musicCategories.map(f => f.value));
+    const versionFilter = new Set(filter.version.map(f => f.value));
+    const mapFilter = new Set(filter.mapCategories.map(f => f.value));
+    const fcFilter = new Set(filter.fullCombo.map(f => f.value));
+    const fsFilter = new Set(filter.fullSync.map(f => f.value));
+    const typeFilter = new Set(filter.Type.map(f => f.value));
+    const [minDifficulty, maxDifficulty] = filter.difficultyRange;
+    return list.filter(s => {
+        // Unplayed Filter
+        if (!filter.showUnplayed && s.score.is_played === false) {
+            return false;
         }
-        //难度拆分大师
-        if (s.score.level.split("+").length != 2) {
-            const level_value = Number(s.score.level.split("?")[0])
-            if (!isNaN(level_value)) {
-                return level_value >= filter.difficultyRange[0] && level_value <= filter.difficultyRange[1]
-            } else return false;
-        } else {
-            let level_value2 = Number(s.score.level.split("+")[0])
-            if (!isNaN(level_value2)) {
-                level_value2 += 0.6;//as X.6
-                return level_value2 >= filter.difficultyRange[0] && level_value2 <= filter.difficultyRange[1]
-            } else return false;
+
+        // Level Filter
+        if (levelFilter.size > 0 && !levelFilter.has(s.score.level_index)) {
+            return false;
         }
-    })
-    //fc
-    const fc_filter = filter.fullCombo.map(f => f.value);
-    if (fc_filter.length > 0) {
-        result = result.filter(s => fc_filter.includes(s.score.fc ?? "NAN"))
-    }
-    //fs
-    const fs_filter = filter.fullSync.map(f => f.value);
-    if (fs_filter.length > 0) {
-        result = result.filter(s => fs_filter.includes(s.score.fs ?? "NAN"))
-    }
-    //type
-    const type_filter = filter.Type.map(f => f.value);
-    if (type_filter.length == 1) {
-        result = result.filter(s => type_filter.includes(s.score.type))
-    }
-    //unplayed
-    if (!filter.showUnplayed) {
-        result = result.filter(s => s.score.is_played !== false)
-    }
-    return result;
+
+        // Category Filter
+        if (categoryFilter.size > 0 && !categoryFilter.has(s.song.genre ?? "")) {
+            return false;
+        }
+
+        // Version Filter
+        if (versionFilter.size > 0 && !versionFilter.has(s.song.version)) {
+            return false;
+        }
+
+        // Map Filter
+        if (mapFilter.size > 0 && !mapFilter.has(s.song.map ?? "")) {
+            return false;
+        }
+
+        // FC Filter
+        if (fcFilter.size > 0 && !fcFilter.has(s.score.fc ?? "NAN")) {
+            return false;
+        }
+
+        // FS Filter
+        if (fsFilter.size > 0 && !fsFilter.has(s.score.fs ?? "NAN")) {
+            return false;
+        }
+
+        // Type Filter
+        if (typeFilter.size > 0 && !typeFilter.has(s.score.type)) {
+            return false;
+        }
+
+        //Difficulty Range Filter
+        const numericLevel = getNumericLevelValue(s.score);
+        if (numericLevel === null || numericLevel < minDifficulty || numericLevel > maxDifficulty) {
+            return false;
+        }
+
+        return true;
+    });
 }
 //sorting
-type SortField = 'achievement' | 'dx_rating' | 'level' | 'play_count';
-const sortByAchievement = (a: ScoreExtend, b: ScoreExtend, isAscending: boolean) => {
-    const result = b.score.achievements - a.score.achievements;
+type SortField = 'achievement' | 'dx_rating' | 'level' | 'play_count' | 'dx_score';
+const sortByNumber = (a: number | undefined, b: number | undefined, isAscending: boolean) => {
+    const result = (a ?? 0) - (b ?? 0);
     return isAscending ? -result : result;
-};
-
-const sortByDxRating = (a: ScoreExtend, b: ScoreExtend, isAscending: boolean) => {
-    const result = b.score.dx_rating - a.score.dx_rating;
-    return isAscending ? -result : result;
-};
-
-const sortByLevel = (a: ScoreExtend, b: ScoreExtend, isAscending: boolean) => {
-    const result = getLevelValue(b) - getLevelValue(a);
-    return isAscending ? -result : result;
-};
-
-const sortByPlayCount = (a: ScoreExtend, b: ScoreExtend, isAscending: boolean) => {
-    const aCount = a.score.play_count ?? 0;
-    const bCount = b.score.play_count ?? 0;
-    const result = bCount - aCount;
-    return isAscending ? -result : result;
-};
+}
+const getDxScoreRadio = (ex: ScoreExtend) => {
+    const totalDxScore = getTotalDxScore(getSongDiffByScoreEx(ex));
+    const radio = ex.score.dx_score / totalDxScore
+    if (radio > 1) return 0;
+    return radio;
+}
 const orderBy = (list: ScoreExtend[], orderBy: OrderBadge) => {
     const ordered = [...list];
     const isAscending = orderBy.status_index === 2; // 2 表示升序
     const sortField = orderBy.value as SortField;
 
     const sortFunctions = new Map<SortField, (a: ScoreExtend, b: ScoreExtend) => number>([
-        ['achievement', (a, b) => sortByAchievement(a, b, isAscending)],
-        ['dx_rating', (a, b) => sortByDxRating(a, b, isAscending)],
-        ['level', (a, b) => sortByLevel(a, b, isAscending)],
-        ['play_count', (a, b) => sortByPlayCount(a, b, isAscending)]
+        ['achievement', (a, b) => sortByNumber(a.score.achievements, b.score.achievements, isAscending)],
+        ['dx_rating', (a, b) => sortByNumber(a.score.dx_rating, b.score.dx_rating, isAscending)],
+        ['level', (a, b) => sortByNumber(getLevelValue(a), getLevelValue(b), isAscending)],
+        ['play_count', (a, b) => sortByNumber(a.score.play_count, b.score.play_count, isAscending)],
+        ['dx_score', (a, b) => sortByNumber(getDxScoreRadio(a), getDxScoreRadio(b), isAscending)]
     ]);
     const sortFunction = sortFunctions.get(sortField);
     if (sortFunction) {

@@ -324,7 +324,7 @@ export const SongVersionList =
 export function getTotalDxScore(diff?: SongDifficulty | null): number {
   if (diff) {
     return (diff.tap_num + diff.hold_num + diff.slide_num + diff.touch_num + diff.break_num) * 3
-  } else return 0;
+  } else return 1;
 }
 export function isValidAchievementRange(tag: string): boolean {
   if (!tag || typeof tag !== 'string' || tag.length === 0) return false;
