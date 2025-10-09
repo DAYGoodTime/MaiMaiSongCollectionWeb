@@ -1,6 +1,5 @@
 <script setup lang="ts">
 import { useAppStore } from "@/store/appStore";
-import { debounce } from "@/utils/functionUtil";
 import { useIntersectionObserver, type UseIntersectionObserverReturn } from "@vueuse/core";
 import { storeToRefs } from "pinia";
 import { ref, watch, type ComponentPublicInstance } from "vue";
