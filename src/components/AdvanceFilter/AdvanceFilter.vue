@@ -139,7 +139,9 @@ import MultiSelectButtons from '@/components/MultiSelectButtons.vue'
 import MultiSelectTags from '@/components/MultiSelectTags.vue'
 import Slider from '@/components/shadcn/ui/slider/Slider.vue'
 import type { AdvanceFilterEmits, AdvanceFilterProps, AdvanceFilterFilters, FilterProps } from '@/types/component'
-import { SongGenreList, SongMapList, SongVersionList } from '@/utils/StrUtil'
+import SongGenreList from '@/assets/data/song_genres.json' with { type: 'json' }
+import SongMapList from '@/assets/data/song_maps.json' with { type: 'json' }
+import SongVersionList from '@/assets/data/versions.json' with { type: 'json' }
 import { cn } from '@/lib/utils'
 
 
@@ -187,7 +189,7 @@ const filters = reactive<AdvanceFilterFilters>({
 //难度
 const difficultyOptions: FilterProps<number>[] = [{ label: 'BASIC', value: 0 }, { label: 'ADVANCED', value: 1 }, { label: 'EXPERT', value: 2 }, { label: 'MASTER', value: 3 }, { label: 'Re:MASTER', value: 4 }, { label: 'U•TA•GE', value: -1 }]
 const musicCategoryOptions: FilterProps<string>[] = SongGenreList
-const versionOptions: FilterProps<string>[] = SongVersionList
+const versionOptions: FilterProps<string>[] = SongVersionList.map(v => ({ label: v.label_full, value: v.id }))
 const mapCategoryOptions: FilterProps<string>[] = SongMapList
 const fullComboOptions: FilterProps<string>[] = [{ label: 'FC', value: 'fc' }, { label: 'FC+', value: 'fcp' }, { label: 'AP', value: 'ap' }, { label: 'AP+', value: 'app' }]
 const fullSyncOptions: FilterProps<string>[] = [{ label: 'Sync', value: 'sync' }, { label: 'FS', value: 'fs' }, { label: 'FS+', value: 'fsp' }, { label: 'FDX', value: 'fsd' }, { label: 'FDX+', value: 'fsdp' }]

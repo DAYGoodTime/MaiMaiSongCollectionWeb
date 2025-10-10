@@ -4,10 +4,10 @@ import ScoreSearchWorker from '@/utils/scoreSearchWorker?worker'
 import SongSearchWorker from '@/utils/songSearchWorker?worker'
 import { onUnmounted, ref, toRaw, toValue, watch, type MaybeRefOrGetter } from 'vue';
 import type { OrderBadge } from '@/types/component';
-import { BASE_NUMBER_RANGE_PATTEN, conventLevelPrefix, conventLevelTag, getDxScoreRadio, getLevelValue, isValidAchievementRange, LEVEL_MATCH_PATTEN, LEVEL_RANGE_MATCH_PATTEN, RANKING_MATCH_PATTEN } from './StrUtil';
+import { BASE_NUMBER_RANGE_PATTEN, conventLevelPrefix, conventLevelTag, getDxScoreRadio, getLevelValue, isAllFinal, isValidAchievementRange, LEVEL_MATCH_PATTEN, LEVEL_RANGE_MATCH_PATTEN, RANKING_MATCH_PATTEN } from '@/utils/StrUtil';
 import type { SearchOptions } from '@/components/SongSearch.vue';
 import { rankingList } from './urlUtils';
-import { isAllFinal, versionList } from './version';
+import versionList from '@/assets/data/versions.json' with { type: 'json' };
 import { useScores } from '@/store/datasources/scores';
 import { useSongStore } from '@/store/datasources/song';
 import { MAX_SEARCH_NUMBER } from './consts';

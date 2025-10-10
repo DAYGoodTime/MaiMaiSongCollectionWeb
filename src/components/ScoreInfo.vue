@@ -88,8 +88,7 @@ import { DropdownMenu, DropdownMenuTrigger, DropdownMenuItem, DropdownMenuConten
 import { Button } from './shadcn/ui/button';
 import { getAchievementIcon, getDxScoreIcon } from '@/utils/urlUtils';
 import type { MaiMaiSong, SongDifficulty, SongDifficultyUtage } from '@/types/songs';
-import { formatDxRating, formatLevelValue, getTotalDxScore, LevelIndexToLabel } from '@/utils/StrUtil';
-import { conventVersionByInt } from '@/utils/version';
+import { formatDxRating, formatLevelValue, getTotalDxScore, LevelIndexToLabel, conventVersionByInt } from '@/utils/StrUtil';
 import { useCollectionStore } from '@/store/collections';
 import { toast } from 'vue-sonner';
 import { useCopyHelper } from '@/utils/functionUtil';

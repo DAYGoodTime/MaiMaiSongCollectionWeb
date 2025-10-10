@@ -19,7 +19,7 @@ import {
   TagsInputItemText,
   TagsInputClear
 } from "@/components/shadcn/ui/tags-input";
-import { versionList } from "@/utils/version.ts";
+import versionList from "@/assets/data/versions.json" with { type: 'json' };
 import { ScrollArea } from "@/components/shadcn/ui/scroll-area";
 import { isValidAchievementRange, LEVEL_MATCH_PATTEN, LEVEL_RANGE_MATCH_PATTEN } from "@/utils/StrUtil"
 import { toast } from "vue-sonner";

@@ -1,5 +1,5 @@
-import json from "./dev/song_data_raw.json" with { type: 'json' };
-import { conventVersionByInt } from "./src/utils/version"
+import json from "../dev/song_data_raw.json" with { type: 'json' };
+import { conventVersionByInt } from "../src/utils/StrUtil.js";
 import path from "path";
 import fs from 'fs/promises'
 

@@ -1,0 +1,142 @@
+[
+    {
+        "icon": "",
+        "id": "maimai",
+        "label_full": "maimai",
+        "alias": "初",
+        "version_id": 10000
+    },
+    {
+        "icon": "",
+        "id": "maimai PLUS",
+        "label_full": "maimai PLUS",
+        "alias": "真",
+        "version_id": 11000
+    },
+    {
+        "icon": "",
+        "id": "maimai GreeN",
+        "label_full": "maimai GreeN",
+        "alias": "超",
+        "version_id": 12000
+    },
+    {
+        "icon": "",
+        "id": "maimai GreeN PLUS",
+        "label_full": "maimai GreeN PLUS",
+        "alias": "激",
+        "version_id": 13000
+    },
+    {
+        "icon": "",
+        "id": "maimai ORANGE",
+        "label_full": "maimai ORANGE",
+        "alias": "橙",
+        "version_id": 14000
+    },
+    {
+        "icon": "",
+        "id": "maimai ORANGE PLUS",
+        "label_full": "maimai ORANGE PLUS",
+        "alias": "晓",
+        "version_id": 15000
+    },
+    {
+        "icon": "",
+        "id": "maimai PiNK",
+        "label_full": "maimai PiNK",
+        "alias": "桃",
+        "version_id": 16000
+    },
+    {
+        "icon": "",
+        "id": "maimai PiNK PLUS",
+        "label_full": "maimai PiNK PLUS",
+        "alias": "櫻",
+        "version_id": 17000
+    },
+    {
+        "icon": "",
+        "id": "maimai MURASAKi",
+        "label_full": "maimai MURASAKi",
+        "alias": "紫",
+        "version_id": 18000
+    },
+    {
+        "icon": "",
+        "id": "maimai MURASAKi PLUS",
+        "label_full": "maimai MURASAKi PLUS",
+        "alias": "菫",
+        "version_id": 18500
+    },
+    {
+        "icon": "",
+        "id": "maimai MiLK",
+        "label_full": "maimai MiLK",
+        "alias": "白",
+        "version_id": 19000
+    },
+    {
+        "icon": "",
+        "id": "maimai MiLK PLUS",
+        "label_full": "maimai MiLK PLUS",
+        "alias": "雪",
+        "version_id": 19500
+    },
+    {
+        "icon": "",
+        "id": "maimai FiNALE",
+        "label_full": "maimai FiNALE",
+        "alias": "辉",
+        "version_id": 19900
+    },
+    {
+        "icon": "",
+        "id": "ALL FiNALE",
+        "label_full": "ALL FiNALE",
+        "alias": "舞",
+        "version_id": 0
+    },
+    {
+        "icon": "",
+        "id": "maimai DX",
+        "label_full": "舞萌DX",
+        "alias": "熊 華 DX",
+        "version_id": 20000
+    },
+    {
+        "icon": "",
+        "id": "舞萌DX2021",
+        "label_full": "舞萌DX2021",
+        "alias": "爽 煌 2021 Splash",
+        "version_id": 21000
+    },
+    {
+        "icon": "",
+        "id": "舞萌DX2022",
+        "label_full": "舞萌DX2022",
+        "alias": "宙 星 2022 UNIVERSE",
+        "version_id": 22000
+    },
+    {
+        "icon": "",
+        "id": "舞萌DX2023",
+        "label_full": "舞萌DX2023",
+        "alias": "祭 祝 2023 FESTIVAL",
+        "version_id": 23000
+    },
+    {
+        "icon": "",
+        "id": "舞萌DX2024",
+        "label_full": "舞萌DX2024",
+        "alias": "双 宴 2024 BUDDIES",
+        "version_id": 24000
+    },
+    {
+        "icon": "",
+        "id": "舞萌DX2025",
+        "label_full": "舞萌DX2025",
+        "alias": "镜 2025 PRISM",
+        "version_id": 25000
+    }
+]
