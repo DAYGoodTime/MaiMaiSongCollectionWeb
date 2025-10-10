@@ -1,14 +1,25 @@
 <template>
     <div class="container mx-auto px-4 py-8 max-w-4xl">
-        <div class="mb-8">
-            <h1 class="text-3xl font-bold tracking-tight">设置</h1>
-            <p class="text-muted-foreground mt-2">管理数据源和系统配置</p>
-            <p v-if="appStore.hasUserName" class="mt-2">
-                欢迎回来：<span class="font-semibold">{{ appStore.UserName }}</span>
-            </p>
-            <!-- <p v-if="Capacitor.getPlatform() === 'web'" class="text-red-600 font-bold">
-                因为api的跨域问题，所以数据源(落雪,水鱼)的更新都需要能够访问海外才可以使用
-            </p> -->
+        <div class="mb-8 p-6 bg-card rounded-lg border shadow-sm">
+            <div class="flex items-center justify-between">
+                <div>
+                    <h1 class="text-3xl font-bold tracking-tight">设置</h1>
+                    <p class="text-muted-foreground mt-2">管理您的数据源和应用配置。</p>
+                </div>
+                <div v-if="appStore.hasUserName" class="flex items-center gap-4">
+                    <div class="relative h-10 w-10 shrink-0">
+                        <div class="absolute inset-0 rounded-full bg-primary/10 animate-pulse"></div>
+                        <div
+                            class="relative flex h-full w-full items-center justify-center rounded-full border border-primary/20 bg-background">
+                            <UserCircle class="h-6 w-6 text-primary" />
+                        </div>
+                    </div>
+                    <div>
+                        <p class="font-semibold">{{ appStore.UserName }}</p>
+                        <p class="text-sm text-muted-foreground">欢迎回来</p>
+                    </div>
+                </div>
+            </div>
         </div>
 
         <div class="space-y-6">
@@ -151,7 +162,7 @@ import { Button } from '@/components/shadcn/ui/button'
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/shadcn/ui/dialog'
 import { Input } from '@/components/shadcn/ui/input'
 import { Label } from '@/components/shadcn/ui/label'
-import { Music, RefreshCw, MessageSquare } from 'lucide-vue-next'
+import { Music, RefreshCw, MessageSquare, UserCircle } from 'lucide-vue-next'
 import { toast } from 'vue-sonner'
 import { useCollectionStore } from '@/store/collections'
 import { useAppStore } from '@/store/appStore'

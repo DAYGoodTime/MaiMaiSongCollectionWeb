@@ -3,15 +3,14 @@ import type { MaiMaiSong, ScoreExtend } from '@/types/songs';
 import ScoreSearchWorker from '@/utils/scoreSearchWorker?worker'
 import SongSearchWorker from '@/utils/songSearchWorker?worker'
 import { onUnmounted, ref, toRaw, toValue, watch, type MaybeRefOrGetter } from 'vue';
-import type { OrderBadge } from './songSearch';
-import { BASE_NUMBER_RANGE_PATTEN, conventLevelPrefix, conventLevelTag, getDxScoreRadio, getLevelValue, getTotalDxScore, isValidAchievementRange, LEVEL_MATCH_PATTEN, LEVEL_RANGE_MATCH_PATTEN, RANKING_MATCH_PATTEN } from './StrUtil';
+import type { OrderBadge } from '@/types/component';
+import { BASE_NUMBER_RANGE_PATTEN, conventLevelPrefix, conventLevelTag, getDxScoreRadio, getLevelValue, isValidAchievementRange, LEVEL_MATCH_PATTEN, LEVEL_RANGE_MATCH_PATTEN, RANKING_MATCH_PATTEN } from './StrUtil';
 import type { SearchOptions } from '@/components/SongSearch.vue';
 import { rankingList } from './urlUtils';
 import { isAllFinal, versionList } from './version';
 import { useScores } from '@/store/datasources/scores';
 import { useSongStore } from '@/store/datasources/song';
 import { MAX_SEARCH_NUMBER } from './consts';
-import { getSongDiffByScoreEx } from './functionUtil';
 
 //Score Worker
 export const useScoreSearchWorker = (searchKeyWord: MaybeRefOrGetter<string>, filter: MaybeRefOrGetter<AdvanceFilterFilters>, order: MaybeRefOrGetter<OrderBadge>) => {

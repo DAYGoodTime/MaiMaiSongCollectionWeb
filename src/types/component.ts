@@ -24,3 +24,9 @@ export type AdvanceFilterFilters = Required<AdvanceFilterProps['modelValue']>;
 export type AdvanceFilterEmits = {
     (e: 'update:modelValue', value: AdvanceFilterProps['modelValue']): void;
 };
+//Order
+export interface OrderBadge {
+    label: string,
+    value: string,
+    status_index: number
+}

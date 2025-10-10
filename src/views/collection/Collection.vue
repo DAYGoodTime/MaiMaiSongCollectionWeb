@@ -221,7 +221,7 @@ import type { AdvanceFilterFilters } from '@/types/component';
 import type { StatusBoard, StatusValue } from '@/views/collection/component/ScoreStatisticsCard.vue';
 import ScoreStatisticsCard from '@/views/collection/component/ScoreStatisticsCard.vue';
 import AdvanceFeature from './component/AdvanceFeature.vue';
-import { type OrderBadge } from '@/utils/songSearch';
+import { type OrderBadge } from '@/types/component';
 import { storeToRefs } from 'pinia';
 import { createReusableTemplate } from '@vueuse/core';
 import { cn } from '@/lib/utils';

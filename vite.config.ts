@@ -4,6 +4,7 @@ import path from "node:path";
 import vueJsx from '@vitejs/plugin-vue-jsx'
 import legacy from '@vitejs/plugin-legacy'
 // import { visualizer } from "rollup-plugin-visualizer";
+// import viteCompression from 'vite-plugin-compression'
 // cap not support gzip compressed file
 // https://vite.dev/config/
 export default defineConfig({
