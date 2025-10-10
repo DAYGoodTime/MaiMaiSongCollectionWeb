@@ -90,7 +90,7 @@ export const getSongDiffUniId = (song: MaiMaiSong, score: Score | AnyScore) => {
   }
   return "0_dx_-1";
 }
-const toPy = (str: string) => pinyin(str, { toneType: 'none', separator: '', v: true })
+export const toPy = (str: string) => pinyin(str, { toneType: 'none', separator: '', v: true })
 const commonNoteDesignerAliasMapping = new Map([
   ["サファ太", ["沙发太", toPy("沙发太")]],
   ["ロシェ@ペンギン", ["企鹅", toPy("企鹅")]],

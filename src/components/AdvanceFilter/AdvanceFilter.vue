@@ -56,7 +56,7 @@
                     <Label class="block text-sm font-medium text-gray-700 mb-2">
                         筛选区域
                     </Label>
-                    <MultiSelectTags :options="mapCategoryOptions" :selected="filters.mapCategories"
+                    <MultiSelectComboboxTags :options="mapCategoryOptions" :selected="filters.mapCategories"
                         @selection-change="(selected) => updateFilters({ mapCategories: selected })"
                         placeholder="请选择归属区域" />
                 </div>
@@ -143,6 +143,7 @@ import SongGenreList from '@/assets/data/song_genres.json' with { type: 'json' }
 import SongMapList from '@/assets/data/song_maps.json' with { type: 'json' }
 import SongVersionList from '@/assets/data/versions.json' with { type: 'json' }
 import { cn } from '@/lib/utils'
+import MultiSelectComboboxTags from '../MultiSelectComboboxTags.vue'
 
 
 // Model
