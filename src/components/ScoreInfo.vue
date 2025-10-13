@@ -59,6 +59,10 @@
                             <span class="mr-2">版本:</span>
                             <span class="font-semibold">{{ conventVersionByInt(diff.difficulty.version) }}</span>
                         </div>
+                        <div v-if="ScoreStore.isSupportPlayCount">
+                            <span class="mr-2">游玩次数:</span>
+                            <span class="font-semibold">{{ diff.playcount }}</span>
+                        </div>
                     </div>
 
                     <div class="flex items-center gap-2 self-end sm:self-center">
@@ -101,12 +105,12 @@ const props = defineProps<{
     difficulties: SongDifficulty[] | SongDifficultyUtage[],
 }>();
 
-const { getScoreByUni } = useScores();
+const ScoreStore = useScores();
 
 const processedDifficulties = (diffs: SongDifficulty[] | SongDifficultyUtage[]) => {
     return [...diffs].reverse().map(difficulty => {
         const isUtageVal = difficulty.type === 'utage';
-        const score = getScoreByUni(isUtageVal ? (difficulty as SongDifficultyUtage).diff_id : props.song.id, difficulty.type, difficulty.level_index);
+        const score = ScoreStore.getScoreByUni(isUtageVal ? (difficulty as SongDifficultyUtage).diff_id : props.song.id, difficulty.type, difficulty.level_index);
         let label = '';
         if (isUtageVal) {
             label = `U·TA·GE ${`[${(difficulty as SongDifficultyUtage).kanji ?? ''}]`}${(difficulty as SongDifficultyUtage).is_buddy ? `[双]` : ''}`;
@@ -127,7 +131,8 @@ const processedDifficulties = (diffs: SongDifficulty[] | SongDifficultyUtage[]) 
                 current: currentDxScore,
                 available: dxScoreIcon != null,
                 icon: dxScoreIcon ?? ""
-            }
+            },
+            playcount: score ? score.play_count : 0
         };
     });
 };

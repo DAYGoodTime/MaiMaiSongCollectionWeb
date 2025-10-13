@@ -7,10 +7,10 @@
     "dev": "vite",
     "check": "vue-tsc -b",
     "build": "vue-tsc -b && vite build",
-    "build-fast": "vite build",
+    "build:fast": "vite build",
     "preview": "vite preview",
     "preview:build": "vite build && vite preview",
-    "build-android": "vite build && npx cap sync --inline"
+    "build:android": "vite build && npx cap sync --inline"
   },
   "dependencies": {
     "@capacitor/android": "^7.4.2",
