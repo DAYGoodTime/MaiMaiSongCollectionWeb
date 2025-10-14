@@ -96,7 +96,7 @@ const handelDialogOpen = (type: "add" | "edit" | "delete", index?: number) => {
 }
 const handelDialogSubmit = () => {
   if (targetIndex.value === -1 && DialogStatus.value !== 'add') return;
-  if (dialogInput.value.trim().length === 0 && DialogStatus.value !== 'delete') toast("请输入合集名称")
+  if (dialogInput.value.trim().length === 0 && DialogStatus.value !== 'delete') { toast("请输入合集名称"); return; }
   let result = { success: false, message: "修改失败" };
   switch (DialogStatus.value) {
     case "add":
@@ -106,20 +106,21 @@ const handelDialogSubmit = () => {
     case "delete":
       result = DeleteCollection(targetIndex.value); break;
   }
+  if (!result.success) {
+    toast.error(result.message)
+    return;
+  }
   if (DialogStatus.value === 'add') {
     //open import score dialog
     ImportDialogDesc.value = ImportDescForAfterAdded
     CurrentCollectionLabel.value = dialogInput.value
     importDialogShow.value = true
   }
-  if (!result.success) {
-    toast.error(result.message)
-  } else {
-    DialogStatus.value = 'none'
-    targetIndex.value = -1;
-    dialogInput.value = ""
-    showDialog.value = false
-  }
+  DialogStatus.value = 'none'
+  targetIndex.value = -1;
+  dialogInput.value = ""
+  showDialog.value = false
+
 }
 const { toggleSidebar } = useSidebar()
 const handelCollectionJump = (coll: Collection) => {
