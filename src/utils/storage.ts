@@ -9,7 +9,7 @@ export async function getFromKey(key: string): Promise<any | null> {
         console.error("请求失败", body);
         return null;
     } else {
-        return body.data
+        return JSON.parse(body.data)
     }
 }
 export async function putToStorage(key: string, value: string) {

@@ -1,7 +1,8 @@
 import { HttpError } from "@/api/base";
 import LXNSService from "@/api/lxns";
+import type { AvailableDataSourceType, CredentialsStorage } from "@/types/datasource";
 import type { LXNSOAuth } from "@/types/lxns";
-import { useLocalStorage } from "@vueuse/core";
+import { useLocalStorage, type RemovableRef } from "@vueuse/core";
 import { defineStore } from "pinia";
 import { computed } from "vue";
 import { toast } from "vue-sonner";
@@ -10,6 +11,11 @@ const EMPTY_OAUTH: LXNSOAuth = {
     access_token_expired: 0,
     refresh_token: "",
     refresh_token_expired: 0
+}
+const DEFAULT_CREDENTIALS: Record<AvailableDataSourceType, string> = {
+    divingfish: '',
+    lxns: '',
+    usagi: ''
 }
 export type OAuthQueryType = 'query' | 'refresh'
 export const useOAuthStore = defineStore("lxns-oauth", () => {
@@ -66,5 +72,16 @@ export const useOAuthStore = defineStore("lxns-oauth", () => {
     const cleanLXNSOAuth = () => {
         LXNSOAuth.value = EMPTY_OAUTH;
     }
-    return { hasLXNSOAuth, LXNSOAuth, getLXNSToken, isAccessTokenExpired, isRefreshTokenExpired, cleanLXNSOAuth }
+    //Credentials
+    const DataSourceCredentials: RemovableRef<CredentialsStorage> = useLocalStorage("credentials", DEFAULT_CREDENTIALS)
+    const hasCredentials = (type: AvailableDataSourceType) => {
+        return DataSourceCredentials.value[type].length > 0
+    }
+    const removeCredentials = (type: AvailableDataSourceType) => {
+        DataSourceCredentials.value[type] = ''
+    }
+    return {
+        hasLXNSOAuth, LXNSOAuth, getLXNSToken, isAccessTokenExpired, isRefreshTokenExpired, cleanLXNSOAuth,
+        DataSourceCredentials, hasCredentials, removeCredentials
+    }
 });

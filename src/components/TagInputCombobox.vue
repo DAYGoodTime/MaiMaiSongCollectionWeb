@@ -19,13 +19,13 @@ import {
   TagsInputItemText,
   TagsInputClear
 } from "@/components/shadcn/ui/tags-input";
-import { versionList } from "@/utils/version.ts";
+import versionList from "@/assets/data/versions.json" with { type: 'json' };
 import { ScrollArea } from "@/components/shadcn/ui/scroll-area";
 import { isValidAchievementRange, LEVEL_MATCH_PATTEN, LEVEL_RANGE_MATCH_PATTEN } from "@/utils/StrUtil"
-import { useDataStore } from "@/store/datasource";
 import { toast } from "vue-sonner";
 import { storeToRefs } from "pinia";
 import { useAppStore } from "@/store/appStore";
+import { useScores } from "@/store/datasources/scores";
 const modelValue = defineModel<Tag[]>("tags")
 const { TagComboboxOpen } = storeToRefs(useAppStore())
 const searchTerm = ref("");
@@ -164,12 +164,12 @@ const filteredTags = computed(() => {
   if (versionFiltered.length > 0) versionFiltered.forEach((e) => result.add(e));
   return Array.from(result);
 });
-const { getSelectableSource } = storeToRefs(useDataStore())
+const ScoreStore = useScores()
 const onSelectTag = (ev: ListboxItemSelectEvent<AcceptableValue>) => {
   if (typeof ev.detail.value === 'object') {
     if (ev.detail.value && ev.detail.value.needDs) {
       //check datasource is available
-      if (getSelectableSource.value.length === 0) {
+      if (ScoreStore.getSelectableSource.length === 0) {
         toast.error("请添加成绩数据源后再使用成绩相关Tag");
         return;
       }

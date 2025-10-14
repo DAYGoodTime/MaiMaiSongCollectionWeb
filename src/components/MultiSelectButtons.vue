@@ -35,7 +35,8 @@ function toggleOption(option: FilterProps<any>) {
           <slot name="option-item" :option="option">
             <div class="flex justify-between items-center gap-1">
               <Check v-if="isSelected(option)" />
-              <span>{{ option.label }}</span>
+              <component v-if="option.vnode" :is="option.vnode" />
+              <span v-else>{{ option.label }}</span>
             </div>
           </slot>
         </Button>

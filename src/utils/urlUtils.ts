@@ -1,3 +1,5 @@
+import { DX_SCORE_TIERS } from "./StrUtil";
+
 export function getImageCoverUrl(id: number) {
   if (id > 1000) {
     id = 10000 + id;
@@ -8,8 +10,8 @@ export function getImageCoverUrl(id: number) {
   return `/cover/${id ?? "0"}.webp`;
 }
 
-export function getImageAssertUrl(name: string) {
-  return `/resource/${name ?? "FALLBACK"}.png`;
+export function getImageAssertUrl(name: string, prefix?: string) {
+  return `/resource/${name ?? "FALLBACK"}.${prefix ? prefix : 'png'}`;
 }
 export const rankingList = [
   { id: 'SSSp', min: 100.5, max: Infinity },
@@ -94,22 +96,15 @@ export function getFCFSIcon(fcfs_name: string) {
   if (!name || name.length === 0) name = "Empty"
   return getImageAssertUrl(`UI_CHR_PlayBonus_${name}`)
 }
-
-const DX_SCORE_TIERS = [
-  { threshold: 0.97, iconName: "UI_GAM_DXScoreIcon_5" },
-  { threshold: 0.95, iconName: "UI_GAM_DXScoreIcon_4" },
-  { threshold: 0.93, iconName: "UI_GAM_DXScoreIcon_3" },
-  { threshold: 0.9, iconName: "UI_GAM_DXScoreIcon_2" },
-  { threshold: 0.85, iconName: "UI_GAM_DXScoreIcon_1" },
-];
 export function getDxScoreIcon(dxScore: number, totalDxScore: number): string | null {
   if (totalDxScore <= 0 || dxScore < 0) {
     return null;
   }
   const radio = (dxScore / totalDxScore)
-  for (const tier of DX_SCORE_TIERS) {
-    if (radio > tier.threshold) {
-      return getImageAssertUrl(tier.iconName)
+  const tier_list = [...DX_SCORE_TIERS.slice(1, 5)].reverse()
+  for (const tier of tier_list) {
+    if (radio >= tier.threshold) {
+      return tier.icon
     }
   }
   return null;

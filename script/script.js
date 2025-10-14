@@ -1,5 +1,5 @@
-import json from "./public/song_data_raw.json" with { type: 'json' };
-import { conventVersionByInt } from "./src/utils/version"
+import json from "../dev/song_data_raw.json" with { type: 'json' };
+import { conventVersionByInt } from "../src/utils/StrUtil.js";
 import path from "path";
 import fs from 'fs/promises'
 
@@ -7,7 +7,7 @@ import { fileURLToPath } from 'url'
 const __filename = fileURLToPath(import.meta.url)
 const __dirname = path.dirname(__filename)
 
-const search_index = []
+const search_index = {}
 const getLevelValue = (index, map) => {
   const getLevelValueInternal = (_index, _map, type) => {
     let arr = _map["difficulties"][type]
@@ -40,11 +40,17 @@ json.forEach(map => {
   search_obj["level_2"] = getLevelValue(2, map)//红
   search_obj["level_3"] = getLevelValue(3, map)//紫
   search_obj["level_4"] = getLevelValue(4, map)//白
-  search_index.push(search_obj)
+  const diffs = [...search_obj.difficulties.standard, ...search_obj.difficulties.dx, ...search_obj.difficulties.utage]
+  diffs.forEach(diff => {
+    const diff_id = diff.type !== "utage" ? search_obj.id : diff.diff_id
+    const DiffLinkStr = `${diff_id}_${diff.type}_${diff.level_index}`
+    search_obj[DiffLinkStr] = diff
+  })
+  search_index[search_obj.id] = search_obj
 })
 
 
 const writeFile = async () => {
-  await fs.writeFile(path.resolve(__dirname, './public/song_data_extra.json'), JSON.stringify(search_index))
+  await fs.writeFile(path.resolve(__dirname, './dev/song_data_extra.json'), JSON.stringify(search_index))
 }
 writeFile();

@@ -6,7 +6,16 @@ import { ref, watch, type ComponentPublicInstance } from "vue";
 
 const { showCustomSideBarTrigger } = storeToRefs(useAppStore())
 type CommonComponent = ComponentPublicInstance | HTMLElement | null
-const props = defineProps<{ target: CommonComponent }>()
+interface FloatingProps {
+    target: CommonComponent
+    leaveDelay?: number,
+    threshold?: number
+}
+
+const props = withDefaults(defineProps<FloatingProps>(), {
+    leaveDelay: 300,
+    threshold: 0
+})
 watch(() => props.target, (newRef) => {
     if (newRef) {
         setUpObserver(newRef)
@@ -27,10 +36,10 @@ const setUpObserver = (target: CommonComponent) => {
             if (!isIntersecting && boundingClientRect.y < 0) {
                 showSticky.value = showCustomSideBarTrigger.value;
             } else {
-                showSticky.value = false;
+                setTimeout(() => showSticky.value = false, props.leaveDelay)
             }
         }, {
-            threshold: 0,
+            threshold: props.threshold,
         })
     }
 }

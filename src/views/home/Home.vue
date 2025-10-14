@@ -31,10 +31,12 @@ const tooltipsOpen = ref(false)
 const SelectedType = ref<SongType>("standard")
 const getScoreList = computed(() => selectedSong.value?.difficulties[SelectedType.value] ?? []);
 const SearchRef = useTemplateRef("search")
+const SEARCH_NUMBER_LIMIT = 300;
 const openImportDialog = ref(false)
 const handelOpenImportDialog = () => {
   if (SearchRef.value && SearchRef.value.results.length > 0) {
     appStore.TagComboboxOpen = false;
+    SearchRef.value.triggerSearch(SEARCH_NUMBER_LIMIT)
     //only timeout to prevent process crash
     setTimeout(() => {
       openImportDialog.value = true;
@@ -46,10 +48,24 @@ const handelOpenImportDialog = () => {
 </script>
 <template>
   <div class="container mx-auto px-4 py-2">
-    <ImportFromResult :list="SearchRef?.results ?? []" :tags="tags" v-model:open="openImportDialog" />
+    <ImportFromResult :list="SearchRef?.results ?? []" :tags="tags" v-model:open="openImportDialog"
+      :max_limit="SEARCH_NUMBER_LIMIT" />
     <div class="space-y-6 lg:mx-32">
       <Card>
         <CardContent class="flex flex-col gap-4">
+          <div class="flex flex-col gap-4 pt-4">
+            <div class="flex justify-between">
+              <div class="flex items-center gap-2">
+                <Search class="h-5 w-5" />
+                <span class="text-lg font-semibold">歌曲搜索</span>
+              </div>
+              <div>
+                <Button variant="outline" @click="handelOpenImportDialog">导入到合集</Button>
+              </div>
+            </div>
+            <SongSearch ref="search" class="mx-auto" v-model:selected="selectedSong" :selected_tags="tags"
+              :bpm="bpmOption" />
+          </div>
           <Accordion type="single" collapsible class="w-full">
             <AccordionItem value="item-1">
               <AccordionTrigger>
@@ -99,19 +115,6 @@ const handelOpenImportDialog = () => {
               </AccordionContent>
             </AccordionItem>
           </Accordion>
-          <div class="flex flex-col gap-4">
-            <div class="flex justify-between">
-              <div class="flex items-center gap-2">
-                <Search class="h-5 w-5" />
-                <span class="text-lg font-semibold">歌曲搜索</span>
-              </div>
-              <div>
-                <Button variant="outline" @click="handelOpenImportDialog">导入到合集</Button>
-              </div>
-            </div>
-            <SongSearch ref="search" class="mx-auto" v-model:selected="selectedSong" :selected_tags="tags"
-              :bpm="bpmOption" />
-          </div>
         </CardContent>
       </Card>
       <div v-if="selectedSong">

@@ -1,7 +1,10 @@
 import { defineConfig } from "vite";
 import vue from "@vitejs/plugin-vue";
 import path from "node:path";
+import vueJsx from '@vitejs/plugin-vue-jsx'
+import legacy from '@vitejs/plugin-legacy'
 // import { visualizer } from "rollup-plugin-visualizer";
+// import viteCompression from 'vite-plugin-compression'
 // cap not support gzip compressed file
 // https://vite.dev/config/
 export default defineConfig({
@@ -12,6 +15,10 @@ export default defineConfig({
           isCustomElement: tag => tag.startsWith('md-'),
         },
       },
+    }),
+    vueJsx(),
+    legacy({
+      targets: ['chrome > 61'],
     }),
     // visualizer({
     //   open: true, // 在默认浏览器中自动打开报告
@@ -41,7 +48,7 @@ export default defineConfig({
       output: {
         manualChunks(id) {
           // 将大的 JSON 文件单独打包
-          if (id.includes("song_data_extra.json")) {
+          if (id.includes("song_data_default.json")) {
             return "song-data";
           }
           // 将 vue 全家桶和核心依赖打包到一起

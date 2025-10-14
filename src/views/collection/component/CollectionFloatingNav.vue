@@ -1,7 +1,7 @@
 <template>
-    <FloatingNavBase>
+    <FloatingNavBase :leaveDelay="300" :threshold="0.1">
         <NavigationMenu class="border rounded-xl shadow p-1 fixed top-0 bg-background">
-            <NavigationMenuList class="flex md:gap-2 lg:gap-4">
+            <NavigationMenuList class="flex gap-0 md:gap-2 lg:gap-4">
                 <NavigationMenuItem>
                     <NavigationMenuLink :class="cn('cursor-pointer', navigationMenuTriggerStyle())"
                         @click="toggleSidebar">

@@ -155,6 +155,8 @@ export const useCollectionStore = defineStore("collections", () => {
       } else return false;
     } catch (error) {
       toast.error("网络不佳，使用该功能需要加速器", { position: "top-center" })
+      console.error("更新合集失败", error);
+
       return false;
     }
   }

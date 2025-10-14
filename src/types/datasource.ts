@@ -1,5 +1,6 @@
 import type { FishScore } from "./divingfish";
 import type { LXNSScore } from "./lxns";
+import type { SongType } from "./songs";
 import type { UsagiScore } from "./usagi";
 
 export interface DataSource<T> {
@@ -7,7 +8,6 @@ export interface DataSource<T> {
     update_time: Date | string,
     version: number
 }
-export type SongType = "standard" | "dx" | "utage"
 export type AnyScore = LXNSScore | FishScore | UsagiScore
 export type DataSourceType = AvailableDataSourceType | "empty";
 export type AvailableDataSourceType = "divingfish" | "lxns" | "usagi"

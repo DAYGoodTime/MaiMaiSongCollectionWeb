@@ -17,11 +17,12 @@ const handelTriggerToggle = () => {
   appStore.ComboboxOpen = false;
   nextTick(() => {
     toggleSidebar()
+    setTimeout(() => update(), 200)
   })
 }
 const triggerRef = useTemplateRef("sidebarTrigger")
 const showSticky = ref(false)
-const { x } = useElementBounding(triggerRef)
+const { x, update } = useElementBounding(triggerRef)
 const floatingStyle = computed(() => {
   return {
     left: `${x.value}px`
@@ -58,7 +59,7 @@ watch(() => appStore.showGlobalSideBarTrigger, () => {
     </md-fab>
     <transition name="fade">
       <md-fab v-if="showSticky" :style="floatingStyle" data-sidebar="trigger" @click="handelTriggerToggle"
-        :class="cn('fixed top-0 left-0 z-10', props.class)">
+        :class="cn('fixed top-0 left-0 z-10 transition-all duration-200 ease-in-out', props.class)">
         <PanelLeft slot="icon" class="!h-7 !w-7" />
         <span class="sr-only">menu</span>
       </md-fab>

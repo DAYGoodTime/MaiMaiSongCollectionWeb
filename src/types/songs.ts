@@ -48,3 +48,4 @@ export interface ScoreExtend {
   score_id: string
 }
 export type SongType = "standard" | "dx" | "utage"
+export type SongDifficultyAny = SongDifficulty | SongDifficultyUtage

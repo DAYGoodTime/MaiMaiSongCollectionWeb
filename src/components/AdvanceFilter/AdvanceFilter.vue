@@ -51,12 +51,12 @@
                         @selection-change="(selected) => updateFilters({ version: selected })" placeholder="请选择版本" />
                 </div>
 
-                <!-- 筛选上传时间 -->
+                <!-- 筛选区域 -->
                 <div>
                     <Label class="block text-sm font-medium text-gray-700 mb-2">
                         筛选区域
                     </Label>
-                    <MultiSelectTags :options="mapCategoryOptions" :selected="filters.mapCategories"
+                    <MultiSelectComboboxTags :options="mapCategoryOptions" :selected="filters.mapCategories"
                         @selection-change="(selected) => updateFilters({ mapCategories: selected })"
                         placeholder="请选择归属区域" />
                 </div>
@@ -80,6 +80,14 @@
                         :model-value="filters.difficultyRange[1].toFixed(1)"
                         @update:model-value="handleRangeChange($event, 1)" />
                 </div>
+            </div>
+            <!-- 筛选 DX Score -->
+            <div>
+                <Label class="block text-sm font-medium text-gray-700 mb-2">
+                    筛选 DX Score
+                </Label>
+                <MultiSelectButtons :options="dxScoreOptions" :selected="filters.dxScore"
+                    @selection-change="(selected) => updateFilters({ dxScore: selected })" />
             </div>
 
             <!-- 筛选 FULL COMBO -->
@@ -128,7 +136,7 @@
     </slot>
 </template>
 
-<script setup lang="ts">
+<script setup lang="tsx">
 import { reactive, watch } from 'vue'
 import { ChevronUp, ChevronDown, RotateCcw } from 'lucide-vue-next'
 import { Label } from '@/components/shadcn/ui/label'
@@ -138,9 +146,13 @@ import { Input } from '@/components/shadcn/ui/input'
 import MultiSelectButtons from '@/components/MultiSelectButtons.vue'
 import MultiSelectTags from '@/components/MultiSelectTags.vue'
 import Slider from '@/components/shadcn/ui/slider/Slider.vue'
-import type { AdvanceFilterEmits, AdvanceFilterProps, AdvanceFilterFilters, FilterProps } from '@/types/component'
-import { SongGenreList, SongMapList, SongVersionList } from '@/utils/StrUtil'
+import type { AdvanceFilterEmits, AdvanceFilterProps, AdvanceFilterFilters, FilterProps, RangeAble } from '@/types/component'
+import SongGenreList from '@/assets/data/song_genres.json' with { type: 'json' }
+import SongMapList from '@/assets/data/song_maps.json' with { type: 'json' }
+import SongVersionList from '@/assets/data/versions.json' with { type: 'json' }
 import { cn } from '@/lib/utils'
+import MultiSelectComboboxTags from '../MultiSelectComboboxTags.vue'
+import { DX_SCORE_TIERS } from '@/utils/StrUtil'
 
 
 // Model
@@ -159,6 +171,7 @@ const defaultFilters: AdvanceFilterFilters = {
     version: [],
     mapCategories: [],
     difficultyRange: [1.0, 15.0],
+    dxScore: [],
     fullCombo: [],
     fullSync: [],
     Type: [],
@@ -184,14 +197,31 @@ const filters = reactive<AdvanceFilterFilters>({
 })
 
 // 选项数据
+const getDxScoreOptions = () => {
+    let list: FilterProps<RangeAble<number>>[] = [{ label: '0星', value: { min: 0, max: 0.85 } }]
+    const tier_list = DX_SCORE_TIERS.slice(1, 7)
+    tier_list.splice(4, 1)
+    for (const tier of tier_list) {
+        const alt = `(${tier.threshold * 100}%)`
+        const vnode = <>
+            <img class={'w-auto h-4'} src={tier.icon} alt={alt} title={alt} />
+        </>
+        list.push({ vnode, label: alt, value: { min: tier.threshold, max: tier.max } })
+    }
+    return list;
+}
 //难度
 const difficultyOptions: FilterProps<number>[] = [{ label: 'BASIC', value: 0 }, { label: 'ADVANCED', value: 1 }, { label: 'EXPERT', value: 2 }, { label: 'MASTER', value: 3 }, { label: 'Re:MASTER', value: 4 }, { label: 'U•TA•GE', value: -1 }]
 const musicCategoryOptions: FilterProps<string>[] = SongGenreList
-const versionOptions: FilterProps<string>[] = SongVersionList
+const versionOptions: FilterProps<string>[] = SongVersionList.map(v => ({ label: v.label_full, value: v.id }))
 const mapCategoryOptions: FilterProps<string>[] = SongMapList
+const dxScoreOptions: FilterProps<RangeAble<number>>[] = getDxScoreOptions()
 const fullComboOptions: FilterProps<string>[] = [{ label: 'FC', value: 'fc' }, { label: 'FC+', value: 'fcp' }, { label: 'AP', value: 'ap' }, { label: 'AP+', value: 'app' }]
 const fullSyncOptions: FilterProps<string>[] = [{ label: 'Sync', value: 'sync' }, { label: 'FS', value: 'fs' }, { label: 'FS+', value: 'fsp' }, { label: 'FDX', value: 'fsd' }, { label: 'FDX+', value: 'fsdp' }]
 const TypeOptions: FilterProps<string>[] = [{ label: '标准', value: 'standard' }, { label: 'DX', value: 'dx' }, { label: '宴会场', value: 'utage' }]
+
+
+
 
 // 更新筛选条件
 const updateFilters = (updates: Partial<AdvanceFilterFilters>) => {
@@ -231,4 +261,5 @@ const resetAllFilters = () => {
 watch(() => props.modelValue, (newValue) => {
     Object.assign(filters, { ...defaultFilters, ...newValue })
 }, { deep: true })
+defineExpose({ resetAllFilters })
 </script>

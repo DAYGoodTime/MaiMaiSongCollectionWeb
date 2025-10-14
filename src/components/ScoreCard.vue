@@ -1,188 +1,130 @@
 <template>
-    <div>
+    <div ref="ScoreCardRef" @click.right.native="(e) => emit('rightClick', e, ScoreCardRef, props.score.score_id)"
+        data-component="ScoreCard">
         <div class="w-72 sm:w-64 rounded-lg shadow-lg transition-all duration-300 hover:shadow-xl"
-            @click="() => openTitleTooltips = true" @dblclick="() => SongInfoModalOpen = true">
-            <div :class="cardData.cardClass" @click="toggleDescMenu" class="cursor-pointer p-2">
+            @dblclick="() => emit('dbClick', ScoreCardRef, props.score.song, getNoteDesigner(SongDiff))">
+            <div :class="cardClass" @click="handleTitleEnter(score.song.title)"
+                @mouseenter="handleTitleEnter(score.song.title)" @mouseleave="hideTooltip()" class="cursor-pointer p-2">
                 <div class="flex gap-1">
                     <div class="w-12 h-12 rounded overflow-hidden flex-shrink-0">
-                        <img :src="cardData.coverUrl" alt="Song Cover" class="object-cover w-full h-full"
-                            loading="lazy">
+                        <img :src="getImageCoverUrl(props.score.song.id ?? 0)" alt="Song Cover"
+                            class="object-cover w-full h-full" loading="lazy">
                     </div>
                     <div class="flex-1 text-white min-w-0">
                         <div class="flex justify-between items-start">
-                            <TooltipProvider>
-                                <Tooltip v-model:open="openTitleTooltips" :delay-duration="0">
-                                    <TooltipTrigger class="font-bold truncate text-left">
-                                        {{ cardData.title }}
-                                    </TooltipTrigger>
-                                    <TooltipContent class="cursor-pointer hover:opacity-50"
-                                        @click="() => handelCopy(score.song.title, '已成功复制歌曲名到剪切板中')">
-                                        <p>{{ score.song.title }}</p>
-                                    </TooltipContent>
-                                </Tooltip>
-                            </TooltipProvider>
-                            <img v-if="!cardData.isUtage" class="w-auto h-5" :src="cardData.typeIconUrl" alt="Song Type"
-                                loading="lazy" />
+                            <span class="font-bold text-left truncate" :title="score.song.title">{{
+                                score.song.title }}</span>
+                            <img class="w-auto h-5"
+                                :src="getImageAssertUrl(props.score.score.type === 'dx' ? 'DX' : 'SD')"
+                                alt="Song Type" />
                         </div>
-                        <div v-if="cardData.unplayed" class="font-bold text-xl text-left">
+
+                        <div v-if="played" class="flex items-center justify-between font-bold text-2xl text-left">
+                            <span>{{ formatAchievement(props.score.score.achievements) }}%</span>
+                            <img :src="getAchievementIcon(props.score.score.rate_type)" alt="Achievement Icon"
+                                class="h-8 w-16">
+                        </div>
+                        <div v-else class="font-bold text-xl text-left">
                             暂未游玩
-                        </div>
-                        <div v-else class="flex items-center justify-between font-bold text-2xl text-left">
-                            <span>{{ cardData.achievementFormatted }}%</span>
-                            <img :src="cardData.achievementIconUrl" alt="Achievement Icon" class="h-8 w-16"
-                                loading="lazy">
                         </div>
                     </div>
                 </div>
             </div>
             <div class="bg-white rounded-b-lg p-2">
-                <div class="flex w-full justify-between items-center">
-                    <div class="flex justify-between items-center">
-                        <span class="text-left text-sm text-gray-600">{{ cardData.details }}</span>
-                        <TooltipProvider>
-                            <Tooltip v-model:open="openDxScoreTooltips" :delay-duration="0">
-                                <TooltipTrigger>
-                                    <img v-if="cardData.dxScore.available" :src="cardData.dxScore.icon"
-                                        loading="lazy" />
-                                </TooltipTrigger>
-                                <TooltipContent>
-                                    <p>{{ `${cardData.dxScore.current}/${cardData.dxScore.total}` }}</p>
-                                </TooltipContent>
-                            </Tooltip>
-                        </TooltipProvider>
+                <div class="flex w-full items-center">
+                    <div class="flex flex-1 justify-between items-center pr-2" @mouseenter="handleDxScoreEnter()"
+                        @mouseleave="hideTooltip(200)">
+                        <span ref="CardDetailRef" class="text-left text-sm text-gray-600">{{ details }}</span>
+                        <div ref="DxScoreIconRef">
+                            <img v-if="!ScoreStore.isSupportPlayCount" class="w-auto h-4" :src="dxScoreIcon"
+                                loading="lazy" />
+                        </div>
                     </div>
                     <div class="flex w-12">
-                        <FCFSPanel class="h-7 w-7" :fc="score.score.fc" :fs="score.score.fs" />
+                        <img class="h-7 w-7" :src="getFCFSIcon(conventFcFsStr(score.score.fc))" />
+                        <img class="h-7 w-7" :src="getFCFSIcon(conventFcFsStr(score.score.fs))" />
                     </div>
                 </div>
             </div>
-            <div v-if="openMenu" class="p-2 bg-gray-50" ref="target">
-                <Textarea @update:model-value="onUpdateMessage" v-model="message" placeholder="关于这个铺子的一些心得？"
-                    class="w-full" />
-            </div>
         </div>
-
-        <Dialog v-model:open="SongInfoModalOpen">
-            <DialogContent class="lg:w-full">
-                <DialogHeader>
-                    <DialogTitle>
-                        <p>歌曲信息</p>
-                        <p class="mt-4" v-if="cardData.noteDesigner">该难度谱师: <span
-                                class="cursor-pointer hover:opacity-50"
-                                @click="handelCopy(cardData.noteDesigner, '已成功复制谱师到剪切板中')">{{ cardData.noteDesigner
-                                }}</span>
-                        </p>
-                    </DialogTitle>
-                </DialogHeader>
-                <SongInfo :song="props.score.song" :infoOnly="true" />
-            </DialogContent>
-        </Dialog>
     </div>
 </template>
 
-<script setup lang="ts">
-import SongInfo from './SongInfo.vue';
-import type { ScoreExtend, SongDifficultyUtage } from '@/types/songs';
-import { getAchievementIcon, getDxScoreIcon, getImageAssertUrl, getImageCoverUrl } from '@/utils/urlUtils';
-import { ref, computed, defineAsyncComponent } from 'vue';
-import { Textarea } from './shadcn/ui/textarea';
-import { formatAchievement, formatDxRating, formatLevelValue, getNoteDesigner, getSongDiff, getTotalDxScore } from '@/utils/StrUtil';
-import { useCollectionStore } from '@/store/collections';
-import { debounce, showCurrentStyleId, useCopyHelper } from '@/utils/functionUtil';
-import {
-    Dialog,
-    DialogContent,
-    DialogHeader,
-    DialogTitle,
-} from '@/components/shadcn/ui/dialog'
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/shadcn/ui/tooltip';
-import { onClickOutside } from '@vueuse/core';
-import { useDataStore } from '@/store/datasource';
-import { storeToRefs } from 'pinia';
-
-const FCFSPanel = defineAsyncComponent(() => import('./FCFSPanel.vue'));
+<script setup lang="tsx">
+import type { MaiMaiSong, ScoreExtend } from '@/types/songs';
+import { conventFcFsStr, getDxScoreRadio, getTotalDxScore } from '@/utils/StrUtil';
+import { getDxScoreIcon, getFCFSIcon } from '@/utils/urlUtils';
+import { computed, useTemplateRef, type VNode } from 'vue';
+import { getAchievementIcon, getImageAssertUrl, getImageCoverUrl } from '@/utils/urlUtils';
+import { formatAchievement, formatDxRating, formatLevelValue, getNoteDesigner } from '@/utils/StrUtil';
+import { getSongDiffByScoreEx } from '@/utils/functionUtil';
+import { useScores } from '@/store/datasources/scores';
+import { showTooltip, hideTooltip } from '@/lib/useTooltip';
 
 const props = defineProps<{
     score: ScoreExtend
 }>()
 
-const openMenu = ref(false);
-const openTitleTooltips = ref(false)
-const openDxScoreTooltips = ref(false)
-const target = ref(null);
-const { selectedSource } = storeToRefs(useDataStore())
+const ScoreCardRef = useTemplateRef('ScoreCardRef')
+const DxScoreIconRef = useTemplateRef('DxScoreIconRef')
+const CardDetailRef = useTemplateRef('CardDetailRef')
+const ScoreStore = useScores();
 
-onClickOutside(target, () => {
-    if (openMenu.value) {
-        openMenu.value = false;
-    }
-    if (openTitleTooltips.value) {
-        openTitleTooltips.value = false
-    }
-    if (openDxScoreTooltips.value) {
-        openDxScoreTooltips.value = false
-    }
+const handleTitleEnter = (title: string) => {
+    const copyFn = () => emit('copy', title, '已成功复制歌曲名到剪切板中');
+    showTooltip(ScoreCardRef.value as HTMLElement, title, copyFn);
+};
+const handleDxScoreEnter = () => {
+    const imgClass = dxScoreIcon.value.includes("UI_GAM_DXScoreIcon_2_5") ? "w-auto" : "w-auto h-4"
+    const template: VNode =
+        <div>{ScoreStore.isSupportPlayCount ?
+            <div class={'flex justify-between items-center gap-2'}>
+                <p>{dxScoreText.value}</p>
+                <img class={imgClass} src={dxScoreIcon.value} loading="lazy" />
+            </div>
+            : <p>{dxScoreText.value}</p>}
+        </div>
+    const targetRef = ScoreStore.isSupportPlayCount ? CardDetailRef.value : DxScoreIconRef.value
+    showTooltip(targetRef as HTMLElement, template);
+};
+
+const isUtage = computed(() => props.score.score.type === 'utage');
+
+
+const cardClass = computed(() => {
+    let baseClass = "flex flex-col rounded-t-lg";
+    if (isUtage.value) return baseClass + ' bg-UTAGE';
+    const colors = ['bg-BASIC', 'bg-ADVANCED', 'bg-EXPERT', 'bg-MASTER', 'bg-REMASTER'];
+    return baseClass + ` ${colors[props.score.score.level_index]}`;
 });
-const cardData = computed(() => {
-    const isUtage = props.score.score.type === 'utage';
-    const levelIndex = props.score.score.level_index;
-    let cardClass = "flex flex-col rounded-t-lg";
+const SongDiff = computed(() => {
+    return getSongDiffByScoreEx(props.score);
+})
 
-    if (isUtage) cardClass += ' bg-UTAGE';
-    else {
-        const colors = ['bg-BASIC', 'bg-ADVANCED', 'bg-EXPERT', 'bg-MASTER', 'bg-REMASTER'];
-        cardClass += ` ${colors[levelIndex]}`;
-    }
-    const diff = getSongDiff(props.score.song, props.score.score);
-    const title = isUtage ? `[${(diff as SongDifficultyUtage).kanji}]${props.score.song.title}` : props.score.song.title
+const details = computed(() => {
+    const diff = SongDiff.value
     const levelValue = diff ? formatLevelValue(diff.level_value) : '';
-    const unplayed = props.score.score.is_played === undefined ? false : !props.score.score.is_played
-    const noteDesigner = diff ? (getNoteDesigner(diff)) : ""
-    const totalDxScore = getTotalDxScore(diff)
-    const dxScoreIconUrl = getDxScoreIcon(props.score.score.dx_score, totalDxScore);
-    const dxScoreOrPc = props.score.score.play_count ? `pc:${props.score.score.play_count}` : ''
-    let details = `#${showCurrentStyleId(props.score.song.id)} ${levelValue} → ${formatDxRating(props.score.score.dx_rating)} ${dxScoreOrPc}`
+    const palyCount = ScoreStore.isSupportPlayCount ? `pc:${props.score.score.play_count}` : ''
+    let baseDetails = `#${ScoreStore.showCurrentStyleId(props.score.song.id)} ${levelValue} → ${formatDxRating(props.score.score.dx_rating)} ${palyCount} `;
     if (props.score.score.type === "utage") {
-        details = `#${props.score.score.diff_id} ${props.score.score.level}      ${dxScoreOrPc}`
+        baseDetails = `#${props.score.score.diff_id} ${props.score.score.level} ${palyCount}`;
     }
-    return {
-        title,
-        cardClass,
-        coverUrl: getImageCoverUrl(props.score.song.id ?? 0),
-        typeIconUrl: getImageAssertUrl(props.score.score.type === 'dx' ? 'DX' : 'SD'),
-        achievementFormatted: formatAchievement(props.score.score.achievements),
-        achievementIconUrl: getAchievementIcon(props.score.score.rate_type),
-        details,
-        noteDesigner,
-        unplayed,
-        dxScore: {
-            available: dxScoreIconUrl !== null && selectedSource.value !== 'usagi',
-            icon: dxScoreIconUrl ?? "",
-            current: props.score.score.dx_score,
-            total: totalDxScore
-        },
-        isUtage
-    }
+    return baseDetails;
 });
+const dxScoreIcon = computed(() => {
+    const diff = SongDiff.value
+    return getDxScoreIcon(props.score.score.dx_score, getTotalDxScore(diff)) ?? "";
+})
+const dxScoreText = computed(() => {
+    return `${props.score.score.dx_score} / ${getTotalDxScore(SongDiff.value)} ${(getDxScoreRadio(props.score) * 100).toFixed(2)}%`
+})
 
-//message 留言
-const { CollectionMessageMap } = storeToRefs(useCollectionStore());
-const message = ref(CollectionMessageMap.value[props.score.score_id]?.message || "");
-const toggleDescMenu = () => {
-    const msgObj = CollectionMessageMap.value[props.score.score_id];
-    if (!msgObj) {
-        CollectionMessageMap.value[props.score.score_id] = { message: "" };
-    }
-    message.value = CollectionMessageMap.value[props.score.score_id].message;
-    openMenu.value = !openMenu.value;
-}
-const onUpdateMessage = debounce((val: string | number) => {
-    if (CollectionMessageMap.value[props.score.score_id]) {
-        CollectionMessageMap.value[props.score.score_id].message = String(val);
-    }
-}, 300);
-//copy
-const { handelCopy } = useCopyHelper()
-//song info modal
-const SongInfoModalOpen = ref(false)
+const played = computed(() => props.score.score.is_played === undefined ? true : props.score.score.is_played);
+
+const emit = defineEmits<{
+    (e: 'dbClick', ref: HTMLDivElement | null, song: MaiMaiSong, noteDesigner: string): void
+    (e: 'copy', text: string, message: string): void
+    (e: 'singleClick', ref: HTMLDivElement | null): void
+    (e: 'rightClick', event: Event, ref: HTMLDivElement | null, score_id: string): void
+}>()
 </script>

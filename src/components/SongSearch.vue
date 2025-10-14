@@ -23,8 +23,8 @@
       @interact-outside="handelInteractOutSide">
       <ComboboxEmpty class="mx-8"> 没有找到符合的歌曲 </ComboboxEmpty>
       <ComboboxGroup>
-        <ComboboxVirtualizer v-slot="{ option }" :options="getFilteredSongs" :text-content="(x) => x.title"
-          :estimate-size="96" :overscan="10">
+        <ComboboxVirtualizer v-slot="{ option }" :options="searchResults.slice(0, MAX_SEARCH_NUMBER)"
+          :text-content="(x) => x.title" :estimate-size="96" :overscan="10">
           <ComboboxItem :value="option" class="hover:bg-blue-50 transition-colors rounded-lg py-2 w-full">
             <div class="flex items-center gap-3 p-3 w-full overflow-hidden">
               <div class="shrink-0">
@@ -56,7 +56,7 @@
 </template>
 <script setup lang="ts">
 import { Check, X, Search } from "lucide-vue-next";
-import { computed, ref } from "vue";
+import { ref } from "vue";
 import {
   Combobox,
   ComboboxAnchor,
@@ -73,8 +73,9 @@ import type { MaiMaiSong } from "@/types/songs";
 import { getImageCoverUrl } from "@/utils/urlUtils";
 import { ComboboxCancel } from "@/components/shadcn/ui/combobox";
 import type { Tag } from "./TagInputCombobox.vue";
-import { useSongSearch } from '@/utils/songSearch';
 import { useAppStore } from '@/store/appStore';
+import { useSongSearchWorker } from "@/utils/workerHelper";
+import { MAX_SEARCH_NUMBER } from "@/utils/consts";
 
 export interface SearchOptions {
   selected_tags: Tag[],
@@ -86,36 +87,17 @@ export interface SearchOptions {
 const props = defineProps<SearchOptions>();
 const appStore = useAppStore();
 const selectedSong = defineModel<MaiMaiSong>("selected");
-const { searchSong, MAX_SEARCH_NUMBER, filterByTag } = useSongSearch()
 //filter and search
-const search = ref("")
+const searchValue = ref("")
 const temp_search = ref("")
 const onSearch = debounce((val: string) => {
-  search.value = String(val);
-}, 100);
-const getFilteredSongs = computed(() => {
-  const songsToShow = searchSong(search.value)
-  const result: MaiMaiSong[] = [];
-  for (const song of songsToShow) {
-    if (result.length >= MAX_SEARCH_NUMBER) break;
-    if (props.bpm.enable) {
-      if (song.bpm > props.bpm.range[1] || song.bpm < props.bpm.range[0])
-        continue;
-    }
-    //匹配标签
-    const tagFilters = props.selected_tags.map(t => t.value);
-    if (tagFilters.length > 0) {
-      const matchesTags = filterByTag(tagFilters, song).success;
-      if (!matchesTags) continue;
-    }
-    result.push(song);
-  }
-  return result;
-});
+  searchValue.value = String(val);
+}, 100, true);
+const { searchResults, search } = useSongSearchWorker(searchValue, props)
 const handelCleanSearch = (e: Event) => {
   e.preventDefault();
   selectedSong.value = undefined;
-  search.value = ""
+  searchValue.value = ""
   temp_search.value = ""
 }
 const handelInteractOutSide = (event: Event) => {
@@ -123,6 +105,9 @@ const handelInteractOutSide = (event: Event) => {
   appStore.ComboboxOpen = false
 }
 defineExpose({
-  results: getFilteredSongs
+  results: searchResults,
+  triggerSearch: (number: number) => {
+    search(number)
+  }
 })
 </script>

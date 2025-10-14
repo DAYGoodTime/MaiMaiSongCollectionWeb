@@ -11,8 +11,8 @@
                 <div class="flex-1 w-full">
                     <div class="flex items-center gap-3 mb-2">
                         <div class="bg-pink-500 text-white text-xs px-3 py-1 rounded-full shadow inline-block cursor-pointer hover:opacity-50"
-                            @click="() => handelCopy(String(showCurrentStyleId(song.id)), '已成功复制歌曲id到剪切板中')">
-                            {{ `No ${showCurrentStyleId(song.id)}` }}
+                            @click="() => handelCopy(currentStyleId, '已成功复制歌曲id到剪切板中')">
+                            {{ `No ${currentStyleId}` }}
                         </div>
                     </div>
                     <h2 class="text-2xl font-extrabold text-gray-900 mb-1 tracking-tight hover:opacity-50 cursor-pointer"
@@ -63,17 +63,17 @@
                     </Button>
                 </div>
                 <div class="flex items-center gap-2">
-                    <Select :disabled="getSelectableSource.length === 0" :model-value="selectedSource"
-                        @update:model-value="handelDataSourceSwitch">
+                    <Select :disabled="ScoreStore.getSelectableSource.length === 0"
+                        :model-value="ScoreStore.selectedSource" @update:model-value="handelDataSourceSwitch">
                         <SelectTrigger class="w-36">
                             <SelectValue placeholder="成绩数据源" />
                         </SelectTrigger>
                         <SelectContent>
                             <SelectLabel>成绩数据源选择</SelectLabel>
-                            <SelectItem :value="ds" v-for="ds in getSelectableSource" :key="ds">
+                            <SelectItem :value="ds" v-for="ds in ScoreStore.getSelectableSource" :key="ds">
                                 {{ ds }}
                             </SelectItem>
-                            <SelectItem v-if="getSelectableSource.length === 0" value="empty">
+                            <SelectItem v-if="ScoreStore.getSelectableSource.length === 0" value="empty">
                                 没有可用数据源
                             </SelectItem>
                         </SelectContent>
@@ -90,16 +90,14 @@ import { Badge } from '@/components/shadcn/ui/badge'
 import { getImageCoverUrl } from '@/utils/urlUtils'
 
 import type { MaiMaiSong, SongType } from '@/types/songs'
-import { onMounted, reactive, ref, watch } from 'vue'
+import { computed, onMounted, reactive, ref, watch } from 'vue'
 import { SelectItem, SelectLabel, SelectTrigger, Select, SelectValue, SelectContent } from './shadcn/ui/select'
-import { useDataStore } from '@/store/datasource'
-import { showCurrentStyleId, useCopyHelper } from '@/utils/functionUtil'
+import { useCopyHelper } from '@/utils/functionUtil'
 import type { AcceptableValue } from 'reka-ui'
-import { storeToRefs } from 'pinia'
 import type { DataSourceType } from '@/types/datasource'
+import { useScores } from '@/store/datasources/scores'
 
-const { switchDataSource } = useDataStore();
-const { getSelectableSource, selectedSource } = storeToRefs(useDataStore())
+const ScoreStore = useScores()
 const { song, infoOnly } = defineProps<{
     song: MaiMaiSong,
     infoOnly?: boolean
@@ -122,8 +120,12 @@ const isSelectedType = (type: TypeValue) => {
     return type === SelectedType.value;
 }
 
+const currentStyleId = computed(() => {
+    return String(ScoreStore.showCurrentStyleId(song.id))
+})
+
 const handelDataSourceSwitch = (ds: AcceptableValue) => {
-    switchDataSource(ds as DataSourceType);
+    ScoreStore.switchDataSource(ds as DataSourceType);
 }
 
 const init = () => {

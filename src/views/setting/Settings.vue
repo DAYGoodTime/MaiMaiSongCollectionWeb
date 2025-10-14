@@ -1,14 +1,25 @@
 <template>
     <div class="container mx-auto px-4 py-8 max-w-4xl">
-        <div class="mb-8">
-            <h1 class="text-3xl font-bold tracking-tight">设置</h1>
-            <p class="text-muted-foreground mt-2">管理数据源和系统配置</p>
-            <p v-if="appStore.hasUserName" class="mt-2">
-                欢迎回来：<span class="font-semibold">{{ appStore.UserName }}</span>
-            </p>
-            <!-- <p v-if="Capacitor.getPlatform() === 'web'" class="text-red-600 font-bold">
-                因为api的跨域问题，所以数据源(落雪,水鱼)的更新都需要能够访问海外才可以使用
-            </p> -->
+        <div class="mb-8 p-6 bg-card rounded-lg border shadow-sm">
+            <div class="flex items-center justify-between">
+                <div>
+                    <h1 class="text-3xl font-bold tracking-tight">设置</h1>
+                    <p class="text-muted-foreground mt-2">管理您的数据源和应用配置。</p>
+                </div>
+                <div v-if="appStore.hasUserName" class="flex items-center gap-4">
+                    <div class="relative h-10 w-10 shrink-0">
+                        <div class="absolute inset-0 rounded-full bg-primary/10 animate-pulse"></div>
+                        <div
+                            class="relative flex h-full w-full items-center justify-center rounded-full border border-primary/20 bg-background">
+                            <UserCircle class="h-6 w-6 text-primary" />
+                        </div>
+                    </div>
+                    <div>
+                        <p class="font-semibold">{{ appStore.UserName }}</p>
+                        <p class="text-sm text-muted-foreground">欢迎回来</p>
+                    </div>
+                </div>
+            </div>
         </div>
 
         <div class="space-y-6">
@@ -28,10 +39,9 @@
                         <div class="space-y-1">
                             <p class="text-sm font-medium">最后更新时间</p>
                             <p class="text-sm text-muted-foreground">
-                                {{ formatDate(getSongDataList.update_time) }}
+                                {{ formatDate(SongStore.SONG_LIST.update_time) }}
                             </p>
                         </div>
-                        <!-- v-if="Capacitor.getPlatform() !== 'web'" -->
                         <div>
                             <ActionConfirm title="你确定要更新歌曲数据源吗?" confirm-text="确认" cancel-text="算了"
                                 @confirm="handelUpdateSongs">
@@ -87,6 +97,7 @@
 
             <div class="text-center text-sm text-muted-foreground pt-4">
                 版本: {{ getProjectVersion() }}
+                <span v-if="hasNewVersion">{{ `(最新版本:${newVersion})` }}</span>
             </div>
         </div>
 
@@ -146,24 +157,23 @@
 </template>
 
 <script setup lang="ts">
-import { ref, reactive } from 'vue'
+import { ref, reactive, onMounted, computed } from 'vue'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/shadcn/ui/card'
 import { Button } from '@/components/shadcn/ui/button'
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/shadcn/ui/dialog'
 import { Input } from '@/components/shadcn/ui/input'
 import { Label } from '@/components/shadcn/ui/label'
-import { Music, RefreshCw, MessageSquare } from 'lucide-vue-next'
+import { Music, RefreshCw, MessageSquare, UserCircle } from 'lucide-vue-next'
 import { toast } from 'vue-sonner'
 import { useCollectionStore } from '@/store/collections'
 import { useAppStore } from '@/store/appStore'
 import { getProjectVersion, formatDate } from '@/utils/StrUtil'
 import LXNSCard from './LXNSCard.vue'
 import DivingFIshCard from './DivingFIshCard.vue'
-import { useDataStore } from '@/store/datasource'
 import UsagiCard from './UsagiCard.vue'
 import ActionConfirm from '@/components/ActionConfirm.vue'
-import { QuerySongs } from '../../api/other'
-import { storeToRefs } from 'pinia'
+import { useSongStore } from '@/store/datasources/song'
+import { checkVersion } from '@/api/other'
 
 // 响应式数据
 const showSetNameDialog = ref(false)
@@ -174,8 +184,9 @@ const DataSourceUpdating = reactive({
     collDataUpload: false
 })
 const { exportCollectionData, uploadCollectionData, downloadCollectionData } = useCollectionStore()
-const { getSongDataList } = storeToRefs(useDataStore());
-const { updateSongList } = useDataStore()
+const { updateSongFromAPI } = useSongStore()
+const SongStore = useSongStore();
+
 
 
 //upload
@@ -263,8 +274,8 @@ const handelUpdateSongs = async () => {
     if (UpdatingSongs.value) return;
     UpdatingSongs.value = true;
     try {
-        const songs = await QuerySongs();
-        updateSongList(songs);
+        await updateSongFromAPI()
+        toast.success("歌曲数据源更新完成")
     } catch (error: any) {
         toast.error(`歌曲数据源更新失败: ${error.message ? error.message : 'Unknown Error'}`)
         console.error("歌曲数据源更新失败", error);
@@ -272,4 +283,26 @@ const handelUpdateSongs = async () => {
         UpdatingSongs.value = false;
     }
 }
+//update|check version
+const checkAnyProjectVersion = async () => {
+    try {
+        const versionTable = await checkVersion()
+        const currentVersion = getProjectVersion()
+        const collator = new Intl.Collator(undefined, { numeric: true, sensitivity: 'base' });
+        if (collator.compare(currentVersion, versionTable.new,) === -1) {
+            newVersion.value = versionTable.new
+            toast.info(`发现有可更新的版本! ${versionTable.new}`, { position: "top-right" })
+        }
+        if (collator.compare(currentVersion, versionTable.min) === -1) {
+            toast.warning(`当前版本已不再可用，请更新到最新版本！`, { position: "top-center" })
+        }
+    } catch (error: any) {
+        console.warn("检测更新失败,大概率只是被墙了(", error);
+    }
+}
+const newVersion = ref("")
+const hasNewVersion = computed(() => newVersion.value)
+onMounted(() =>
+    checkAnyProjectVersion()
+)
 </script>

@@ -1,25 +1,42 @@
-import type { AnyScore, Score, SongType } from "@/types/datasource";
+import type { AnyScore, Score } from "@/types/datasource";
 import { Clipboard } from "@capacitor/clipboard"
 import { useRoute, useRouter, type RouteLocationRaw } from "vue-router";
 import { toast } from "vue-sonner";
-import { getSongDiff } from "./StrUtil";
-import type { MaiMaiSong } from "@/types/songs";
+import { getSongDiffUniId } from "./StrUtil";
+import type { MaiMaiSong, ScoreExtend, SongDifficultyAny, SongType } from "@/types/songs";
 import { fcMapping, fsMapping, rateMapping } from "@/api/usagi";
-import { useDataStore } from "@/store/datasource";
 import { ref } from "vue";
+import type { LXNSScore } from "@/types/lxns";
+import type { UsagiScore } from "@/types/usagi";
+import { conventLevelPrefix, conventLevelTag, LEVEL_MATCH_PATTEN, RANKING_MATCH_PATTEN, LEVEL_RANGE_MATCH_PATTEN, isValidAchievementRange, BASE_NUMBER_RANGE_PATTEN } from "@/utils/StrUtil";
+import { rankingList } from "@/utils/urlUtils";
+import type { SongDifficulty, SongDifficultyUtage } from "@/types/songs";
+import { useScores } from "@/store/datasources/scores";
 
 type DebouncedFunction<T extends any[]> = (...args: T) => void;
 
 export function debounce<T extends any[]>(
   fn: (...args: T) => void,
-  delay: number = 300
+  delay: number = 300,
+  immediate: boolean = false
 ): DebouncedFunction<T> {
   let timeoutId: ReturnType<typeof setTimeout>;
+  let isFirstCall = true;
+
   return (...args: T) => {
+    const callNow = immediate && isFirstCall;
+    isFirstCall = false;
+
     clearTimeout(timeoutId);
-    timeoutId = setTimeout(() => {
+
+    if (callNow) {
       fn.apply(null, args);
-    }, delay);
+    } else {
+      timeoutId = setTimeout(() => {
+        fn.apply(null, args);
+        isFirstCall = true;
+      }, delay);
+    }
   };
 }
 export function useRouterHelper() {
@@ -65,55 +82,59 @@ export function useCopyHelper() {
   }
   return { handelCopy }
 }
-export function conventToScore(score: AnyScore, song: MaiMaiSong): Score {
-  let rate_type;
-  if ("rate" in score) {
-    //usagi or fish
-    if (Number.isInteger(score.rate)) {
-      //usagi
-      rate_type = rateMapping[score.rate as number]
-    } else {
-      //fish
-      rate_type = score.rate as string
+
+function getRateType(score: AnyScore): string {
+  if ("rate" in score && Number.isInteger(score.rate)) return rateMapping[score.rate as number] //usagi style
+  if ("rate" in score && typeof score.rate === "string") return score.rate //fish style
+  return (score as LXNSScore).rate_type ?? "d" // lxns style
+}
+
+function getFcFsType(fcfs: string | number | null, type: "fc" | "fs"): string | null {
+  if (fcfs === null || fcfs === undefined) return null;
+  if (typeof fcfs === 'number' && Number.isInteger(fcfs)) {
+    switch (type) {
+      case "fc":
+        return fcMapping[fcfs] ?? null;
+      case "fs":
+        return fsMapping[fcfs] ?? null;
+      default:
+        return null;
     }
-  } else {
-    //lxns
-    rate_type = score.rate_type
   }
-  let fc
-  if (Number.isInteger(score.fc)) {
-    //usagi
-    fc = fcMapping[score.fc as number]
-  } else {
-    fc = score.fc as string | null
-  }
-  let fs
-  if (Number.isInteger(score.fs)) {
-    //usagi
-    fs = fsMapping[score.fs as number]
-  } else {
-    fs = score.fs as string | null
-  }
-  const song_id = ("song_id" in score) ? toLXNSStyleId(score.song_id) : toLXNSStyleId(score.id)
+  return typeof fcfs === 'string' ? fcfs : null;
+}
+export function conventToScore(score: AnyScore, song: MaiMaiSong): Score {
+  const song_id = ("song_id" in score)
+    ? toLXNSStyleId(score.song_id)
+    : toLXNSStyleId(score.id)
   const raw_id = ("song_id" in score) ? score.song_id : score.id
   let type = toLXNSType(score.type) as SongType
-  //why your type is wrong
+  //why your type is this
   if ("level_label" in score && score.level_label === "Utage") type = "utage"
   return {
     id: song_id,
     fish_id: ("song_id" in score) ? score.song_id : toFishStyleId(score.id),
-    song_name: ("title" in score) ? score.title : score.song_name,
-    achievements: score.achievements,
-    fc,
-    fs,
-    level: score.level,
-    level_index: score.level_index,
-    level_value: ("ds" in score) ? score.ds : getSongDiff(song, score)?.level_value,
-    rate_type,
-    dx_score: ("dxScore" in score) ? score.dxScore : score.dx_score,
-    dx_rating: ("ra" in score) ? score.ra : score.dx_rating,
+    song_name: ("title" in score) ? score.title : score.song_name ?? "Unknown",
+    achievements: score.achievements ?? 0,
+    fc: getFcFsType(score.fc, "fc"),
+    fs: getFcFsType(score.fs, "fs"),
+    level: score.level ?? "0?",
+    level_index: score.level_index ?? 0,
+    level_value: ("ds" in score)
+      ? score.ds
+      : getSongDiffByScore(song, score)?.level_value
+      ?? 0,
+    rate_type: getRateType(score),
+    dx_score: ("dxScore" in score)
+      ? score.dxScore
+      : score.dx_score
+      ?? 0,
+    dx_rating: ("ra" in score)
+      ? score.ra
+      : score.dx_rating
+      ?? 0,
     type,
-    play_count: ("play_count" in score) ? score.play_count : void 0,
+    play_count: (score as UsagiScore).play_count,
     diff_id: raw_id
   }
 }
@@ -150,38 +171,6 @@ function toLXNSType(type: string) {
     case "UTAGE": return "utage";
     default: return type;
   }
-}
-export function showCurrentStyleId(id: number) {
-  if (useDataStore().selectedSource === 'divingfish') return toFishStyleId(id);
-  else return id
-}
-/**
- * 对数组进行分页处理
- * @param array 需要分页的原始数组
- * @param currentPage 当前页码（从1开始，默认值1）
- * @param itemsPerPage 每页元素数量（默认值10）
- * @returns 当前页对应的数据子集
- */
-export function paginateArray<T>(
-  array: T[],
-  currentPage: number = 1,
-  itemsPerPage: number = 10
-): T[] {
-  // 参数有效性校验
-  if (!Number.isInteger(currentPage) || currentPage < 1) {
-    throw new Error("currentPage must be a positive integer")
-  }
-
-  if (!Number.isInteger(itemsPerPage) || itemsPerPage <= 0) {
-    throw new Error("itemsPerPage must be a positive integer")
-  }
-
-  // 计算分页边界
-  const startIndex = (currentPage - 1) * itemsPerPage
-  const endIndex = startIndex + itemsPerPage
-
-  // 返回分页结果
-  return array.slice(startIndex, endIndex)
 }
 export const useNFC = (callback: (message: string) => void) => {
   const isSupported = 'NDEFReader' in window;
@@ -255,4 +244,82 @@ export const useNFC = (callback: (message: string) => void) => {
     startScan,
     stopScan
   }
+}
+export const getSongDiffByScoreEx = (score: ScoreExtend): SongDifficultyAny | undefined => {
+  const uni_id = getSongDiffUniId(score.song, score.score)
+  return score.song[uni_id as keyof MaiMaiSong] as unknown as SongDifficultyAny | undefined;
+}
+export const getSongDiffByScore = (song: MaiMaiSong, score: Score | AnyScore): SongDifficultyAny | undefined => {
+  const uni_id = getSongDiffUniId(song, score)
+  return song[uni_id as keyof MaiMaiSong] as unknown as SongDifficultyAny | undefined;
+}
+export const filterDiffByLevelTag = (song_id: number, diffs: SongDifficulty[] | SongDifficultyUtage[], tags: string[]) => {
+  const result: string[] = []
+  for (const diff of diffs) {
+    //宴谱默认拒绝
+    if (diff.type === "utage" || ("kanji" in diff)) continue;
+    for (const tag of tags) {
+      const isLevelPatten = LEVEL_MATCH_PATTEN.test(tag);
+      const isLevelRangePatten = LEVEL_RANGE_MATCH_PATTEN.test(tag)
+      if (!isLevelPatten && !isLevelRangePatten) continue;
+      if (isLevelPatten) {
+        const level_filter = conventLevelTag(tag);
+        if (level_filter) {
+          if (diff.level_index === level_filter.level_index
+            && diff.level_value === level_filter.level_value
+          ) {
+            result.push(`${song_id}_${diff.type}_${diff.level_index}`)
+          }
+        }
+
+      }
+      if (isLevelRangePatten) {
+        const [start, end] = tag.split("-");
+        const levelStart = Number(start);
+        const levelEnd = Number(end)
+        if (diff.level_value >= levelStart && diff.level_value <= levelEnd) {
+          result.push(`${song_id}_${diff.type}_${diff.level_index}`)
+        }
+      }
+    }
+  }
+  return result;
+}
+export const filterDiffByAchievementTag = (song_id: number, diffs: SongDifficulty[] | SongDifficultyUtage[], tags: string[]): string[] => {
+  const result: string[] = []
+  const ScoreStore = useScores()
+  for (const diff of diffs) {
+    let score;
+    if (diff.type === "utage" && ("kanji" in diff)) {
+      //处理宴谱
+      score = ScoreStore.getScoreByUni(diff.diff_id, diff.type, diff.level_index)
+    } else {
+      score = ScoreStore.getScoreByUni(song_id, diff.type, diff.level_index);
+    }
+    if (!score) continue;
+    for (const tag of tags) {
+      if (RANKING_MATCH_PATTEN.test(tag)) {
+        const splits = tag.split("_");
+        if (splits.length < 2) continue;
+        const level_index_tag = conventLevelPrefix(splits[0]);
+        const ranking_target = rankingList.find(r => r.id === splits[1]);
+        if (!ranking_target) continue;
+        if (diff.level_index === level_index_tag
+          && (ranking_target.min <= score.achievements && ranking_target.max >= score.achievements)
+        ) {
+          result.push(`${score.diff_id}_${diff.type}_${diff.level_index}`)
+        }
+      }
+      if (isValidAchievementRange(tag)) {
+        const matched = tag.match(BASE_NUMBER_RANGE_PATTEN);
+        if (!matched || matched.length !== 3) continue;
+        const start = parseFloat(matched[1]);
+        const end = parseFloat(matched[2]);
+        if (start <= score.achievements && end >= score.achievements) {
+          result.push(`${score.diff_id}_${diff.type}_${diff.level_index}`)
+        }
+      }
+    }
+  }
+  return result;
 }

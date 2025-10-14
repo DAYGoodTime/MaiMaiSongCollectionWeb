@@ -5,7 +5,7 @@
                 <DialogTitle>{{ title }}</DialogTitle>
                 <DialogDescription>
                     {{ description }}
-                    <p v-if="getSelectableSource.length == 0" class="text-red-600 font-bold">
+                    <p v-if="ScoreStore.getSelectableSource.length == 0" class="text-red-600 font-bold">
                         注意:你没有添加任何查分器，所有导入的成绩都是'未游玩'状态，默认不会进行显示！</p>
                 </DialogDescription>
             </DialogHeader>
@@ -55,12 +55,13 @@ import { Button } from '@/components/shadcn/ui/button'
 import { Input } from '@/components/shadcn/ui/input'
 import Slider from '@/components/shadcn/ui/slider/Slider.vue'
 import { useCollectionStore } from '@/store/collections';
-import { useDataStore } from '@/store/datasource';
 import { toast } from 'vue-sonner';
 import { ref, watch } from 'vue'
 import MultiSelectTags from '@/components/MultiSelectTags.vue'
 import type { FilterProps } from '@/types/component'
 import { storeToRefs } from 'pinia'
+import { useScores } from '@/store/datasources/scores'
+import { useSongStore } from '@/store/datasources/song'
 
 interface LevelRange {
     start: number
@@ -83,7 +84,8 @@ watch(levelRangeSlider, (newRange) => {
     const [newMin, newMax] = newRange;
     levelRange.value = [newMin, newMax]
 })
-const { getSongDataList, getSelectableSource } = storeToRefs(useDataStore())
+const ScoreStore = useScores()
+const SongStore = useSongStore()
 const { UserCollectionList, CurrentCollectionLabel } = storeToRefs(useCollectionStore());
 const commonLevelOptions: FilterProps<LevelRange>[] =
     [
@@ -100,7 +102,7 @@ const importing = ref(false)
 const handelImportByLevel = () => {
     if (importing.value) return;
     importing.value = true
-    const song_list = getSongDataList.value.list;
+    const song_list = SongStore.getSongList();
     const result_score = new Set<string>([])
     const coll_index = UserCollectionList.value.findIndex(c => c.label == CurrentCollectionLabel.value);
     const ranges = selectedLevelRanges.value.map(prop => [prop.value.start, prop.value.end]);

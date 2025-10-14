@@ -3,6 +3,7 @@ import "./style.css";
 import App from "./App.vue";
 import router from "./routers";
 import { createPinia } from "pinia";
+import 'core-js/actual/structured-clone'
 
 const app = createApp(App);
 app.use(router);

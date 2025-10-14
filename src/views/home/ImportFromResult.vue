@@ -4,8 +4,8 @@
             <DialogHeader>
                 <DialogTitle>将搜索结果导入到合集当中</DialogTitle>
                 <DialogDescription>
-                    <p v-if="props.list.length === MAX_SEARCH_NUMBER" class="text-red-600">
-                        注意：当前搜索结果数量达到上限，这可能会导致遗漏，建议缩小搜索范围。</p>
+                    <p v-if="props.list.length >= props.max_limit" class="text-red-600">
+                        注意：当前搜索结果数量达到上限 ({{ props.max_limit }}) ，这可能会导致遗漏，建议缩小搜索范围。</p>
                     <p>准备导入的歌曲数量为 : {{ props.list.length }}</p>
                 </DialogDescription>
             </DialogHeader>
@@ -83,7 +83,7 @@ import MultiSelectTags from '@/components/MultiSelectTags.vue'
 import { Button } from '@/components/shadcn/ui/button';
 import { Label } from 'reka-ui';
 import type { MaiMaiSong } from '@/types/songs';
-import { filterDiffByAchievementTag, filterDiffByLevelTag, MAX_SEARCH_NUMBER } from '@/utils/songSearch';
+import { filterDiffByAchievementTag, filterDiffByLevelTag } from '@/utils/functionUtil';
 import type { Tag } from '@/components/TagInputCombobox.vue';
 import { computed, ref } from 'vue';
 import { LEVEL_MATCH_PATTEN, LEVEL_RANGE_MATCH_PATTEN } from '@/utils/StrUtil';
@@ -102,7 +102,8 @@ const diffOptions: FilterProps<number>[] = [{ label: 'BASIC', value: 0 }, { labe
 const selectedDiffs = ref<FilterProps<number>[]>([])
 const props = defineProps<{
     list: MaiMaiSong[] | []
-    tags: Tag[] | []
+    tags: Tag[] | [],
+    max_limit: number
 }>()
 const hasLevelTag = computed(() => {
     return props.tags.filter(t => LEVEL_MATCH_PATTEN.test(t.value) || LEVEL_RANGE_MATCH_PATTEN.test(t.value)).length > 0
@@ -169,6 +170,7 @@ const getScoreId = (song: MaiMaiSong, targetLevels: number[]) => {
     if (!hasTargetScoreTag.value) {
         const filtered = diffs.filter(diff => targetLevels.includes(diff.level_index))
         const filteredIds = filtered.map(diff => `${song.id}_${diff.type}_${diff.level_index}`);
+        Array.prototype.push.apply(result, filteredIds)
         result = result.filter(sid => filteredIds.indexOf(sid) > -1);
     }
     return result;
