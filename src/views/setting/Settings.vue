@@ -97,6 +97,7 @@
 
             <div class="text-center text-sm text-muted-foreground pt-4">
                 版本: {{ getProjectVersion() }}
+                <span v-if="hasNewVersion">{{ `(最新版本:${newVersion})` }}</span>
             </div>
         </div>
 
@@ -156,7 +157,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, reactive } from 'vue'
+import { ref, reactive, onMounted, computed } from 'vue'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/shadcn/ui/card'
 import { Button } from '@/components/shadcn/ui/button'
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/shadcn/ui/dialog'
@@ -172,6 +173,7 @@ import DivingFIshCard from './DivingFIshCard.vue'
 import UsagiCard from './UsagiCard.vue'
 import ActionConfirm from '@/components/ActionConfirm.vue'
 import { useSongStore } from '@/store/datasources/song'
+import { checkVersion } from '@/api/other'
 
 // 响应式数据
 const showSetNameDialog = ref(false)
@@ -281,4 +283,26 @@ const handelUpdateSongs = async () => {
         UpdatingSongs.value = false;
     }
 }
+//update|check version
+const checkAnyProjectVersion = async () => {
+    try {
+        const versionTable = await checkVersion()
+        const currentVersion = getProjectVersion()
+        const collator = new Intl.Collator(undefined, { numeric: true, sensitivity: 'base' });
+        if (collator.compare(currentVersion, versionTable.new,) === -1) {
+            newVersion.value = versionTable.new
+            toast.info(`发现有可更新的版本! ${versionTable.new}`, { position: "top-right" })
+        }
+        if (collator.compare(currentVersion, versionTable.min) === -1) {
+            toast.warning(`当前版本已不再可用，请更新到最新版本！`, { position: "top-center" })
+        }
+    } catch (error: any) {
+        console.warn("检测更新失败,大概率只是被墙了(", error);
+    }
+}
+const newVersion = ref("")
+const hasNewVersion = computed(() => newVersion.value)
+onMounted(() =>
+    checkAnyProjectVersion()
+)
 </script>
