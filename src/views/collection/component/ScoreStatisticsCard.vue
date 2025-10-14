@@ -26,8 +26,8 @@
                                             </div>
                                             <div>
                                                 <span class="text-xl font-bold">{{ ranking.current }}</span>
-                                                <span class="text-sm text-muted-foreground">/ {{ statisticsBoard.total
-                                                    }}</span>
+                                                <span class="text-sm text-muted-foreground">
+                                                    / {{ statisticsBoard.total }}</span>
                                             </div>
                                         </div>
                                     </div>
@@ -38,8 +38,8 @@
                                             </div>
                                             <div>
                                                 <span class="text-xl font-bold">{{ ranking.current }}</span>
-                                                <span class="text-sm text-muted-foreground">/ {{ statisticsBoard.total
-                                                    }}</span>
+                                                <span class="text-sm text-muted-foreground">
+                                                    / {{ statisticsBoard.total }}</span>
                                             </div>
                                         </div>
                                     </div>
@@ -54,9 +54,8 @@
                                                 </div>
                                                 <div>
                                                     <span class="text-xl font-bold">{{ ranking.current }}</span>
-                                                    <span class="text-sm text-muted-foreground">/ {{
-                                                        statisticsBoard.total
-                                                        }}</span>
+                                                    <span class="text-sm text-muted-foreground">
+                                                        / {{ statisticsBoard.total }}</span>
                                                 </div>
                                             </div>
                                         </div>
@@ -67,9 +66,8 @@
                                                 </div>
                                                 <div>
                                                     <span class="text-xl font-bold">{{ ranking.current }}</span>
-                                                    <span class="text-sm text-muted-foreground">/ {{
-                                                        statisticsBoard.total
-                                                        }}</span>
+                                                    <span class="text-sm text-muted-foreground">
+                                                        / {{ statisticsBoard.total }}</span>
                                                 </div>
                                             </div>
                                         </div>
@@ -92,7 +90,8 @@
                                     </div>
                                     <p class="font-bold my-2">谱师统计:</p>
                                     <div class="grid grid-cols-2 gap-2 mt-2">
-                                        <div class="flex justify-between" v-for="arr in getOrderedNoteDesigner">
+                                        <div class="flex justify-between items-center"
+                                            v-for="arr in getOrderedNoteDesigner">
                                             <span class="text-sm">{{ arr[0] }}</span>
                                             <div class="min-w-fit">
                                                 <span class="text-xl font-bold">{{ arr[1] }}</span>
@@ -110,8 +109,8 @@
                                         </div>
                                         <div>
                                             <span class="text-xl font-bold">{{ ranking.current }}</span>
-                                            <span class="text-sm text-muted-foreground">/ {{ statisticsBoard.total
-                                                }}</span>
+                                            <span class="text-sm text-muted-foreground">
+                                                / {{ statisticsBoard.total }}</span>
                                         </div>
                                     </div>
                                 </div>
@@ -125,8 +124,8 @@
                                             </div>
                                             <div>
                                                 <span class="text-xl font-bold">{{ ranking.current }}</span>
-                                                <span class="text-sm text-muted-foreground">/ {{ statisticsBoard.total
-                                                    }}</span>
+                                                <span class="text-sm text-muted-foreground">
+                                                    / {{ statisticsBoard.total }}</span>
                                             </div>
                                         </div>
                                     </div>
@@ -139,9 +138,8 @@
                                                 </div>
                                                 <div>
                                                     <span class="text-xl font-bold">{{ ranking.current }}</span>
-                                                    <span class="text-sm text-muted-foreground">/ {{
-                                                        statisticsBoard.total
-                                                        }}</span>
+                                                    <span class="text-sm text-muted-foreground">
+                                                        / {{ statisticsBoard.total }}</span>
                                                 </div>
                                             </div>
                                         </div>
@@ -153,9 +151,8 @@
                                                 </div>
                                                 <div>
                                                     <span class="text-xl font-bold">{{ ranking.current }}</span>
-                                                    <span class="text-sm text-muted-foreground">/ {{
-                                                        statisticsBoard.total
-                                                        }}</span>
+                                                    <span class="text-sm text-muted-foreground">
+                                                        / {{ statisticsBoard.total }}</span>
                                                 </div>
                                             </div>
                                         </div>
@@ -167,18 +164,19 @@
                                                 <div v-if="dxScore.icon" class="flex">
                                                     <img :src="dxScore.icon" :alt="dxScore.alt" class="w-auto h-4"
                                                         :title="dxScore.alt" />
-                                                    <span class="ml-1 text-sm font-semibold">({{ `${dxScore.require *
-                                                        100}%`
-                                                        }})</span>
+                                                    <span class="ml-1 text-sm font-semibold">
+                                                        ({{ `${dxScore.require * 100}%` }})</span>
                                                 </div>
-                                                <span v-else>0星<span class="ml-1 text-sm font-semibold">{{ '(<85%)'
-                                                            }}</span></span>
+                                                <span v-else>
+                                                    0星
+                                                    <span class="ml-1 text-sm font-semibold">
+                                                        {{ '(<85%)' }}</span>
+                                                    </span>
                                             </div>
                                             <div>
                                                 <span class="text-xl font-bold">{{ dxScore.current }}</span>
-                                                <span class="text-sm text-muted-foreground">/ {{
-                                                    statisticsBoard.total
-                                                    }}</span>
+                                                <span class="text-sm text-muted-foreground">
+                                                    / {{ statisticsBoard.total }}</span>
                                             </div>
                                         </div>
                                     </div>
@@ -190,8 +188,8 @@
                                             </div>
                                             <div>
                                                 <span class="text-xl font-bold">{{ arr[1] }}</span>
-                                                <span class="text-sm text-muted-foreground">/ {{ statisticsBoard.total
-                                                    }}</span>
+                                                <span class="text-sm text-muted-foreground">
+                                                    / {{ statisticsBoard.total }}</span>
                                             </div>
                                         </div>
                                     </div>
