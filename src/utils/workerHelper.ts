@@ -125,6 +125,7 @@ const advanceFilter = (filter: AdvanceFilterFilters, list: ScoreExtend[]): Score
     const categoryFilter = new Set(filter.musicCategories.map(f => f.value));
     const versionFilter = new Set(filter.version.map(f => f.value));
     const mapFilter = new Set(filter.mapCategories.map(f => f.value));
+    const dxScoreFilter = filter.dxScore.map(f => f.value);
     const fcFilter = new Set(filter.fullCombo.map(f => f.value));
     const fsFilter = new Set(filter.fullSync.map(f => f.value));
     const typeFilter = new Set(filter.Type.map(f => f.value));
@@ -154,7 +155,17 @@ const advanceFilter = (filter: AdvanceFilterFilters, list: ScoreExtend[]): Score
         if (mapFilter.size > 0 && !mapFilter.has(s.song.map ?? "")) {
             return false;
         }
-
+        // DX score Filter
+        const radio = getDxScoreRadio(s)
+        if (dxScoreFilter.length > 0
+            &&
+            !dxScoreFilter.some(f =>
+                radio >= f.min
+                && radio < f.max
+            )
+        ) {
+            return false;
+        }
         // FC Filter
         if (fcFilter.size > 0 && !fcFilter.has(s.score.fc ?? "NAN")) {
             return false;

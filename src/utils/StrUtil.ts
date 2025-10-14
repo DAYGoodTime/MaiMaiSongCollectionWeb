@@ -206,18 +206,18 @@ export function isAllFinal(version: string) {
   return !version.includes("DX");
 }
 export const DX_SCORE_TIERS = [
-  { threshold: 0, icon: "", index: 0 },
-  { threshold: 0.85, icon: getImageAssertUrl("UI_GAM_DXScoreIcon_2_1", "webp"), index: 1 },
-  { threshold: 0.9, icon: getImageAssertUrl("UI_GAM_DXScoreIcon_2_2", "webp"), index: 2 },
-  { threshold: 0.93, icon: getImageAssertUrl("UI_GAM_DXScoreIcon_2_3", "webp"), index: 3 },
-  { threshold: 0.95, icon: getImageAssertUrl("UI_GAM_DXScoreIcon_2_4", "webp"), index: 4 },
-  { threshold: 0.97, icon: getImageAssertUrl("UI_GAM_DXScoreIcon_2_5", "webp"), index: 5 },
-  { threshold: 0.97, icon: getImageAssertUrl("UI_GAM_DXScoreIcon_2_5_2", "webp"), index: 5 },
+  { threshold: 0, icon: "", max: 0.85 },
+  { threshold: 0.85, icon: getImageAssertUrl("UI_GAM_DXScoreIcon_2_1", "webp"), max: 0.9 },
+  { threshold: 0.9, icon: getImageAssertUrl("UI_GAM_DXScoreIcon_2_2", "webp"), max: 0.93 },
+  { threshold: 0.93, icon: getImageAssertUrl("UI_GAM_DXScoreIcon_2_3", "webp"), max: 0.95 },
+  { threshold: 0.95, icon: getImageAssertUrl("UI_GAM_DXScoreIcon_2_4", "webp"), max: 0.97 },
+  { threshold: 0.97, icon: getImageAssertUrl("UI_GAM_DXScoreIcon_2_5", "webp"), max: 2 },
+  { threshold: 0.97, icon: getImageAssertUrl("UI_GAM_DXScoreIcon_2_5_2", "webp"), max: 2 },
 ];
 export function getDxScoreThreshold(dxScore: number, totalDxScore: number) {
   if (totalDxScore == 0) return 0;
   const radio = dxScore / totalDxScore;
-  for (const tier of DX_SCORE_TIERS.reverse()) {
+  for (const tier of [...DX_SCORE_TIERS].reverse()) {
     if (radio > tier.threshold) {
       return tier.threshold;
     }

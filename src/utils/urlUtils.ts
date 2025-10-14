@@ -101,7 +101,8 @@ export function getDxScoreIcon(dxScore: number, totalDxScore: number): string | 
     return null;
   }
   const radio = (dxScore / totalDxScore)
-  for (const tier of DX_SCORE_TIERS.slice(1, 5).reverse()) {
+  const tier_list = [...DX_SCORE_TIERS.slice(1, 5)].reverse()
+  for (const tier of tier_list) {
     if (radio >= tier.threshold) {
       return tier.icon
     }

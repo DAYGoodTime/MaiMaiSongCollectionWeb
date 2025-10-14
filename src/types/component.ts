@@ -1,4 +1,4 @@
-import type { HTMLAttributes } from "vue";
+import type { HTMLAttributes, VNode } from "vue";
 
 //AdvanceFilter
 export interface AdvanceFilterProps {
@@ -10,6 +10,7 @@ export interface AdvanceFilterProps {
         version?: FilterProps<string>[];
         mapCategories?: FilterProps<string>[];
         difficultyRange?: [number, number];
+        dxScore?: FilterProps<RangeAble<number>>[];
         fullCombo?: FilterProps<string>[];
         fullSync?: FilterProps<string>[];
         Type?: FilterProps<string>[];
@@ -17,8 +18,13 @@ export interface AdvanceFilterProps {
     };
 }
 export interface FilterProps<T> {
+    vnode?: VNode,
     label: string,
     value: T
+}
+export interface RangeAble<T> {
+    min: T,
+    max: T
 }
 export type AdvanceFilterFilters = Required<AdvanceFilterProps['modelValue']>;
 export type AdvanceFilterEmits = {
