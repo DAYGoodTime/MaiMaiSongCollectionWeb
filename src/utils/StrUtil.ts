@@ -3,6 +3,7 @@ import type { MaiMaiSong, ScoreExtend, SongDifficulty } from "@/types/songs";
 import { pinyin } from "pinyin-pro";
 import { getSongDiffByScoreEx } from "./functionUtil";
 import versionList from '@/assets/data/versions.json' with { type: 'json' };
+import { getImageAssertUrl } from "./urlUtils";
 
 export const LEVEL_MATCH_PATTEN =
   /^[绿黄红紫白](?:(?:1[0-5]|[1-9])\+|(?:1[0-5]|[1-9])(?:\.\d)?)$/;
@@ -203,4 +204,23 @@ export const conventVersionByInt = (version: number) => {
 };
 export function isAllFinal(version: string) {
   return !version.includes("DX");
+}
+export const DX_SCORE_TIERS = [
+  { threshold: 0, icon: "", index: 0 },
+  { threshold: 0.85, icon: getImageAssertUrl("UI_GAM_DXScoreIcon_2_1", "webp"), index: 1 },
+  { threshold: 0.9, icon: getImageAssertUrl("UI_GAM_DXScoreIcon_2_2", "webp"), index: 2 },
+  { threshold: 0.93, icon: getImageAssertUrl("UI_GAM_DXScoreIcon_2_3", "webp"), index: 3 },
+  { threshold: 0.95, icon: getImageAssertUrl("UI_GAM_DXScoreIcon_2_4", "webp"), index: 4 },
+  { threshold: 0.97, icon: getImageAssertUrl("UI_GAM_DXScoreIcon_2_5", "webp"), index: 5 },
+  { threshold: 0.97, icon: getImageAssertUrl("UI_GAM_DXScoreIcon_2_5_2", "webp"), index: 5 },
+];
+export function getDxScoreThreshold(dxScore: number, totalDxScore: number) {
+  if (totalDxScore == 0) return 0;
+  const radio = dxScore / totalDxScore;
+  for (const tier of DX_SCORE_TIERS.reverse()) {
+    if (radio > tier.threshold) {
+      return tier.threshold;
+    }
+  }
+  return 0;
 }

@@ -70,7 +70,7 @@
                     </div>
                 </CardContent>
             </Card>
-            <ScoreStatisticsCard class="w-96" :status-board="statusBoard" />
+            <ScoreStatisticsCard class="w-96" ref="StatisticsBoardRef" />
         </div>
         <!-- 成绩列表 -->
         <ContextMenu>
@@ -191,11 +191,10 @@ import { Search, X, ChevronDown, ChevronUp, PanelLeft } from 'lucide-vue-next'
 import { Input } from '@/components/shadcn/ui/input'
 import { useCollectionStore } from '@/store/collections';
 import type { MaiMaiSong, ScoreExtend, SongType } from '@/types/songs';
-import { debounce, getSongDiffByScore, toFishStyleId, toLXNSStyleId, useCopyHelper, useRouterHelper } from '@/utils/functionUtil';
-import { computed, reactive, ref, toRaw, useTemplateRef, watch } from 'vue';
+import { debounce, toFishStyleId, toLXNSStyleId, useCopyHelper, useRouterHelper } from '@/utils/functionUtil';
+import { computed, onMounted, ref, toRaw, useTemplateRef, watch } from 'vue';
 import { toast } from 'vue-sonner';
-import { conventFcFsStr } from '@/utils/StrUtil';
-import { ACHIEVEMENT, PLAY_BONUS, ACHIEVEMENT_ICON, PLAY_BONUS_ICON } from '@/utils/urlUtils';
+
 import {
     ContextMenu,
     ContextMenuContent,
@@ -218,7 +217,6 @@ import type { Score } from '@/types/datasource';
 import InfiniteScrollArea from '@/components/InfiniteScrollArea.vue';
 import AdvanceFilter from '@/components/AdvanceFilter/AdvanceFilter.vue';
 import type { AdvanceFilterFilters } from '@/types/component';
-import type { StatusBoard, StatusValue } from '@/views/collection/component/ScoreStatisticsCard.vue';
 import ScoreStatisticsCard from '@/views/collection/component/ScoreStatisticsCard.vue';
 import AdvanceFeature from './component/AdvanceFeature.vue';
 import { type OrderBadge } from '@/types/component';
@@ -239,6 +237,7 @@ const { CurrentCollectionLabel, UserCollectionList } = storeToRefs(useCollection
 const { toggleSidebar } = useSidebar()
 const PanelRef = useTemplateRef("panel")
 const AdvanceFilterRef = useTemplateRef("AdvanceFilterRef")
+const StatisticsBoardRef = useTemplateRef("StatisticsBoardRef")
 const [DefineSortingTemplate, ReuseSortingTemplate] = createReusableTemplate()
 const [DefineSearchTemplate, ReuseSearchTemplate] = createReusableTemplate()
 
@@ -277,78 +276,9 @@ const AdvanceFilterForm = ref<AdvanceFilterFilters>({
     showUnplayed: false
 })
 
-//统计
-const statusBoard = reactive<StatusBoard>({
-    rank_first: [
-        { icon: ACHIEVEMENT_ICON.SSSP, current: 0, alt: "SSS+", require: ACHIEVEMENT.SSSP },
-        { icon: ACHIEVEMENT_ICON.SSS, current: 0, alt: "SSS", require: ACHIEVEMENT.SSS },
-        { icon: ACHIEVEMENT_ICON.SSP, current: 0, alt: "SS+", require: ACHIEVEMENT.SSP },
-        { icon: ACHIEVEMENT_ICON.SS, current: 0, alt: "SS", require: ACHIEVEMENT.SS }
-    ],
-    rank_second: [
-        { icon: ACHIEVEMENT_ICON.SP, current: 0, alt: "S+", require: ACHIEVEMENT.SP },
-        { icon: ACHIEVEMENT_ICON.S, current: 0, alt: "S", require: ACHIEVEMENT.S },
-        { icon: ACHIEVEMENT_ICON.AAA, current: 0, alt: "AAA", require: ACHIEVEMENT.AAA },
-        { icon: ACHIEVEMENT_ICON.AA, current: 0, alt: "AA", require: ACHIEVEMENT.AA },
-        { icon: ACHIEVEMENT_ICON.A, current: 0, alt: "A", require: ACHIEVEMENT.A }
-    ],
-    apfc: [
-        { icon: PLAY_BONUS_ICON.APP, current: 0, alt: "AP+", require: PLAY_BONUS.APP },
-        { icon: PLAY_BONUS_ICON.AP, current: 0, alt: "AP", require: PLAY_BONUS.AP },
-        { icon: PLAY_BONUS_ICON.FCP, current: 0, alt: "FC+", require: PLAY_BONUS.FCP },
-        { icon: PLAY_BONUS_ICON.FC, current: 0, alt: "FC", require: PLAY_BONUS.FC },
-    ],
-    fs: [
-        { icon: PLAY_BONUS_ICON.FDXP, current: 0, alt: "FDX+", require: PLAY_BONUS.FDXP },
-        { icon: PLAY_BONUS_ICON.FDX, current: 0, alt: "FDX", require: PLAY_BONUS.FDX },
-        { icon: PLAY_BONUS_ICON.FSP, current: 0, alt: "FS+", require: PLAY_BONUS.FSP },
-        { icon: PLAY_BONUS_ICON.FS, current: 0, alt: "FS", require: PLAY_BONUS.FS },
-        { icon: PLAY_BONUS_ICON.SYNC, current: 0, alt: "Sync", require: PLAY_BONUS.SYNC }
-    ],
-    noteDesigners: new Map<string, number>(),
-    totalAchievements: 0,
-    total: 0
-})
 
 //helper
 const { searchResults, isLoading, updateIndex } = useScoreSearchWorker(searchValue, AdvanceFilterForm, selectedOrder)
-
-const calcStatusBoard = (score: Score, song: MaiMaiSong) => {
-    // 使用单个循环处理所有状态统计，避免重复遍历
-    statusBoard.rank_first.forEach(status => {
-        if (score.achievements >= status.require) status.current++;
-    });
-
-    statusBoard.rank_second.forEach(status => {
-        if (score.achievements >= status.require) status.current++;
-    });
-
-    const fcStr = conventFcFsStr(score.fc);
-    statusBoard.apfc.forEach(status => {
-        if (fcStr === status.require) status.current++;
-    });
-
-    const fsStr = conventFcFsStr(score.fs);
-    statusBoard.fs.forEach(status => {
-        if (fsStr === status.require) status.current++;
-    });
-
-    // 累加总达成率
-    statusBoard.totalAchievements += score.achievements;
-
-    // 统计谱师信息
-    const diff = getSongDiffByScore(song, score);
-    const noteDesigner = diff?.note_designer || "";
-    if (noteDesigner) {
-        statusBoard.noteDesigners.set(
-            noteDesigner,
-            (statusBoard.noteDesigners.get(noteDesigner) || 0) + 1
-        );
-    }
-
-    // 增加总数统计
-    statusBoard.total++;
-}
 
 //handler
 const onSearch = debounce((val: string | number) => {
@@ -387,18 +317,7 @@ const handelMoveToOtherCollection = (coll_label: string, score_id: string) => {
         toast.error("添加失败")
     }
 }
-//init
-const initStatus = () => {
-    supportPcCount.value = false
-    for (const key of Object.keys(statusBoard)) {
-        if (key === "total") statusBoard.total = 0;
-        else if (key === "totalAchievements") statusBoard.totalAchievements = 0;
-        else if (key === "noteDesigners") statusBoard.noteDesigners.clear();
-        else {
-            (statusBoard[key as keyof StatusBoard] as StatusValue[]).forEach(s => s.current = 0)
-        }
-    }
-}
+
 const createUnplayedScore = (song: MaiMaiSong, song_type: SongType, level_index: number): Score => {
     const diff = song.difficulties[song_type].find(d => d.level_index === level_index);
     const diff_id = diff ? (("diff_id" in diff) ? diff.diff_id as number : song.id) : song.id;
@@ -420,9 +339,12 @@ const createUnplayedScore = (song: MaiMaiSong, song_type: SongType, level_index:
         is_played: false
     }
 }
-const initScoreList = async () => {
-
-    initStatus();
+const initScoreList = () => {
+    supportPcCount.value = false
+    isLoadingPage.value = true;
+    if (AdvanceFilterRef.value) {
+        AdvanceFilterRef.value.resetAllFilters()
+    }
     const coll = getCollectionByLabel(route.query.label as string)
     if (!coll) {
         toast.error("合集不存在", { position: "top-center" })
@@ -430,7 +352,8 @@ const initScoreList = async () => {
         return;
     }
     CurrentCollectionLabel.value = coll.label
-    if (coll) {
+    if (coll && StatisticsBoardRef.value) {
+        StatisticsBoardRef.value.initStatistics();
         const result: ScoreExtend[] = [];
         let unplayedCount = 0;
         for (const level_str of coll.list) {
@@ -443,7 +366,7 @@ const initScoreList = async () => {
             const level_index = Number(level_index_str);
             let score = ScoreStore.getScoreByUni(song_type === "utage" ? Number(diff_id) : song_id, song_type as SongType, level_index);
             if (score) {
-                calcStatusBoard(score, song);
+                StatisticsBoardRef.value.updateStatisticsBoard(score, song);
             } else {
                 unplayedCount++;
                 score = createUnplayedScore(song, song_type as SongType, level_index);
@@ -457,29 +380,17 @@ const initScoreList = async () => {
         }
         //更新索引
         updateIndex(result)
-        // 因为默认不算“未游玩的成绩"。所以需要减去
-        statusBoard.total = result.length - unplayedCount;
-        if (result.length > 0) {
-            const score = result[0];
-            if (score.score.play_count || score.score.play_count === 0) {
-                supportPcCount.value = true
-            } else {
-                supportPcCount.value = false
-            }
+        supportPcCount.value = result.some(score =>
+            score.score.play_count !== undefined || score.score.play_count === 0
+        );
+        const playCountIndex = OrderBadges.value.findIndex(o => o.value === "play_count");
+        if (supportPcCount.value && playCountIndex === -1) {
+            OrderBadges.value.push({ label: "游玩次数", value: "play_count", status_index: 0 });
+        } else if (!supportPcCount.value && playCountIndex !== -1) {
+            OrderBadges.value.splice(playCountIndex, 1);
         }
     }
-    if (supportPcCount.value) {
-        const index = OrderBadges.value.findIndex(o => o.value === "play_count");
-        if (index === -1) {
-            OrderBadges.value.push({ label: "游玩次数", value: "play_count", status_index: 0 })
-        }
-    } else {
-        const index = OrderBadges.value.findIndex(o => o.value === "play_count");
-        if (index != -1) {
-            OrderBadges.value.splice(index, 1)
-        }
-    }
-    isLoadingPage.value = false;
+    isLoadingPage.value = false
 }
 
 // computed
@@ -487,12 +398,11 @@ const getOtherCollections = computed(() => UserCollectionList.value.filter(c => 
 const isEmpty = computed(() => searchResults.value.length === 0)
 
 watch(() => route.query.label, () => {
-    isLoadingPage.value = true;
-    if (AdvanceFilterRef.value) {
-        AdvanceFilterRef.value.resetAllFilters()
-    }
-    initScoreList().then(() => isLoadingPage.value = false);
-}, { immediate: true })
+    initScoreList()
+})
+onMounted(() => {
+    initScoreList()
+})
 //ScoreCard Event
 const { handelCopy } = useCopyHelper()
 //menu
