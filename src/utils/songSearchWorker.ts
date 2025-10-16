@@ -90,7 +90,8 @@ const searchSongs = (input: string, search_limit?: number) => {
         // 若存在对应id则直接返回结果
         if (songById) {
             songsToShow.push(songById)
-            return songsToShow;
+            self.postMessage({ type: 'search_results', results: songsToShow });
+            return
         }
     }
     const searchResults = (songIndex as Document).search(searchLower, { limit: SearchLimit });
