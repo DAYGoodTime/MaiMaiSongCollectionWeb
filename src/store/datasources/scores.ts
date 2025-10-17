@@ -21,8 +21,8 @@ export function flatMapById(list: AnyScore[], songMap: Record<number, MaiMaiSong
     for (const item of list) {
         const song_id = ("song_id" in item) ? toLXNSStyleId(item.song_id) : toLXNSStyleId(item.id);
         if (songMap[song_id]) {
-            const uni_link = `${song_id}_${item.type}_${item.level_index}`
             const score = conventToScore(item, songMap[song_id]);
+            const uni_link = `${song_id}_${score.type}_${score.level_index}`
             scoreMap[uni_link] = score
         } else {
             //不存在与数据源的歌曲通常为删除曲，则舍去。
