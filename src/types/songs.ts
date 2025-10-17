@@ -8,7 +8,7 @@ export interface MaiMaiSong {
   map: string | null;
   version: string;
   rights: string | null;
-  aliases: Array<String>;
+  aliases: string[];
   disabled: boolean;
   difficulties: {
     standard: SongDifficulty[];

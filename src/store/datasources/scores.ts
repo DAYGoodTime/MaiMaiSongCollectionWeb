@@ -4,7 +4,7 @@ import { conventToScore, exportFile, toFishStyleId, toLXNSStyleId } from "@/util
 import { formatDate } from "@/utils/StrUtil"
 import { useLocalStorage, type RemovableRef } from "@vueuse/core"
 import { defineStore } from "pinia"
-import { computed, ref, toRaw } from "vue"
+import { computed, toRaw } from "vue"
 import { toast } from "vue-sonner"
 import { useSongStore } from "./song"
 

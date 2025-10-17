@@ -1,9 +1,9 @@
 import type { ScoreExtend } from "@/types/songs";
-import FlexSearch, { Document, type DocumentData } from "flexsearch";
+import FlexSearch, { Document } from "flexsearch";
 import { pinyin } from "pinyin-pro";
 import { getNoteDesigners } from "./StrUtil";
 
-let scoreIndex: Document<DocumentData, boolean, boolean> | null = null;
+let scoreIndex: Document<ScoreIndexDoc>;
 let scoreMap = new Map<string, ScoreExtend>();
 let ready = false;
 
@@ -15,46 +15,61 @@ self.onmessage = ({ data }) => {
         default: console.warn(`scoreWorkers:未知的指令 ${type}`);
     }
 }
-
+interface ScoreIndexDoc {
+    [key: string]: any,
+    score_id: string,
+    title: string,
+    titlePinYin: string,
+    artist: string,
+    aliases: string[],
+    aliasesPinYin: string[],
+    noteDesigners: string[],
+    score_obj: ScoreExtend
+}
 const init = (scoreList: ScoreExtend[]) => {
     ready = false;
     if (scoreIndex) scoreIndex.clear();
     scoreMap.clear();
     scoreMap = new Map<string, ScoreExtend>(scoreList.map(s => [s.score_id, s]));
-    scoreIndex = new FlexSearch.Document({
+    scoreIndex = new FlexSearch.Document<ScoreIndexDoc>({
         document: {
             id: 'score_id',
             index: [
-                { field: 'title', tokenize: 'forward', priority: 10 },
-                { field: 'titlePinYin', tokenize: 'forward', priority: 9 },
-                { field: 'aliasesLower', tokenize: 'forward', priority: 8 },
-                { field: 'aliasesPinYin', tokenize: 'forward', priority: 7 },
-                { field: 'artist', tokenize: 'forward', priority: 5 },
-                { field: 'noteDesigners', tokenize: 'forward', priority: 1 }
-            ]
+                { field: 'title', priority: 10 },
+                { field: 'titlePinYin', priority: 9 },
+                { field: 'aliases', priority: 8 },
+                { field: 'aliasesPinYin', priority: 7 },
+                { field: 'artist', priority: 5 },
+                { field: 'noteDesigners', priority: 1 }
+            ],
+            store: ["score_obj"],//"title", "titlePinYin", "aliases", "aliasesPinYin", "artist", "noteDesigners" for debugging
+
         },
+        preset: 'score',
+        tokenize: 'full',
     });
     scoreList.forEach(item => {
         const { song, score_id } = item;
-        const aliasesPinYin = []
+        const aliasesPinYinSet = new Set<string>()
         if (Array.isArray(song.aliases)) {
             for (const alias of song.aliases) {
                 const py = pinyin(alias as string, { toneType: 'none', nonZh: "removed", separator: "", v: true });
                 if (py.length > 0) {
-                    aliasesPinYin.push(py)
+                    aliasesPinYinSet.add(py)
                 }
             }
         }
-        const indexedDoc = {
+        const indexedDoc: ScoreIndexDoc = {
             score_id: score_id,
             title: song.title,
             titlePinYin: pinyin(song.title, { toneType: 'none', nonZh: "removed", separator: "", v: true }),
             artist: song.artist,
-            aliasesLower: song.aliases?.join(" ").toLowerCase() || "",
-            aliasesPinYin,
-            noteDesigners: getNoteDesigners(song)
+            aliases: song.aliases ?? [""],
+            aliasesPinYin: [...aliasesPinYinSet],
+            noteDesigners: getNoteDesigners(song),
+            score_obj: item
         };
-        (scoreIndex as Document).add(indexedDoc);
+        scoreIndex.add(indexedDoc);
     });
     self.postMessage({ type: 'ready' });
     ready = true;
@@ -66,18 +81,34 @@ const searchScores = (input: string) => {
         return;
     }
     const searchLower = input.trim().toLowerCase();
-    const searchResults = (scoreIndex as Document).search(searchLower);
-    let scoresToShow: ScoreExtend[] = []
-    const orderedIds: string[] = [];
-    const addedIds = new Set<string>();
-    searchResults.forEach(fieldResult => {
-        fieldResult.result.forEach(id => {
-            if (!addedIds.has(id as string)) {
-                orderedIds.push(id as string);
-                addedIds.add(id as string);
+    const searchResults = scoreIndex.search(searchLower, { enrich: true });
+    const scoresToShow: ScoreExtend[] = []
+    const idMap = new Map<string, boolean>()
+    searchResults.forEach(field => {
+        field.result.forEach(doc => {
+            if (!idMap.has(doc.id as string) && doc.doc) {
+                scoresToShow.push(doc.doc.score_obj)
+                idMap.set(doc.id as string, true)
             }
-        });
-    });
-    scoresToShow = orderedIds.map(id => scoreMap.get(id)).filter(Boolean) as ScoreExtend[];
+        })
+    })
+    // Still need to testing result is good enough
+    // console.log("reason", searchResults.map(r => {
+    //     let obj = {
+    //         field: r.field,
+    //         matching: r.result.map(result => {
+    //             if (result.doc) {
+    //                 return {
+    //                     title: result.doc.title,
+    //                     match: result.doc[r.field as keyof ScoreIndexDoc]
+    //                 }
+    //             } else return ""
+    //         })
+    //     }
+    //     return obj
+    // }));
+    // console.log("result", scoresToShow);
+
+    // scoresToShow = orderedIds.map(id => scoreMap.get(id)).filter(Boolean) as ScoreExtend[];
     self.postMessage({ type: 'search_results', results: scoresToShow });
 }
