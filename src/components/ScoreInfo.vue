@@ -26,20 +26,18 @@
                         </div>
                     </div>
 
-                    <div class="grid grid-cols-2 gap-4 text-sm">
+                    <div class="flex gap-4 text-sm">
                         <div class="flex gap-4">
                             <div>
                                 <span class="text-gray-200">DX Rating</span>
                                 <div class="font-bold">{{ formatDxRating(diff.score.dx_rating) }}</div>
                             </div>
-                            <div class="flex justify-between items-center">
-                                <div>
-                                    <span class="text-gray-200">DX Score</span>
-                                    <div class="font-bold">{{ `${diff.dxScore.current}/${diff.dxScore.total}` }}</div>
-                                </div>
-                                <div style="height: 28px;width: 58px;">
-                                    <img object-contain class="max-w-full max-h-full" v-if="diff.dxScore.available"
-                                        :src="diff.dxScore.icon" loading="lazy" />
+                            <div>
+                                <span class="text-gray-200">DX Score</span>
+                                <div class="flex gap-2">
+                                    <span class="font-bold">{{ `${diff.dxScore.current}/${diff.dxScore.total}` }}</span>
+                                    <img class="w-auto h-4" v-if="diff.dxScore.available" :src="diff.dxScore.icon"
+                                        loading="lazy" />
                                 </div>
                             </div>
                         </div>

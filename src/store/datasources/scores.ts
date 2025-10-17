@@ -4,7 +4,7 @@ import { conventToScore, exportFile, toFishStyleId, toLXNSStyleId } from "@/util
 import { formatDate } from "@/utils/StrUtil"
 import { useLocalStorage, type RemovableRef } from "@vueuse/core"
 import { defineStore } from "pinia"
-import { computed, ref } from "vue"
+import { computed, ref, toRaw } from "vue"
 import { toast } from "vue-sonner"
 import { useSongStore } from "./song"
 
@@ -56,6 +56,7 @@ export const useScores = defineStore("scores", () => {
     }
     //DivingFish
     const DivingFishScores = useLocalStorage('fish_local_ds', DEFAULT_DS)
+
     const hasDivingFishData = computed(() => {
         return Object.keys(DivingFishScores.value.list).length > 0
     })
@@ -69,10 +70,10 @@ export const useScores = defineStore("scores", () => {
     const getDataSource = computed(() => {
         let source;
         switch (selectedSource.value) {
-            case "divingfish": source = DivingFishScores; break;
-            case "lxns": source = LXNSScores; break;
-            case "usagi": source = UsagiScores; break;
-            case "empty": source = ref(DEFAULT_DS)
+            case "divingfish": source = toRaw(DivingFishScores.value); break;
+            case "lxns": source = toRaw(LXNSScores.value); break;
+            case "usagi": source = toRaw(UsagiScores.value); break;
+            case "empty": source = toRaw(DEFAULT_DS); break;
         }
         return source
     })
@@ -153,7 +154,7 @@ export const useScores = defineStore("scores", () => {
             uni_ids.push(`${song_id}_dx_${i}`)
         }
         for (const uni_id of uni_ids) {
-            const score = getDataSource.value.value.list[uni_id]
+            const score = getDataSource.value.list[uni_id]
             if (score) {
                 result.push(score)
             }
@@ -161,7 +162,7 @@ export const useScores = defineStore("scores", () => {
         return result;
     }
     const getScoreByUni = (id: number, type: SongType, level_index: number) => {
-        return getDataSource.value.value.list[`${id}_${type}_${level_index}`]
+        return getDataSource.value.list[`${id}_${type}_${level_index}`]
     }
     const showCurrentStyleId = (id: number) => {
         if (selectedSource.value === 'divingfish') return toFishStyleId(id);

@@ -374,7 +374,7 @@ const initScoreList = () => {
             }
 
             result.push({
-                score: toRaw(score),
+                score: score,
                 song: toRaw(song),
                 score_id: level_str
             });

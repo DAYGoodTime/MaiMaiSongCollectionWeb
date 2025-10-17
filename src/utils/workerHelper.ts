@@ -25,7 +25,7 @@ export const useScoreSearchWorker = (searchKeyWord: MaybeRefOrGetter<string>, fi
         }
         if (searchWorker) {
             ready = false;
-            searchWorker.postMessage({ type: 'init', payload: structuredClone(toValue(scoreList)) })
+            searchWorker.postMessage({ type: 'init', payload: scoreList })
         }
     }
     const initWorker = () => {
@@ -230,7 +230,7 @@ export const useSongSearchWorker = (searchKeyWord: MaybeRefOrGetter<string>, sea
         }
         if (searchWorker) {
             ready = false;
-            searchWorker.postMessage({ type: 'init', payload: { records: structuredClone(toRaw(songMap)), searchLimit: MAX_SEARCH_NUMBER } })
+            searchWorker.postMessage({ type: 'init', payload: { records: toRaw(songMap), searchLimit: MAX_SEARCH_NUMBER } })
         }
     }
     const initWorker = () => {
