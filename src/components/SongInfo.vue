@@ -42,7 +42,7 @@
                     <!-- 曲目别名 -->
                     <div v-if="song.aliases && song.aliases.length" class="mt-2">
                         <span class="text-gray-500 text-sm">曲目别名</span>
-                        <div class="flex flex-wrap items-center gap-2 mt-1">
+                        <div class="flex flex-wrap items-center gap-2 mt-1 max-h-48 overflow-y-auto">
                             <Badge v-for="(alia, index) in song.aliases" :key="index" variant="outline"
                                 class="text-xs cursor-pointer hover:opacity-50"
                                 @click="() => handelCopy(alia as string, '已成功复制别名到剪切板中')">

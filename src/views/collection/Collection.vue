@@ -161,11 +161,12 @@
 
     <!-- Song Info Menu -->
     <Dialog v-model:open="openSongInfoMenu">
-        <DialogContent class="lg:w-full">
+        <DialogContent class="lg:!max-w-fit">
             <DialogHeader>
                 <DialogTitle>
                     <p>歌曲信息</p>
-                    <p class="mt-4" v-if="SongInfoNoteDesigner">该难度谱师: <span class="cursor-pointer hover:opacity-50"
+                    <p class="mt-4" v-if="SongInfoNoteDesigner">该难度谱师: <span
+                            class="text-zinc-500 font-semibold cursor-pointer hover:opacity-50"
                             @click="handelCopy(SongInfoNoteDesigner, '已成功复制谱师到剪切板中')">{{ SongInfoNoteDesigner
                             }}</span>
                     </p>
