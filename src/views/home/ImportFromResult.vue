@@ -5,7 +5,7 @@
                 <DialogTitle>将搜索结果导入到合集当中</DialogTitle>
                 <DialogDescription>
                     <p v-if="props.list.length >= props.max_limit" class="text-red-600">
-                        注意：当前搜索结果数量达到上限 ({{ props.max_limit }}) ，这可能会导致遗漏，建议缩小搜索范围。</p>
+                        注意：当前歌曲数量超过建议值 ({{ props.max_limit }}) 这也许并非期望导入,请检查条件是否过于充分</p>
                     <p>准备导入的歌曲数量为 : {{ props.list.length }}</p>
                 </DialogDescription>
             </DialogHeader>
@@ -53,16 +53,17 @@
                     <Label class="block font-bold text-gray-700 mb-2">
                         查看导入的歌曲列表
                     </Label>
-                    <Select>
-                        <SelectTrigger>
-                            <SelectValue placeholder="合集列表" />
-                        </SelectTrigger>
-                        <SelectContent>
-                            <SelectItem :value="ds.id" v-for="ds in props.list" :key="ds.id">
-                                {{ ds.title }}
-                            </SelectItem>
-                        </SelectContent>
-                    </Select>
+                    <VirtualSelectViewer :items="props.list" :placeholder="`查看 ${props.list.length} 首歌曲`"
+                        :item-height="56">
+                        <template #item="{ item }">
+                            <div class="flex items-center gap-2 p-2 hover:bg-accent rounded-md w-full">
+                                <div class="flex flex-col w-full">
+                                    <span class="font-semibold truncate">{{ item.title }}</span>
+                                    <span class="text-xs text-muted-foreground">{{ item.artist }}</span>
+                                </div>
+                            </div>
+                        </template>
+                    </VirtualSelectViewer>
                 </div>
             </div>
             <DialogFooter class="gap-4 lg:gap-2">
@@ -91,6 +92,7 @@ import type { FilterProps } from '@/types/component';
 import { storeToRefs } from 'pinia';
 import { useCollectionStore } from '@/store/collections';
 import { toast } from 'vue-sonner';
+import VirtualSelectViewer from '@/components/VirtualSelectViewer.vue';
 
 const { UserCollectionList } = storeToRefs(useCollectionStore())
 

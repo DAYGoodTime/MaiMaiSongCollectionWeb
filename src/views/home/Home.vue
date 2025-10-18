@@ -36,7 +36,7 @@ const openImportDialog = ref(false)
 const handelOpenImportDialog = () => {
   if (SearchRef.value && SearchRef.value.results.length > 0) {
     appStore.TagComboboxOpen = false;
-    SearchRef.value.triggerSearch(SEARCH_NUMBER_LIMIT)
+    SearchRef.value.triggerSearch()
     //only timeout to prevent process crash
     setTimeout(() => {
       openImportDialog.value = true;

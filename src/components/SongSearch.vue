@@ -106,7 +106,7 @@ const handelInteractOutSide = (event: Event) => {
 }
 defineExpose({
   results: searchResults,
-  triggerSearch: (number: number) => {
+  triggerSearch: (number?: number) => {
     search(number)
   }
 })
