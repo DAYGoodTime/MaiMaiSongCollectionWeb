@@ -80,7 +80,7 @@
                     <template #default="{ items }">
                         <div
                             class="grid sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-2 p-2 justify-items-center">
-                            <div v-if="(isLoadingPage || isLoading) && items.length <= 20"
+                            <div v-if="(isLoadingPage || isLoading)"
                                 class="col-span-full flex justify-center items-center py-10">
                                 <div class="animate-spin rounded-full h-10 w-10 border-b-2 border-primary"></div>
                             </div>
@@ -191,7 +191,7 @@ import { Badge } from '@/components/shadcn/ui/badge';
 import { Search, X, ChevronDown, ChevronUp, PanelLeft } from 'lucide-vue-next'
 import { Input } from '@/components/shadcn/ui/input'
 import { useCollectionStore } from '@/store/collections';
-import type { MaiMaiSong, ScoreExtend, SongType } from '@/types/songs';
+import type { MaiMaiSong, ScoreExtend, SongDifficultyAny, SongType } from '@/types/songs';
 import { debounce, toFishStyleId, toLXNSStyleId, useCopyHelper, useRouterHelper } from '@/utils/functionUtil';
 import { computed, onMounted, ref, toRaw, useTemplateRef, watch } from 'vue';
 import { toast } from 'vue-sonner';
@@ -320,9 +320,8 @@ const handelMoveToOtherCollection = (coll_label: string, score_id: string) => {
     }
 }
 
-const createUnplayedScore = (song: MaiMaiSong, song_type: SongType, level_index: number): Score => {
-    const diff = song.difficulties[song_type].find(d => d.level_index === level_index);
-    const diff_id = diff ? (("diff_id" in diff) ? diff.diff_id as number : song.id) : song.id;
+const createUnplayedScore = (diff_id: number, song: MaiMaiSong, song_type: SongType, level_index: number): Score => {
+    const diff = song[`${diff_id}_${song_type}_${level_index}` as keyof MaiMaiSong] as unknown as SongDifficultyAny
     return {
         id: song.id,
         fish_id: toFishStyleId(song.id),
@@ -338,7 +337,8 @@ const createUnplayedScore = (song: MaiMaiSong, song_type: SongType, level_index:
         dx_rating: 0,
         rate_type: '',
         type: song_type,
-        is_played: false
+        is_played: false,
+        play_count: 0
     }
 }
 const initScoreList = () => {
@@ -359,21 +359,24 @@ const initScoreList = () => {
         const result: ScoreExtend[] = [];
         let unplayedCount = 0;
         for (const level_str of coll.list) {
-            const [diff_id, song_type, level_index_str] = level_str.split("_");
-            if (!diff_id || !song_type || !level_index_str) continue;
-            const song_id = toLXNSStyleId(Number(diff_id))
-            const song = SongStore.getSong(song_id)
-            if (!song) continue;
-
+            const [diff_id_str, song_type, level_index_str] = level_str.split("_");
+            if (!diff_id_str || !song_type || !level_index_str) continue;
+            const diff_id = Number(diff_id_str)
+            const song_id = toLXNSStyleId(diff_id)
+            const song = SongStore.getSong(song_id) || SongStore.getSong(diff_id)
+            if (!song) {
+                console.warn("不存在的歌曲:", song_id, diff_id, level_str);
+                continue
+            };
             const level_index = Number(level_index_str);
-            let score = ScoreStore.getScoreByUni(song_type === "utage" ? Number(diff_id) : song_id, song_type as SongType, level_index);
+            const score_id = song_type === "utage" ? diff_id : song_id;
+            let score = ScoreStore.getScoreByUni(score_id, song_type as SongType, level_index);
             if (score) {
                 StatisticsBoardRef.value.updateStatisticsBoard(score, song);
             } else {
                 unplayedCount++;
-                score = createUnplayedScore(song, song_type as SongType, level_index);
+                score = createUnplayedScore(score_id, song, song_type as SongType, level_index);
             }
-
             result.push({
                 score: score,
                 song: toRaw(song),

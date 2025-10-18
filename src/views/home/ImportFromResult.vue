@@ -32,7 +32,7 @@
                 </div>
                 <div>
                     <Label class="block font-bold text-gray-700 mb-2">
-                        选择导入的合集
+                        选择导入的合集<span class="text-xs text-muted-foreground">(这会覆盖原有合集内的成绩)</span>
                     </Label>
                     <Select :disabled="UserCollectionList.length === 0" v-model:model-value="selectedCollection">
                         <SelectTrigger class="w-48">
@@ -170,8 +170,11 @@ const getScoreId = (song: MaiMaiSong, targetLevels: number[]) => {
     }
     //这种不需要指定难度
     if (!hasTargetScoreTag.value) {
-        const filtered = diffs.filter(diff => targetLevels.includes(diff.level_index))
-        const filteredIds = filtered.map(diff => `${song.id}_${diff.type}_${diff.level_index}`);
+        const filtered = diffs.filter(diff => targetLevels.includes(diff.level_index) || diff.type === "utage")
+        const filteredIds = filtered.map(diff => {
+            const diff_id = ("diff_id" in diff) ? diff.diff_id : song.id;
+            return `${diff_id}_${diff.type}_${diff.level_index}`
+        })
         Array.prototype.push.apply(result, filteredIds)
         result = result.filter(sid => filteredIds.indexOf(sid) > -1);
     }

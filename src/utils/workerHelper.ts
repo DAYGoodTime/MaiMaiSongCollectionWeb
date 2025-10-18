@@ -136,8 +136,12 @@ const advanceFilter = (filter: AdvanceFilterFilters, list: ScoreExtend[]): Score
             return false;
         }
 
-        // Level Filter
-        if (levelFilter.size > 0 && !levelFilter.has(s.score.level_index)) {
+        // Level Filter without utage
+        if (s.score.type !== "utage" && levelFilter.size > 0 && !levelFilter.has(s.score.level_index)) {
+            return false;
+        }
+        // Level Filter for utage
+        if (levelFilter.size > 0 && s.score.type === "utage" && !levelFilter.has(-1)) {
             return false;
         }
 

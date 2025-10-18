@@ -1,6 +1,6 @@
 import type { AnyScore, AvailableDataSourceType, DataSource, DataSourceType, Score } from "@/types/datasource"
 import type { MaiMaiSong, SongType } from "@/types/songs"
-import { conventToScore, exportFile, toFishStyleId, toLXNSStyleId } from "@/utils/functionUtil"
+import { conventToScore, exportFile, toFishStyleId, toLXNSStyleId, toLXNSType } from "@/utils/functionUtil"
 import { formatDate } from "@/utils/StrUtil"
 import { useLocalStorage, type RemovableRef } from "@vueuse/core"
 import { defineStore } from "pinia"
@@ -8,7 +8,7 @@ import { computed, toRaw } from "vue"
 import { toast } from "vue-sonner"
 import { useSongStore } from "./song"
 
-export const CURRENT_SCORE_VERSION = 6
+export const CURRENT_SCORE_VERSION = 7
 export const MAX_ERROR_COUNT = 3
 export const DEFAULT_DS: DataSource<Record<string, Score>> = {
     list: {},
@@ -19,9 +19,11 @@ export function flatMapById(list: AnyScore[], songMap: Record<number, MaiMaiSong
     let skipCount = 0;
     const scoreMap: Record<string, Score> = {}
     for (const item of list) {
-        const song_id = ("song_id" in item) ? toLXNSStyleId(item.song_id) : toLXNSStyleId(item.id);
-        if (songMap[song_id]) {
-            const score = conventToScore(item, songMap[song_id]);
+        const song_id_field = ("song_id" in item) ? item.song_id : item.id;
+        const song_id = toLXNSType(item) === "utage" ? song_id_field : toLXNSStyleId(song_id_field)
+        const song = songMap[toLXNSStyleId(song_id_field)] || songMap[song_id_field]
+        if (song) {
+            const score = conventToScore(item, song);
             const uni_link = `${song_id}_${score.type}_${score.level_index}`
             scoreMap[uni_link] = score
         } else {
@@ -132,18 +134,20 @@ export const useScores = defineStore("scores", () => {
     }
     const checkScoreVersion = () => {
         const list = [
-            { source: UsagiScores, type: "usagi" },
-            { source: LXNSScores, type: "lxns" },
-            { source: UsagiScores, type: "divingfish" }
+            { source: UsagiScores.value, type: "usagi" },
+            { source: LXNSScores.value, type: "lxns" },
+            { source: DivingFishScores.value, type: "divingfish" }
         ]
-        return list.some(score => {
-            const b = score.source.value.version != CURRENT_SCORE_VERSION
+        let needRest = false;
+        list.forEach(score => {
+            const b = score.source.version != CURRENT_SCORE_VERSION
             if (b) {
+                needRest = true
                 console.warn(`数据源:${score.type}版本不一致，已重置`);
                 ClearDataSource(score.type as AvailableDataSourceType)
             }
-            return b;
         })
+        return needRest;
     }
     const getScoreList = (song_id: number) => {
         const uni_ids = []

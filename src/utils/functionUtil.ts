@@ -108,9 +108,7 @@ export function conventToScore(score: AnyScore, song: MaiMaiSong): Score {
     ? toLXNSStyleId(score.song_id)
     : toLXNSStyleId(score.id)
   const raw_id = ("song_id" in score) ? score.song_id : score.id
-  let type = toLXNSType(score.type) as SongType
-  //why your type is this
-  if ("level_label" in score && score.level_label === "Utage") type = "utage"
+  const type = toLXNSType(score)
   return {
     id: song_id,
     fish_id: ("song_id" in score) ? score.song_id : toFishStyleId(score.id),
@@ -164,12 +162,17 @@ export function toLXNSStyleId(id: number) {
   //标谱id一致
   return id;
 }
-function toLXNSType(type: string) {
+export function toLXNSType(score: AnyScore): SongType {
+  let type = score.type;
+  //in divingfish utage score's type is "DX" not "utage",only label show it "Utage" lol
+  if (("level_label" in score) && score.level_label === "Utage") {
+    type = "UTAGE"
+  }
   switch (type) {
     case "DX": return "dx";
     case "SD": return "standard";
     case "UTAGE": return "utage";
-    default: return type;
+    default: return type as SongType;
   }
 }
 export const useNFC = (callback: (message: string) => void) => {
@@ -246,8 +249,8 @@ export const useNFC = (callback: (message: string) => void) => {
   }
 }
 export const getSongDiffByScoreEx = (score: ScoreExtend): SongDifficultyAny | undefined => {
-  const uni_id = getSongDiffUniId(score.song, score.score)
-  return score.song[uni_id as keyof MaiMaiSong] as unknown as SongDifficultyAny | undefined;
+  const diff_id = (score.score.type === "utage" && ("diff_id" in score.score)) ? `${score.score.diff_id}_${score.score.type}_${score.score.level_index}` : score.score_id
+  return score.song[diff_id as keyof MaiMaiSong] as unknown as SongDifficultyAny | undefined;
 }
 export const getSongDiffByScore = (song: MaiMaiSong, score: Score | AnyScore): SongDifficultyAny | undefined => {
   const uni_id = getSongDiffUniId(song, score)

@@ -1,10 +1,10 @@
 <template>
     <div ref="ScoreCardRef" @click.right.native="(e) => emit('rightClick', e, ScoreCardRef, props.score.score_id)"
         data-component="ScoreCard">
-        <div class="w-72 sm:w-64 rounded-lg shadow-lg transition-all duration-300 hover:shadow-xl"
+        <div class="w-72 h-full sm:w-64 rounded-lg shadow-lg transition-all duration-300 hover:shadow-xl"
             @dblclick="() => emit('dbClick', ScoreCardRef, props.score.song, getNoteDesigner(SongDiff))">
-            <div :class="cardClass" @click="handleTitleEnter(score.song.title)"
-                @mouseenter="handleTitleEnter(score.song.title)" @mouseleave="hideTooltip()" class="cursor-pointer p-2">
+            <div :class="cardClass" @click="handleTitleEnter(scoreTitle)" @mouseenter="handleTitleEnter(scoreTitle)"
+                @mouseleave="hideTooltip()" class="cursor-pointer p-2">
                 <div class="flex gap-1">
                     <div class="w-12 h-12 rounded overflow-hidden flex-shrink-0">
                         <img :src="getImageCoverUrl(props.score.song.id ?? 0)" alt="Song Cover"
@@ -12,9 +12,9 @@
                     </div>
                     <div class="flex-1 text-white min-w-0">
                         <div class="flex justify-between items-start">
-                            <span class="font-bold text-left truncate" :title="score.song.title">{{
-                                score.song.title }}</span>
-                            <img class="w-auto h-5"
+                            <span class="font-bold text-left truncate" :title="scoreTitle">
+                                {{ scoreTitle }}</span>
+                            <img v-if="!isUtage" class="w-auto h-5"
                                 :src="getImageAssertUrl(props.score.score.type === 'dx' ? 'DX' : 'SD')"
                                 alt="Song Type" />
                         </div>
@@ -100,7 +100,11 @@ const cardClass = computed(() => {
 const SongDiff = computed(() => {
     return getSongDiffByScoreEx(props.score);
 })
-
+const scoreTitle = computed(() => {
+    if (isUtage.value && SongDiff.value && ("kanji" in SongDiff.value)) {
+        return `[${SongDiff.value.kanji}] ${SongDiff.value.is_buddy ? '[双]' : ''} ${props.score.song.title}`
+    } else return props.score.song.title
+})
 const details = computed(() => {
     const diff = SongDiff.value
     const levelValue = diff ? formatLevelValue(diff.level_value) : '';

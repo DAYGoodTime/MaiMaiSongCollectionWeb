@@ -49,9 +49,9 @@
                         <div v-if="diff.difficulty.note_designer && diff.difficulty.note_designer !== '-'">
                             <span class="mr-2">谱师:</span>
                             <span class="font-semibold cursor-pointer hover:opacity-50"
-                                @click="handelCopy(diff.difficulty.note_designer, '已成功复制谱师到剪切板中')">{{
-                                    diff.difficulty.note_designer
-                                }}</span>
+                                @click="handelCopy(diff.difficulty.note_designer, '已成功复制谱师到剪切板中')">
+                                {{ diff.difficulty.note_designer }}
+                            </span>
                         </div>
                         <div>
                             <span class="mr-2">版本:</span>
@@ -108,10 +108,11 @@ const ScoreStore = useScores();
 const processedDifficulties = (diffs: SongDifficulty[] | SongDifficultyUtage[]) => {
     return [...diffs].reverse().map(difficulty => {
         const isUtageVal = difficulty.type === 'utage';
-        const score = ScoreStore.getScoreByUni(isUtageVal ? (difficulty as SongDifficultyUtage).diff_id : props.song.id, difficulty.type, difficulty.level_index);
+        const diff_id = (isUtageVal && ("diff_id" in difficulty)) ? difficulty.diff_id : props.song.id
+        const score = ScoreStore.getScoreByUni(diff_id, difficulty.type, difficulty.level_index);
         let label = '';
-        if (isUtageVal) {
-            label = `U·TA·GE ${`[${(difficulty as SongDifficultyUtage).kanji ?? ''}]`}${(difficulty as SongDifficultyUtage).is_buddy ? `[双]` : ''}`;
+        if (isUtageVal && ("kanji" in difficulty)) {
+            label = `U·TA·GE ${`[${difficulty.kanji ?? ''}]`}${difficulty.is_buddy ? `[双]` : ''}`;
         } else {
             label = LevelIndexToLabel(difficulty.level_index) ?? "";
         }

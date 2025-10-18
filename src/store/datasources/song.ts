@@ -24,7 +24,7 @@ export const useSongStore = defineStore("ds_song", () => {
         return list;
     }
     const LastSongUpdateTime = useLocalStorage("last_song_update", -1)
-    const getSong = (song_id: number | string): MaiMaiSong => {
+    const getSong = (song_id: number | string): MaiMaiSong | undefined => {
         return SONG_LIST.value.list[song_id as keyof Record<number, MaiMaiSong>];
     }
     const updateSongFromAPI = async () => {
