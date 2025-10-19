@@ -1,7 +1,7 @@
 <template>
     <div ref="ScoreCardRef" @click.right.native="(e) => emit('rightClick', e, ScoreCardRef, props.score.score_id)"
         data-component="ScoreCard">
-        <div class="w-72 h-full sm:w-64 rounded-lg shadow-lg transition-all duration-300 hover:shadow-xl"
+        <div class="w-72 h-full sm:w-64 rounded-lg shadow-lg transition-all duration-300 hover:shadow-xl dark:border"
             @dblclick="() => emit('dbClick', ScoreCardRef, props.score.song, getNoteDesigner(SongDiff))">
             <div :class="cardClass" @click="handleTitleEnter(scoreTitle)" @mouseenter="handleTitleEnter(scoreTitle)"
                 @mouseleave="hideTooltip()" class="cursor-pointer p-2">
@@ -30,11 +30,12 @@
                     </div>
                 </div>
             </div>
-            <div class="bg-white rounded-b-lg p-2">
+            <div class=" bg-white dark:bg-black rounded-b-lg p-2">
                 <div class="flex w-full items-center">
                     <div class="flex flex-1 justify-between items-center pr-2" @mouseenter="handleDxScoreEnter()"
                         @mouseleave="hideTooltip(200)">
-                        <span ref="CardDetailRef" class="text-left text-sm text-gray-600">{{ details }}</span>
+                        <span ref="CardDetailRef" class="text-left text-sm text-gray-600 dark:text-gray-300">{{ details
+                        }}</span>
                         <div ref="DxScoreIconRef">
                             <img v-if="!ScoreStore.isSupportPlayCount" class="w-auto h-4" :src="dxScoreIcon"
                                 loading="lazy" />

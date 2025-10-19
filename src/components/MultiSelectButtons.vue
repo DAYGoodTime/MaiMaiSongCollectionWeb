@@ -29,8 +29,8 @@ function toggleOption(option: FilterProps<any>) {
     <template v-for="option in props.options" :key="option.value">
       <slot :option="option" :selected="isSelected(option)" :toggle-option="toggleOption">
         <Button variant="outline" size="sm" :class="{
-          'bg-blue-500 text-white border-blue-500 hover:bg-blue-600 hover:text-white': isSelected(option),
-          'bg-white  border-gray-300 hover:bg-gray-100': !isSelected(option),
+          'bg-stone-500 text-white border-stone-500 hover:bg-stone-600 hover:text-white': isSelected(option),
+          'bg-white border-gray-300 hover:bg-gray-100 dark:bg-primary-foreground dark:text-slate-50 dark:border-slate-800 dark:hover:bg-stone-800 dark:hover:text-slate-50': !isSelected(option),
         }" @click="toggleOption(option)">
           <slot name="option-item" :option="option">
             <div class="flex justify-between items-center gap-1">

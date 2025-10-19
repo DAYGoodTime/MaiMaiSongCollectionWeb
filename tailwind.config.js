@@ -63,12 +63,12 @@ export default {
 					border: 'hsl(var(--sidebar-border))',
 					ring: 'hsl(var(--sidebar-ring))'
 				},
-				BASIC: '#2DBE63',
-				ADVANCED: '#FBA138',
-				EXPERT: '#F65169',
-				MASTER: '#A24EE2',
-				REMASTER: '#DBAAFF',
-				UTAGE: '#EB47E9'
+				BASIC: 'hsl(var(--BASIC))',
+				ADVANCED: 'hsl(var(--ADVANCED))',
+				EXPERT: 'hsl(var(--EXPERT))',
+				MASTER: 'hsl(var(--MASTER))',
+				REMASTER: 'hsl(var(--REMASTER))',
+				UTAGE: 'hsl(var(--UTAGE))'
 			},
 			keyframes: {
 				'accordion-down': {

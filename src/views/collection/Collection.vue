@@ -1,8 +1,8 @@
 <template>
     <AdvanceFeature v-model:open="showAdvanced" @on-score-list-changed="initScoreList" />
     <DefineSortingTemplate>
-        <Badge class="flex justify-between w-28 h-8 cursor-pointer" v-for="(order, index) in OrderBadges"
-            @click="handleOrderStatus(order, index)">
+        <Badge class="flex justify-between w-28 h-8 cursor-pointer dark:bg-stone-400"
+            v-for="(order, index) in OrderBadges" @click="handleOrderStatus(order, index)">
             {{ order.label }}
             <ChevronDown v-if="order.status_index === 1" />
             <ChevronUp v-if="order.status_index === 2" />
@@ -62,7 +62,7 @@
                         <ReuseSearchTemplate />
                     </div>
                     <div>
-                        <div class="w-full max-w-4xl mx-auto bg-white border border-gray-200 rounded-lg">
+                        <div class="w-full max-w-4xl mx-auto rounded-lg">
                             <AdvanceFilter ref="AdvanceFilterRef" :model-value="AdvanceFilterForm" :show-trigger="true"
                                 v-model:is-expanded="isFilterExpended"
                                 @update:model-value="(filter) => onFilterUpdate(filter as AdvanceFilterFilters)" />

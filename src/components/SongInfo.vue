@@ -1,5 +1,5 @@
 <template>
-    <Card class="mb-6 bg-white/90 shadow-lg backdrop-blur-md rounded-xl">
+    <Card class="mb-6 shadow-lg backdrop-blur-md rounded-xl">
         <CardContent class="p-6">
             <div class="flex flex-col md:flex-row items-center md:items-start gap-6">
                 <!-- 歌曲封面 -->
@@ -15,11 +15,11 @@
                             {{ `No ${currentStyleId}` }}
                         </div>
                     </div>
-                    <h2 class="text-2xl font-extrabold text-gray-900 mb-1 tracking-tight hover:opacity-50 cursor-pointer"
+                    <h2 class="text-2xl font-extrabold mb-1 tracking-tight hover:opacity-50 cursor-pointer"
                         @click="() => handelCopy(song.title, '已成功复制歌曲名到剪切板中')">
                         {{ song.title }}
                     </h2>
-                    <p class="text-base text-gray-600 mb-4">{{ song.artist }}</p>
+                    <p class="text-base text-gray-600 dark:text-gray-300 mb-4">{{ song.artist }}</p>
                     <!-- 歌曲信息 -->
                     <div class="grid grid-cols-2 sm:grid-cols-4 gap-x-8 gap-y-2 text-sm mb-2">
                         <div>
@@ -57,7 +57,7 @@
                 <div class="flex-1 flex justify-center md:justify-start gap-2">
                     <Button v-for="type in availableTypeList" :key="type.value"
                         :variant="isSelectedType(type.value) ? 'default' : 'outline'" size="sm"
-                        :class="isSelectedType(type.value) ? 'bg-orange-500 hover:bg-orange-600 text-white shadow' : ''"
+                        :class="isSelectedType(type.value) ? 'bg-orange-500 hover:bg-orange-600 dark:bg-orange-600 dark:hover:bg-orange-700  shadow' : ''"
                         @click="SelectedType = type.value">
                         {{ isSelectedType(type.value) ? '✓' : '' }} {{ type.label }}
                     </Button>

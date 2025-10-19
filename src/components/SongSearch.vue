@@ -2,12 +2,11 @@
   <Combobox v-model="selectedSong" v-model:open="appStore.ComboboxOpen" class="w-full md:w-3/4" :ignore-filter="true"
     :open-on-click="true">
     <ComboboxAnchor class="w-full">
-      <div class="relative items-center shadow-md rounded-xl bg-white border-2 border-blue-100">
-        <ComboboxInput
-          class="pl-10 py-3 w-full rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all text-base"
+      <div class="relative items-center shadow-md rounded-xl border-2">
+        <ComboboxInput class="pl-10 py-3 w-full rounded-xl focus:ring-2 transition-all text-base"
           :display-value="(val) => val?.title ?? ''" placeholder="支持标题|曲师|谱师|别名甚至拼音" @update:model-value="onSearch"
           v-model:model-value="temp_search" />
-        <span class="absolute start-0 inset-y-0 flex items-center justify-center px-3 text-blue-500">
+        <span class="absolute start-0 inset-y-0 flex items-center justify-center px-3">
           <Search class="size-5" />
         </span>
         <span
@@ -25,31 +24,26 @@
       <ComboboxGroup>
         <ComboboxVirtualizer v-slot="{ option }" :options="searchResults.slice(0, MAX_SEARCH_NUMBER)"
           :text-content="(x) => x.title" :estimate-size="96" :overscan="10">
-          <ComboboxItem :value="option" class="hover:bg-blue-50 transition-colors rounded-lg py-2 w-full">
+          <ComboboxItem :value="option" class=" transition-colors rounded-lg py-2 w-full">
             <div class="flex items-center gap-3 p-3 w-full overflow-hidden">
               <div class="shrink-0">
                 <img :src="getImageCoverUrl(option.id)" class="w-14 h-14 rounded-lg object-cover border border-gray-200"
                   loading="lazy" :alt="option.title" />
               </div>
               <div class="flex-1 min-w-0 overflow-hidden">
-                <p class="text-lg font-semibold truncate text-gray-900">
+                <p class="text-lg font-semibold truncate">
                   {{ option.title }}
                 </p>
-                <p class="truncate text-gray-600 text-sm mt-1">
+                <p class="truncate text-gray-600 dark:text-gray-300 text-sm mt-1">
                   {{ option.artist }}
                 </p>
               </div>
             </div>
-            <ComboboxItemIndicator class="text-blue-600">
-              <Check class="size-5 font-bold" />
+            <ComboboxItemIndicator>
+              <Check class="size-8  font-bold" />
             </ComboboxItemIndicator>
           </ComboboxItem>
         </ComboboxVirtualizer>
-        <!-- <ComboboxItem :value="null" class="hover:bg-gray-50 py-2">
-          <div class="w-full text-center text-sm font-medium text-blue-600">
-            清空选择
-          </div>
-        </ComboboxItem> -->
       </ComboboxGroup>
     </ComboboxList>
   </Combobox>

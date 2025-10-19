@@ -1,8 +1,9 @@
 <template>
     <slot name="trigger">
-        <div v-if="showTrigger" class="flex items-center justify-between p-4 cursor-pointer hover:bg-gray-50"
+        <div v-if="showTrigger"
+            class="flex items-center justify-between p-4 cursor-pointer hover:bg-gray-50 dark:bg-primary-foreground"
             @click="isExpanded = !isExpanded">
-            <h3 class="text-lg font-medium text-gray-900">高级筛选设置</h3>
+            <h3 class="text-lg font-medium text-gray-900 dark:text-gray-400">高级筛选设置</h3>
             <ChevronUp v-if="isExpanded" :size="20" />
             <ChevronDown v-else :size="20" />
         </div>
@@ -127,7 +128,7 @@
                     </Label>
                 </div>
                 <Button @click="resetAllFilters" variant="outline"
-                    class="flex items-center space-x-2 text-blue-600 border-blue-200 hover:bg-blue-50">
+                    class="flex items-center space-x-2 text-blue-600 dark:text-stone-500 border-blue-200 hover:bg-blue-50 dark:hover:text-black">
                     <RotateCcw :size="16" />
                     <span>重置筛选条件</span>
                 </Button>
