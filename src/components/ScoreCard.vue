@@ -30,13 +30,14 @@
                     </div>
                 </div>
             </div>
-            <div class=" bg-white dark:bg-black rounded-b-lg p-2">
+            <div class=" bg-white dark:bg-stone-800/80 rounded-b-lg p-2">
                 <div class="flex w-full items-center">
-                    <div class="flex flex-1 justify-between items-center pr-2" @mouseenter="handleDxScoreEnter()"
+                    <div class="flex flex-1 justify-between items-center mr-1" @mouseenter="handleDxScoreEnter()"
                         @mouseleave="hideTooltip(200)">
-                        <span ref="CardDetailRef" class="text-left text-sm text-gray-600 dark:text-gray-300">{{ details
-                        }}</span>
-                        <div ref="DxScoreIconRef">
+                        <span ref="CardDetailRef"
+                            class="text-nowrap text-left text-sm text-gray-600 dark:text-gray-300">
+                            {{ details }}</span>
+                        <div ref="DxScoreIconRef" class="">
                             <img v-if="!ScoreStore.isSupportPlayCount" class="w-auto h-4" :src="dxScoreIcon"
                                 loading="lazy" />
                         </div>

@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref } from 'vue'
+import { computed, ref } from 'vue'
 import { X } from 'lucide-vue-next'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/shadcn/ui/select'
 import { Badge } from '@/components/shadcn/ui/badge'
@@ -35,6 +35,9 @@ function handleSelectChange(value: AcceptableValue) {
 function removeOption(option: FilterProps<any>) {
   toggleOption(option)
 }
+const options = computed(() => {
+  return props.options.filter(opt => props.selected.every(sel => opt.label !== sel.label))
+})
 </script>
 
 <template>
@@ -56,11 +59,13 @@ function removeOption(option: FilterProps<any>) {
         <SelectValue :placeholder="props.placeholder" />
       </SelectTrigger>
       <SelectContent>
-        <SelectItem v-for="option in props.options.filter(opt => !props.selected.includes(opt))" :key="option.label"
-          :value="option">
+        <SelectItem v-for="option in options" :key="option.label" :value="option">
           <slot name="option-item" :option="option">
             {{ option.label }}
           </slot>
+        </SelectItem>
+        <SelectItem v-if="options.length === 0" disabled :value="null">
+          没有可供选择的选项了
         </SelectItem>
       </SelectContent>
     </Select>

@@ -127,8 +127,8 @@
                         <span class="text-sm text-gray-700">显示未游玩谱面</span>
                     </Label>
                 </div>
-                <Button @click="resetAllFilters" variant="outline"
-                    class="flex items-center space-x-2 text-blue-600 dark:text-stone-500 border-blue-200 hover:bg-blue-50 dark:hover:text-black">
+                <Button @click="resetAllFilters" variant="outline" class="flex items-center space-x-2 text-blue-600 border-blue-200 hover:bg-blue-50
+                     dark:text-stone-500 dark:hover:text-black dark:border-stone-500">
                     <RotateCcw :size="16" />
                     <span>重置筛选条件</span>
                 </Button>
