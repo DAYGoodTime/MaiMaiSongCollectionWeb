@@ -20,7 +20,12 @@
 
     <ComboboxList class="w-[var(--reka-combobox-trigger-width)] max-h-60svh lg:max-h-50svh overflow-y-auto"
       @interact-outside="handelInteractOutSide">
-      <ComboboxEmpty class="mx-8"> 没有找到符合的歌曲 </ComboboxEmpty>
+      <ComboboxEmpty class="mx-8">
+        <div v-if="isLoading" class="col-span-full flex justify-center items-center py-10">
+          <div class="animate-spin rounded-full h-10 w-10 border-b-2 border-primary"></div>
+        </div>
+        <span v-else>没有找到符合的歌曲</span>
+      </ComboboxEmpty>
       <ComboboxGroup>
         <ComboboxVirtualizer v-slot="{ option }" :options="searchResults.slice(0, MAX_SEARCH_NUMBER)"
           :text-content="(x) => x.title" :estimate-size="96" :overscan="10">
@@ -87,7 +92,7 @@ const temp_search = ref("")
 const onSearch = debounce((val: string) => {
   searchValue.value = String(val);
 }, 100, true);
-const { searchResults, search } = useSongSearchWorker(searchValue, props)
+const { searchResults, search, isLoading } = useSongSearchWorker(searchValue, props)
 const handelCleanSearch = (e: Event) => {
   e.preventDefault();
   selectedSong.value = undefined;

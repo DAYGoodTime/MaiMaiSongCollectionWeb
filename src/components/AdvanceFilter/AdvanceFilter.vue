@@ -171,7 +171,7 @@ const defaultFilters: AdvanceFilterFilters = {
     musicCategories: [],
     version: [],
     mapCategories: [],
-    difficultyRange: [1.0, 15.0],
+    difficultyRange: [12.0, 15.0],
     dxScore: [],
     fullCombo: [],
     fullSync: [],
