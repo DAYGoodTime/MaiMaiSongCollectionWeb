@@ -66,7 +66,8 @@
                     <div class="flex items-center gap-2 self-end sm:self-center">
                         <DropdownMenu>
                             <DropdownMenuTrigger as-child>
-                                <Button :disabled="!diff.score" variant="outline" class="h-8 text-black">
+                                <Button :disabled="!diff.score" variant="outline"
+                                    class="h-8 text-black dark:bg-stone-500 dark:text-white">
                                     添加进合集
                                 </Button>
                             </DropdownMenuTrigger>
