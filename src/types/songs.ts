@@ -1,5 +1,15 @@
 import type { Score } from "./datasource";
-export interface MaiMaiSong {
+
+type LevelLabelOrValue = number | string
+export type LevelFields<LevelIndex extends string[] = []> =
+  LevelIndex['length'] extends 5 ?
+  LevelIndex[number] :
+  LevelFields<[...LevelIndex, `level_${LevelIndex['length']}`]>
+
+type MaiMaiSongLevelIndex = {
+  [k in LevelFields]: LevelLabelOrValue[]
+}
+interface BaseMaiMaiSong {
   id: number;
   title: string;
   artist: string;
@@ -14,13 +24,15 @@ export interface MaiMaiSong {
     standard: SongDifficulty[];
     dx: SongDifficulty[];
     utage: SongDifficultyUtage[];
-  };
-  level_0: any[];
-  level_1: any[];
-  level_2: any[];
-  level_3: any[];
-  level_4: any[];
+  }
+}
+export type SongUniId = `${number}_${SongType}_${number}`
+type DynamicSongPart = {
+  [K in SongUniId]?: SongDifficultyAny;
 };
+export type MaiMaiSong = BaseMaiMaiSong & MaiMaiSongLevelIndex & DynamicSongPart
+
+
 export interface SongDifficulty {
   type: SongType;
   level: string;

@@ -1,5 +1,5 @@
-import type { AnyScore, Score } from "@/types/datasource";
-import type { MaiMaiSong, ScoreExtend, SongDifficulty } from "@/types/songs";
+import type { Score } from "@/types/datasource";
+import type { MaiMaiSong, ScoreExtend, SongDifficulty, SongUniId } from "@/types/songs";
 import { pinyin } from "pinyin-pro";
 import { getSongDiffByScoreEx } from "./functionUtil";
 import versionList from '@/assets/data/versions.json' with { type: 'json' };
@@ -85,7 +85,7 @@ export function formatLevelValue(level_value: number | undefined) {
   }
   return "NAN"
 }
-export const getSongDiffUniId = (song: MaiMaiSong, score: Score | AnyScore) => {
+export const getSongDiffUniId = (song: MaiMaiSong, score: Score): SongUniId => {
   if (song.difficulties) {
     return `${song.id}_${score.type}_${score.level_index}`
   }

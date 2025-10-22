@@ -111,7 +111,7 @@ const details = computed(() => {
     const diff = SongDiff.value
     const levelValue = diff ? formatLevelValue(diff.level_value) : '';
     const palyCount = ScoreStore.isSupportPlayCount ? `pc:${props.score.score.play_count}` : ''
-    let baseDetails = `#${ScoreStore.showCurrentStyleId(props.score.song.id)} ${levelValue} → ${formatDxRating(props.score.score.dx_rating)} ${palyCount} `;
+    let baseDetails = `#${ScoreStore.showCurrentStyleId(props.score.song.id, props.score.score.type)} ${levelValue} → ${formatDxRating(props.score.score.dx_rating)} ${palyCount} `;
     if (props.score.score.type === "utage") {
         baseDetails = `#${props.score.score.diff_id} ${props.score.score.level} ${palyCount}`;
     }

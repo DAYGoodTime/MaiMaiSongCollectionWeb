@@ -3,7 +3,7 @@ import { Clipboard } from "@capacitor/clipboard"
 import { useRoute, useRouter, type RouteLocationRaw } from "vue-router";
 import { toast } from "vue-sonner";
 import { getSongDiffUniId } from "./StrUtil";
-import type { MaiMaiSong, ScoreExtend, SongDifficultyAny, SongType } from "@/types/songs";
+import type { LevelFields, MaiMaiSong, ScoreExtend, SongDifficultyAny, SongType, SongUniId } from "@/types/songs";
 import { fcMapping, fsMapping, rateMapping } from "@/api/usagi";
 import { ref } from "vue";
 import type { LXNSScore } from "@/types/lxns";
@@ -109,19 +109,18 @@ export function conventToScore(score: AnyScore, song: MaiMaiSong): Score {
     : toLXNSStyleId(score.id)
   const raw_id = ("song_id" in score) ? score.song_id : score.id
   const type = toLXNSType(score)
+  const diff = song[`${raw_id}_${type}_${score.level_index}`]
   return {
     id: song_id,
-    fish_id: ("song_id" in score) ? score.song_id : toFishStyleId(score.id),
     song_name: ("title" in score) ? score.title : score.song_name ?? "Unknown",
-    achievements: score.achievements ?? 0,
+    achievements: score.achievements,
     fc: getFcFsType(score.fc, "fc"),
     fs: getFcFsType(score.fs, "fs"),
     level: score.level ?? "0?",
-    level_index: score.level_index ?? 0,
+    level_index: score.level_index,
     level_value: ("ds" in score)
       ? score.ds
-      : getSongDiffByScore(song, score)?.level_value
-      ?? 0,
+      : diff?.level_value ?? 0,
     rate_type: getRateType(score),
     dx_score: ("dxScore" in score)
       ? score.dxScore
@@ -136,23 +135,10 @@ export function conventToScore(score: AnyScore, song: MaiMaiSong): Score {
     diff_id: raw_id
   }
 }
-export function toFishStyleId(id: number) {
-  if (id > 100000) {
-    //宴谱取后四位
-    let sid = id % 10000
-    //如果是DX还得转换
-    if (sid > 1000) {
-      //DX谱为1xxxx
-      return sid + 10000
-    }
-    return sid;
-  }
-  if (id > 1000) {
-    //DX谱为1xxxx
+export function toFishStyleId(id: number, type: SongType) {
+  if (type === "dx") {
     return id + 10000
-  }
-  //标谱id一致
-  return id;
+  } else return id;//其它类型id一致
 }
 export function toLXNSStyleId(id: number) {
   if (id > 10000) {
@@ -250,11 +236,11 @@ export const useNFC = (callback: (message: string) => void) => {
 }
 export const getSongDiffByScoreEx = (score: ScoreExtend): SongDifficultyAny | undefined => {
   const diff_id = (score.score.type === "utage" && ("diff_id" in score.score)) ? `${score.score.diff_id}_${score.score.type}_${score.score.level_index}` : score.score_id
-  return score.song[diff_id as keyof MaiMaiSong] as unknown as SongDifficultyAny | undefined;
+  return score.song[diff_id as SongUniId]
 }
-export const getSongDiffByScore = (song: MaiMaiSong, score: Score | AnyScore): SongDifficultyAny | undefined => {
+export const getSongDiffByScore = (song: MaiMaiSong, score: Score): SongDifficultyAny | undefined => {
   const uni_id = getSongDiffUniId(song, score)
-  return song[uni_id as keyof MaiMaiSong] as unknown as SongDifficultyAny | undefined;
+  return song[uni_id]
 }
 export const filterDiffByLevelTag = (song_id: number, diffs: SongDifficulty[] | SongDifficultyUtage[], tags: string[]) => {
   const result: string[] = []
@@ -325,4 +311,12 @@ export const filterDiffByAchievementTag = (song_id: number, diffs: SongDifficult
     }
   }
   return result;
+}
+export const getSongDiffValueIndex = (song: MaiMaiSong) => {
+  let list: number[] = []
+  for (let i = 0; i <= 4; i++) {
+    const arr = song[`level_${i}` as LevelFields]
+    Array.prototype.push.apply(list, arr.filter(v => typeof v !== 'string'))
+  }
+  return list;
 }

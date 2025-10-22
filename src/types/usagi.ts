@@ -1,3 +1,5 @@
+import type { SongType } from "./songs";
+
 export interface UsagiScore {
     /** 曲目 ID LXNS格式*/
     id: number,
@@ -20,7 +22,7 @@ export interface UsagiScore {
     /** 难度标级 0为SSS+ */
     rate: number,
     /** 铺面类型 */
-    type: "standard" | "dx" | "utage",
+    type: SongType,
     /** 曲名 */
     title: string,
     /** 谱面定数 */

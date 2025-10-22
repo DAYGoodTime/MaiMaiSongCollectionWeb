@@ -1,5 +1,5 @@
 import type { AdvanceFilterFilters } from '@/types/component';
-import type { MaiMaiSong, ScoreExtend } from '@/types/songs';
+import type { LevelFields, MaiMaiSong, ScoreExtend } from '@/types/songs';
 import ScoreSearchWorker from '@/utils/scoreSearchWorker?worker'
 import SongSearchWorker from '@/utils/songSearchWorker?worker'
 import { onUnmounted, ref, toRaw, toValue, watch, type MaybeRefOrGetter } from 'vue';
@@ -11,6 +11,7 @@ import versionList from '@/assets/data/versions.json' with { type: 'json' };
 import { useScores } from '@/store/datasources/scores';
 import { useSongStore } from '@/store/datasources/song';
 import { MAX_SEARCH_NUMBER } from './consts';
+import { getSongDiffValueIndex } from './functionUtil';
 
 //Score Worker
 export const useScoreSearchWorker = (searchKeyWord: MaybeRefOrGetter<string>, filter: MaybeRefOrGetter<AdvanceFilterFilters>, order: MaybeRefOrGetter<OrderBadge>) => {
@@ -298,25 +299,18 @@ export const useSongSearchWorker = (searchKeyWord: MaybeRefOrGetter<string>, sea
             if (LEVEL_MATCH_PATTEN.test(tag)) {
                 const level_filter = conventLevelTag(tag);
                 if (level_filter) {
-                    const index_key = `level_${level_filter.level_index}` as keyof MaiMaiSong;
-                    const index_list = song[index_key];
-                    // 将level_value转换为数字类型进行匹配
-                    const numberValue = Number(level_filter.level_value);
-                    const levelValue = isNaN(numberValue) ? level_filter.level_value : numberValue;
-                    return Array.isArray(index_list) && index_list.includes(levelValue as never);
+                    const index_key = `level_${level_filter.level_index}`;
+                    const index_list = song[index_key as LevelFields];
+                    return Array.isArray(index_list) && index_list.some(i => i === level_filter.level_value);
                 }
             }
             //范围定数过滤
             if (LEVEL_RANGE_MATCH_PATTEN.test(tag)) {
-                const indexValueList: number[] = [...song["level_0"], ...song["level_1"], ...song["level_2"], ...song["level_3"], ...song["level_4"]]
-                for (const level_value of indexValueList) {
-                    const [start, end] = tag.split("-");
-                    const levelStart = Number(start);
-                    const levelEnd = Number(end)
-                    if (level_value >= levelStart && level_value <= levelEnd) {
-                        return true;
-                    }
-                }
+                const indexValueList = getSongDiffValueIndex(song)
+                const [start, end] = tag.split("-");
+                const levelStart = Number(start);
+                const levelEnd = Number(end)
+                return indexValueList.some(level_value => level_value >= levelStart && level_value <= levelEnd)
             }
             // 成绩标签过滤
             if (RANKING_MATCH_PATTEN.test(tag)) {

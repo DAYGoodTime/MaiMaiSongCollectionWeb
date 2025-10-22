@@ -14,8 +14,6 @@ export type AvailableDataSourceType = "divingfish" | "lxns" | "usagi"
 export interface Score {
     /** 曲目 ID */
     id: number;
-    /** 曲目 ID 水鱼版本（仅供显示) */
-    fish_id: number;
     /** 曲名  */
     song_name: string;
     /** 达成率 (如 97.5 表示 97.50%) */

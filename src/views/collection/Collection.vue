@@ -192,7 +192,7 @@ import { Search, X, ChevronDown, ChevronUp, PanelLeft } from 'lucide-vue-next'
 import { Input } from '@/components/shadcn/ui/input'
 import { useCollectionStore } from '@/store/collections';
 import type { MaiMaiSong, ScoreExtend, SongDifficultyAny, SongType } from '@/types/songs';
-import { debounce, toFishStyleId, toLXNSStyleId, useCopyHelper, useRouterHelper } from '@/utils/functionUtil';
+import { debounce, toLXNSStyleId, useCopyHelper, useRouterHelper } from '@/utils/functionUtil';
 import { computed, onMounted, ref, toRaw, useTemplateRef, watch } from 'vue';
 import { toast } from 'vue-sonner';
 
@@ -324,7 +324,6 @@ const createUnplayedScore = (diff_id: number, song: MaiMaiSong, song_type: SongT
     const diff = song[`${diff_id}_${song_type}_${level_index}` as keyof MaiMaiSong] as unknown as SongDifficultyAny
     return {
         id: song.id,
-        fish_id: toFishStyleId(song.id),
         song_name: song.title,
         level: diff ? diff.level : "0",
         diff_id,

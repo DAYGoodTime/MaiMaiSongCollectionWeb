@@ -1,6 +1,6 @@
 import { QuerySongs } from "@/api/other";
 import type { DataSource } from "@/types/datasource";
-import type { MaiMaiSong, SongDifficulty, SongDifficultyUtage } from "@/types/songs";
+import type { MaiMaiSong, SongDifficultyAny, SongUniId } from "@/types/songs";
 import { formatDate } from "@/utils/StrUtil";
 import { useLocalStorage } from "@vueuse/core";
 import { defineStore } from "pinia";
@@ -47,13 +47,13 @@ export const useSongStore = defineStore("ds_song", () => {
             LastSongUpdateTime.value = new Date().getTime()
         }
     }
-    const getDiffById = (uni_id: string): SongDifficulty | SongDifficultyUtage | undefined => {
+    const getDiffById = (uni_id: string): SongDifficultyAny | undefined => {
         const splits = uni_id.split("_");
         if (splits.length < 2) return undefined;
         const diff_id = splits[0]
         const song = getSong(diff_id)
         if (!song) return undefined;
-        return song[uni_id as keyof MaiMaiSong] as unknown as SongDifficulty | SongDifficultyUtage | undefined
+        return song[uni_id as SongUniId]
     }
     const checkSongUpdate = () => {
         if (SONG_LIST.value.version !== CURRENT_SONG_VERSION) return true;

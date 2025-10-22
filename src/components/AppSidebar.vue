@@ -63,7 +63,7 @@ const items = [
     icon: Settings,
   },
 ];
-const mode = useColorMode();
+const mode = useColorMode({ initialValue: 'light' });
 const { JumpToFromEvent, JumpTo } = useRouterHelper()
 const { EditCollectionName, DeleteCollection, newCollection } = useCollectionStore();
 const { UserCollectionList, CurrentCollectionLabel } = storeToRefs(useCollectionStore());

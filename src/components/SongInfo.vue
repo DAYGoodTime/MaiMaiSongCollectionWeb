@@ -121,7 +121,7 @@ const isSelectedType = (type: TypeValue) => {
 }
 
 const currentStyleId = computed(() => {
-    return String(ScoreStore.showCurrentStyleId(song.id))
+    return String(ScoreStore.showCurrentStyleId(song.id, SelectedType.value))
 })
 
 const handelDataSourceSwitch = (ds: AcceptableValue) => {

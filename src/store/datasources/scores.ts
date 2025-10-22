@@ -168,8 +168,8 @@ export const useScores = defineStore("scores", () => {
     const getScoreByUni = (id: number, type: SongType, level_index: number) => {
         return getDataSource.value.list[`${id}_${type}_${level_index}`]
     }
-    const showCurrentStyleId = (id: number) => {
-        if (selectedSource.value === 'divingfish') return toFishStyleId(id);
+    const showCurrentStyleId = (id: number, type: SongType) => {
+        if (selectedSource.value === 'divingfish') return toFishStyleId(id, type);
         else return id
     }
     const PC_SUPPORT_SOURCES: DataSourceType[] = ["usagi"]
