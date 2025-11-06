@@ -7,8 +7,8 @@ import { defineStore } from "pinia";
 import { toast } from "vue-sonner";
 import DEFAULT_SONGS from "@/assets/data/song_data_default.json" with { type: 'json' }
 
-const CURRENT_SONG_VERSION = 4
-const LOCAL_SONG_UPDATE_TIME = "2025-10-1 10:39:00"
+const CURRENT_SONG_VERSION = 5
+const LOCAL_SONG_UPDATE_TIME = "2025-11-6 18:08:00"
 const DEFAULT_SONG_DATA: DataSource<Record<number, MaiMaiSong>> = {
     list: DEFAULT_SONGS as any,
     update_time: LOCAL_SONG_UPDATE_TIME,
@@ -37,6 +37,9 @@ export const useSongStore = defineStore("ds_song", () => {
                     update_time: formatDate(new Date()),
                     version: result.version
                 }
+                return true
+            } else {
+                toast.info("歌曲源已经是最新版本，无需更新")
             }
         } catch (e) {
             toast.warning("更新歌曲源失败")
@@ -46,6 +49,7 @@ export const useSongStore = defineStore("ds_song", () => {
         } finally {
             LastSongUpdateTime.value = new Date().getTime()
         }
+        return false;
     }
     const getDiffById = (uni_id: string): SongDifficultyAny | undefined => {
         const splits = uni_id.split("_");

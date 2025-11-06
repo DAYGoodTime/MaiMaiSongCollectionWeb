@@ -274,8 +274,9 @@ const handelUpdateSongs = async () => {
     if (UpdatingSongs.value) return;
     UpdatingSongs.value = true;
     try {
-        await updateSongFromAPI()
-        toast.success("歌曲数据源更新完成")
+        if (await updateSongFromAPI()) {
+            toast.success("歌曲数据源更新完成")
+        }
     } catch (error: any) {
         toast.error(`歌曲数据源更新失败: ${error.message ? error.message : 'Unknown Error'}`)
         console.error("歌曲数据源更新失败", error);
