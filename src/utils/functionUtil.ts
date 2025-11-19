@@ -10,7 +10,7 @@ import { ref } from "vue";
 import type { LXNSScore } from "@/types/lxns";
 import type { UsagiScore } from "@/types/usagi";
 import { useScores } from "@/store/datasources/scores";
-import type { Tag } from "@/components/TagInputCombobox.vue";
+import type { Tag, TagOption } from "@/components/TagInputCombobox.vue";
 import { rankingList } from "./urlUtils";
 
 type DebouncedFunction<T extends any[]> = (...args: T) => void;
@@ -250,56 +250,60 @@ export const getSongDiffValueIndex = (song: MaiMaiSong) => {
   }
   return list;
 }
-export function filterDiffByTag(tags: Tag[], diff: SongDifficultyAny, song_id: number): boolean {
-  const ScoreStore = useScores();
-  const score = ScoreStore.getScoreByUni(song_id, diff.type, diff.level_index);
-  const tagFilters = tags.map(t => t.value)
-  const matchesTags = tagFilters.length === 0 ? true : tagFilters.every(tag => {
-    // 定数tag过滤
-    if (LEVEL_MATCH_PATTEN.test(tag)) {
-      const level_filter = conventLevelTag(tag);
-      if (level_filter) {
-        return diff.level_value === level_filter.level_value
+function _filterDiffByTag(tag: string, diff: SongDifficultyAny, score: Score): boolean {
+  // 定数tag过滤
+  if (LEVEL_MATCH_PATTEN.test(tag)) {
+    const level_filter = conventLevelTag(tag);
+    if (level_filter) {
+      return diff.level_value === level_filter.level_value
+    }
+    return false;
+  }
+  //范围定数过滤
+  if (LEVEL_RANGE_MATCH_PATTEN.test(tag)) {
+    const [start, end] = tag.split("-");
+    const levelStart = Number(start);
+    const levelEnd = Number(end)
+    return diff.level_value >= levelStart && diff.level_value <= levelEnd
+  }
+  // 成绩标签过滤 (example:紫鸟加)
+  if (RANKING_MATCH_PATTEN.test(tag)) {
+    const splits = tag.split("_");
+    if (splits.length === 2) {
+      const level_index_tag = conventLevelPrefix(splits[0]);
+      const ranking_target = rankingList.find(r => r.id === splits[1]);
+      if (ranking_target && diff.level_index === level_index_tag && score) {
+        return score.achievements >= ranking_target.min && score.achievements <= ranking_target.max
       }
       return false;
     }
-    //范围定数过滤
-    if (LEVEL_RANGE_MATCH_PATTEN.test(tag)) {
-      const [start, end] = tag.split("-");
-      const levelStart = Number(start);
-      const levelEnd = Number(end)
-      return diff.level_value >= levelStart && diff.level_value <= levelEnd
-    }
-    // 成绩标签过滤 (example:紫鸟加)
-    if (RANKING_MATCH_PATTEN.test(tag)) {
-      const splits = tag.split("_");
-      if (splits.length === 2) {
-        const level_index_tag = conventLevelPrefix(splits[0]);
-        const ranking_target = rankingList.find(r => r.id === splits[1]);
-        if (ranking_target && diff.level_index === level_index_tag && score) {
-          return score.achievements >= ranking_target.min && score.achievements <= ranking_target.max
-        }
-        return false;
-      }
-    }
-    // 成绩范围标签过滤 (example:12.0-13.5)
-    if (isValidAchievementRange(tag)) {
-      const matched = tag.match(BASE_NUMBER_RANGE_PATTEN);
-      if (!matched || matched.length !== 3) return false;
-      const start = parseFloat(matched[1]);
-      const end = parseFloat(matched[2]);
-      return diff.level_value >= start && diff.level_value <= end;
-    }
-    // 旧框版本特判
-    if (tag === "ALL FiNALE") {
-      return isAllFinal(conventVersionByInt(diff.version) ?? "");
-    }
-    // 版本标签过滤
-    const versionMatch = versionList.find(v => v.id === tag);
-    if (versionMatch) {
-      return (conventVersionByInt(diff.version) ?? "") === tag;
-    }
-    return false;
-  });
+  }
+  // 成绩范围标签过滤 (example:12.0-13.5)
+  if (isValidAchievementRange(tag)) {
+    const matched = tag.match(BASE_NUMBER_RANGE_PATTEN);
+    if (!matched || matched.length !== 3) return false;
+    const start = parseFloat(matched[1]);
+    const end = parseFloat(matched[2]);
+    return diff.level_value >= start && diff.level_value <= end;
+  }
+  // 旧框版本特判
+  if (tag === "ALL FiNALE") {
+    return isAllFinal(conventVersionByInt(diff.version) ?? "");
+  }
+  // 版本标签过滤
+  const versionMatch = versionList.find(v => v.id === tag);
+  if (versionMatch) {
+    return (conventVersionByInt(diff.version) ?? "") === tag;
+  }
+  return false;
+}
+export function filterDiffByTag(tagOption: TagOption, diff: SongDifficultyAny, song_id: number): boolean {
+  if (tagOption.tags.length === 0) return true;
+  const ScoreStore = useScores();
+  const score = ScoreStore.getScoreByUni(song_id, diff.type, diff.level_index);
+  const tagFilters = tagOption.tags.map(t => t.value)
+  const matchesTags = tagOption.matchEvery ?
+    tagFilters.every(tag => _filterDiffByTag(tag, diff, score))
+    : tagFilters.some(tag => _filterDiffByTag(tag, diff, score))
   return matchesTags
 }

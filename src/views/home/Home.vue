@@ -7,10 +7,11 @@ import { HoverCard, HoverCardContent, HoverCardTrigger } from "@/components/shad
 import { Card, CardContent } from '@/components/shadcn/ui/card'
 import { Slider } from "@/components/shadcn/ui/slider";
 import { Button } from "@/components/shadcn/ui/button";
+import { Switch } from '@/components/shadcn/ui/switch'
 import { Checkbox } from "@/components/shadcn/ui/checkbox";
 import { Label } from "@/components/shadcn/ui/label";
 import TagInputCombobox from "@/components/TagInputCombobox.vue";
-import type { Tag } from "@/components/TagInputCombobox.vue";
+import type { Tag, TagOption } from "@/components/TagInputCombobox.vue";
 import type { MaiMaiSong, SongType } from "@/types/songs";
 import SongInfo from "@/components/SongInfo.vue";
 import ScoreInfo from "@/components/ScoreInfo.vue";
@@ -20,7 +21,10 @@ import { useAppStore } from "@/store/appStore";
 const bpmRangeValue = ref([0, 300]);
 const enableBpmFilter = ref(false);
 const appStore = useAppStore()
-const tags = ref<Tag[]>([]);
+const TagOptions = ref<TagOption>({
+  matchEvery: true,
+  tags: []
+})
 const selectedSong = ref<MaiMaiSong>();
 const bpmOption = reactive({
   enable: enableBpmFilter,
@@ -48,7 +52,7 @@ const handelOpenImportDialog = () => {
 </script>
 <template>
   <div class="container mx-auto px-4 py-2">
-    <ImportFromResult :list="SearchRef?.results ?? []" :tags="tags" v-model:open="openImportDialog"
+    <ImportFromResult :list="SearchRef?.results ?? []" :tag-option="TagOptions" v-model:open="openImportDialog"
       :max_limit="SEARCH_NUMBER_LIMIT" />
     <div class="space-y-6 lg:mx-32">
       <Card>
@@ -63,7 +67,7 @@ const handelOpenImportDialog = () => {
                 <Button variant="outline" @click="handelOpenImportDialog">导入到合集</Button>
               </div>
             </div>
-            <SongSearch ref="search" class="mx-auto" v-model:selected="selectedSong" :selected_tags="tags"
+            <SongSearch ref="search" class="mx-auto" v-model:selected="selectedSong" :tag-option="TagOptions"
               :bpm="bpmOption" />
           </div>
           <Accordion type="single" collapsible class="w-full">
@@ -77,26 +81,31 @@ const handelOpenImportDialog = () => {
               <AccordionContent class="px-6 pt-4">
                 <div class="grid gap-6 sm:grid-cols-2">
                   <div class="space-y-2">
-                    标签筛选:
-                    <HoverCard :open-delay="10" v-model:open="tooltipsOpen">
-                      <HoverCardTrigger>
-                        <CircleQuestionMark @click="tooltipsOpen = true" class=" cursor-pointer inline w-4 h-4" />
-                      </HoverCardTrigger>
-                      <HoverCardContent class="w-fit">
-                        <div class="flex flex-col gap-2">
-                          <p>通过标签来筛选需要搜索的歌曲范围:</p>
-                          <p>版本: 任意maimai版本</p>
-                          <p>铺面难度: 例如："红13"、"紫12"</p>
-                          <p>达成率: 例如："红鸟加"、"白鸟"</p>
-                          <p>定数范围: 例如："12-14"、"14.6-14.9"</p>
-                          <p>达成率范围: 例如："100.4-100.4999"、"99.9-99.9999"</p>
-                        </div>
-                      </HoverCardContent>
-                    </HoverCard>
-                    <Label>
-
-                    </Label>
-                    <TagInputCombobox v-model:tags="tags" />
+                    <div class="flex flex-col space-y-2">
+                      <p>
+                        标签筛选:
+                        <HoverCard :open-delay="10" v-model:open="tooltipsOpen">
+                          <HoverCardTrigger>
+                            <CircleQuestionMark @click="tooltipsOpen = true" class=" cursor-pointer inline w-4 h-4" />
+                          </HoverCardTrigger>
+                          <HoverCardContent class="w-fit">
+                            <div class="flex flex-col gap-2">
+                              <p>通过标签来筛选需要搜索的歌曲范围:</p>
+                              <p>版本: 任意maimai版本</p>
+                              <p>铺面难度: 例如："红13"、"紫12"</p>
+                              <p>达成率: 例如："红鸟加"、"白鸟"</p>
+                              <p>定数范围: 例如："12-14"、"14.6-14.9"</p>
+                              <p>达成率范围: 例如："100.4-100.4999"、"99.9-99.9999"</p>
+                            </div>
+                          </HoverCardContent>
+                        </HoverCard>
+                      </p>
+                      <div class="flex items-center space-x-2">
+                        <Switch id="match-every" v-model:model-value="TagOptions.matchEvery" />
+                        <Label for="match-every">{{ TagOptions.matchEvery ? '满足所有标签' : '满足部分标签' }}</Label>
+                      </div>
+                    </div>
+                    <TagInputCombobox v-model:tags="TagOptions.tags" />
                   </div>
                   <div class="space-y-2">
                     <Label>BPM 筛选</Label>

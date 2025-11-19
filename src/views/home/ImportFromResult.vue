@@ -84,7 +84,7 @@ import MultiSelectTags from '@/components/MultiSelectTags.vue'
 import { Button } from '@/components/shadcn/ui/button';
 import { Label } from 'reka-ui';
 import type { MaiMaiSong } from '@/types/songs';
-import type { Tag } from '@/components/TagInputCombobox.vue';
+import type { TagOption } from '@/components/TagInputCombobox.vue';
 import { computed, ref } from 'vue';
 import { LEVEL_MATCH_PATTEN, LEVEL_RANGE_MATCH_PATTEN } from '@/utils/StrUtil';
 import type { FilterProps } from '@/types/component';
@@ -104,14 +104,14 @@ const diffOptions: FilterProps<number>[] = [{ label: 'BASIC', value: 0 }, { labe
 const selectedDiffs = ref<FilterProps<number>[]>([])
 const props = defineProps<{
     list: MaiMaiSong[] | []
-    tags: Tag[] | [],
+    tagOption: TagOption,
     max_limit: number
 }>()
 const hasLevelTag = computed(() => {
-    return props.tags.filter(t => LEVEL_MATCH_PATTEN.test(t.value) || LEVEL_RANGE_MATCH_PATTEN.test(t.value)).length > 0
+    return props.tagOption.tags.filter(t => LEVEL_MATCH_PATTEN.test(t.value) || LEVEL_RANGE_MATCH_PATTEN.test(t.value)).length > 0
 })
 const hasAchievementTag = computed(() => {
-    return props.tags.filter(t => t.needDs ?? false).length > 0
+    return props.tagOption.tags.filter(t => t.needDs ?? false).length > 0
 })
 // 标签过滤了一些特定的难度|成绩，例如指定鸟加、达成率在一定范围内的、或者需要满足定数需求的
 const hasTargetScoreTag = computed(() => {
@@ -159,7 +159,7 @@ const handelImport = () => {
 const getScoreId = (song: MaiMaiSong, targetLevels: number[]) => {
     const diffs = [...song.difficulties.standard, ...song.difficulties.dx]
     let filteredDiffs = diffs.filter(diff =>
-        filterDiffByTag(props.tags, diff, song.id)
+        filterDiffByTag(props.tagOption, diff, song.id)
         && targetLevels.includes(diff.level_index)
     );
     return filteredDiffs.map(diff => {

@@ -71,13 +71,13 @@ import { debounce } from "@/utils/functionUtil";
 import type { MaiMaiSong } from "@/types/songs";
 import { getImageCoverUrl } from "@/utils/urlUtils";
 import { ComboboxCancel } from "@/components/shadcn/ui/combobox";
-import type { Tag } from "./TagInputCombobox.vue";
+import type { TagOption } from "./TagInputCombobox.vue";
 import { useAppStore } from '@/store/appStore';
 import { useSongSearchWorker } from "@/utils/workerHelper";
 import { MAX_SEARCH_NUMBER } from "@/utils/consts";
 
 export interface SearchOptions {
-  selected_tags: Tag[],
+  tagOption: TagOption,
   bpm: {
     enable: boolean,
     range: number[]

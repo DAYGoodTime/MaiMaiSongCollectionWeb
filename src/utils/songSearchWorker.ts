@@ -113,32 +113,6 @@ const searchSongs = (input: string, search_limit?: number) => {
         }
     }
     const searchResults = songIndex.search(searchLower, { limit: SearchLimit, enrich: true });
-    // const orderedIds: string[] = [];
-    // const addedIds = new Set<string>();
-    // searchResults.forEach(fieldResult => {
-    //     fieldResult.result.forEach(id => {
-    //         if (!addedIds.has(id as string)) {
-    //             orderedIds.push(id as string);
-    //             addedIds.add(id as string);
-    //         }
-    //     });
-    // });
-    // //根据排序后的id结构映射为实际列表
-    // let warn_count = 0;
-    // songsToShow = orderedIds.map(id => {
-    //     if (SONG_MAP) {
-    //         const song = SONG_MAP[Number(id)];
-    //         if (song) {
-    //             return song
-    //         } else {
-    //             if (warn_count <= WARN_LIMIT) {
-    //                 console.warn("有无法对应的歌曲id", id);
-    //                 warn_count++;
-    //             }
-    //         }
-    //     }
-
-    // }).reverse() as MaiMaiSong[];
     const idMap = new Map<string, boolean>()
     searchResults.forEach(field => {
         field.result.forEach(doc => {
@@ -148,22 +122,5 @@ const searchSongs = (input: string, search_limit?: number) => {
             }
         })
     })
-
-    // Still need to testing result is good enough
-    // console.log("reason", searchResults.map(r => {
-    //     let obj = {
-    //         field: r.field,
-    //         matching: r.result.map(result => {
-    //             if (result.doc) {
-    //                 return {
-    //                     title: result.doc.title,
-    //                     match: result.doc[r.field as keyof SongIndexDoc]
-    //                 }
-    //             } else return ""
-    //         })
-    //     }
-    //     return obj
-    // }));
-    // console.log("result", songsToShow);
     self.postMessage({ type: 'search_results', results: songsToShow });
 }

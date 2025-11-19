@@ -35,6 +35,10 @@ export interface Tag {
   alias: string | null;
   needDs?: boolean;
 }
+export interface TagOption {
+  matchEvery: boolean,
+  tags: Tag[]
+}
 const { contains } = useFilter({ sensitivity: "base" });
 const versionListForTag: Tag[] = versionList.map((v) => {
   return {

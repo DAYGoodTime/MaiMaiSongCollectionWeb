@@ -12,6 +12,7 @@ import { useScores } from '@/store/datasources/scores';
 import { useSongStore } from '@/store/datasources/song';
 import { MAX_SEARCH_NUMBER } from './consts';
 import { getSongDiffValueIndex } from './functionUtil';
+import type { TagOption } from '@/components/TagInputCombobox.vue';
 
 //Score Worker
 export const useScoreSearchWorker = (searchKeyWord: MaybeRefOrGetter<string>, filter: MaybeRefOrGetter<AdvanceFilterFilters>, order: MaybeRefOrGetter<OrderBadge>) => {
@@ -283,73 +284,75 @@ export const useSongSearchWorker = (searchKeyWord: MaybeRefOrGetter<string>, sea
                     continue;
             }
             //匹配标签
-            const tagFilters = options.selected_tags.map(t => t.value);
-            if (tagFilters.length > 0) {
-                const matchesTags = filterByTag(tagFilters, song);
-                if (!matchesTags) continue;
-            }
+            const matchesTags = filterByTag(options.tagOption, song);
+            if (!matchesTags) continue;
             list.push(song);
         }
         return list;
     }
-    const filterByTag = (tagFilters: string[], song: MaiMaiSong) => {
-        // 标签过滤
-        const matchesTags = tagFilters.length === 0 ? true : tagFilters.every(tag => {
-            // 定数tag过滤
-            if (LEVEL_MATCH_PATTEN.test(tag)) {
-                const level_filter = conventLevelTag(tag);
-                if (level_filter) {
-                    const index_key = `level_${level_filter.level_index}`;
-                    const index_list = song[index_key as LevelFields];
-                    return Array.isArray(index_list) && index_list.some(i => i === level_filter.level_value);
-                }
-                return false;
-            }
-            //范围定数过滤
-            if (LEVEL_RANGE_MATCH_PATTEN.test(tag)) {
-                const indexValueList = getSongDiffValueIndex(song)
-                const [start, end] = tag.split("-");
-                const levelStart = Number(start);
-                const levelEnd = Number(end)
-                return indexValueList.some(level_value => level_value >= levelStart && level_value <= levelEnd)
-            }
-            // 成绩标签过滤 (example:紫鸟加)
-            if (RANKING_MATCH_PATTEN.test(tag)) {
-                const splits = tag.split("_");
-                if (splits.length === 2) {
-                    const level_index_tag = conventLevelPrefix(splits[0]);
-                    const ranking_target = rankingList.find(r => r.id === splits[1]);
-                    if (ranking_target) {
-                        const scoreList = ScoreStore.getScoreList(song.id);
-                        return scoreList.some(
-                            (s) => s.level_index === level_index_tag &&
-                                s.achievements > ranking_target.min &&
-                                s.achievements < ranking_target.max
-                        );
-                    }
-                }
-                return false;
-            }
-            // 成绩范围标签过滤 (example:12.0-13.5)
-            if (isValidAchievementRange(tag)) {
-                const matched = tag.match(BASE_NUMBER_RANGE_PATTEN);
-                if (!matched || matched.length !== 3) return false;
-                const start = parseFloat(matched[1]);
-                const end = parseFloat(matched[2]);
-                const scoreList = ScoreStore.getScoreList(song.id);
-                return scoreList.some((s) => start <= s.achievements && end >= s.achievements);
-            }
-            // 旧框版本特判
-            if (tag === "ALL FiNALE") {
-                return isAllFinal(song.version);
-            }
-            // 版本标签过滤
-            const versionMatch = versionList.find(v => v.id === tag);
-            if (versionMatch) {
-                return song.version === tag;
+    const _filterByTag = (tag: string, song: MaiMaiSong) => {
+        // 定数tag过滤
+        if (LEVEL_MATCH_PATTEN.test(tag)) {
+            const level_filter = conventLevelTag(tag);
+            if (level_filter) {
+                const index_key = `level_${level_filter.level_index}`;
+                const index_list = song[index_key as LevelFields];
+                return Array.isArray(index_list) && index_list.some(i => i === level_filter.level_value);
             }
             return false;
-        });
+        }
+        //范围定数过滤
+        if (LEVEL_RANGE_MATCH_PATTEN.test(tag)) {
+            const indexValueList = getSongDiffValueIndex(song)
+            const [start, end] = tag.split("-");
+            const levelStart = Number(start);
+            const levelEnd = Number(end)
+            return indexValueList.some(level_value => level_value >= levelStart && level_value <= levelEnd)
+        }
+        // 成绩标签过滤 (example:紫鸟加)
+        if (RANKING_MATCH_PATTEN.test(tag)) {
+            const splits = tag.split("_");
+            if (splits.length === 2) {
+                const level_index_tag = conventLevelPrefix(splits[0]);
+                const ranking_target = rankingList.find(r => r.id === splits[1]);
+                if (ranking_target) {
+                    const scoreList = ScoreStore.getScoreList(song.id);
+                    return scoreList.some(
+                        (s) => s.level_index === level_index_tag &&
+                            s.achievements > ranking_target.min &&
+                            s.achievements < ranking_target.max
+                    );
+                }
+            }
+            return false;
+        }
+        // 成绩范围标签过滤 (example:12.0-13.5)
+        if (isValidAchievementRange(tag)) {
+            const matched = tag.match(BASE_NUMBER_RANGE_PATTEN);
+            if (!matched || matched.length !== 3) return false;
+            const start = parseFloat(matched[1]);
+            const end = parseFloat(matched[2]);
+            const scoreList = ScoreStore.getScoreList(song.id);
+            return scoreList.some((s) => start <= s.achievements && end >= s.achievements);
+        }
+        // 旧框版本特判
+        if (tag === "ALL FiNALE") {
+            return isAllFinal(song.version);
+        }
+        // 版本标签过滤
+        const versionMatch = versionList.find(v => v.id === tag);
+        if (versionMatch) {
+            return song.version === tag;
+        }
+        return false;
+    }
+    const filterByTag = (tagOption: TagOption, song: MaiMaiSong) => {
+        if (tagOption.tags.length === 0) return true;
+        const tagFilters = tagOption.tags.map(t => t.value);
+        // 标签过滤
+        const matchesTags = tagOption.matchEvery ?
+            tagFilters.every(tag => _filterByTag(tag, song))
+            : tagFilters.some(tag => _filterByTag(tag, song))
         return matchesTags
     }
     //watch
