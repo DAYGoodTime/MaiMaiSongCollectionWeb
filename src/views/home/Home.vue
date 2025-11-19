@@ -52,7 +52,7 @@ const handelOpenImportDialog = () => {
       :max_limit="SEARCH_NUMBER_LIMIT" />
     <div class="space-y-6 lg:mx-32">
       <Card>
-        <CardContent class="flex flex-col gap-4">
+        <CardContent class="flex flex-col gap-4 md:flex-col-reverse">
           <div class="flex flex-col gap-4 pt-4">
             <div class="flex justify-between">
               <div class="flex items-center gap-2">
