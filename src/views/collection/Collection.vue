@@ -16,7 +16,7 @@
                 <Search class="size-6 text-muted-foreground" />
             </span>
             <span class="absolute end-0 inset-y-0 flex items-center justify-center px-3 cursor-pointer"
-                @click="onReset">
+                @click="onResetInput">
                 <X />
             </span>
         </div>
@@ -56,7 +56,6 @@
                     <div>
                         <p class="text-sm font-semibold text-gray-400 mb-2">
                             双击卡片打开歌曲详情，右键可以进行删除等操作。悬浮在曲名上方可以呼出完整文本，点击文本可以直接复制</p>
-                        <p class="text-sm font-semibold mb-2 text-red-600">没有数据源的情况下所有成绩都是隐藏的！需要筛选中启用‘未游玩成绩’</p>
                     </div>
                     <div>
                         <ReuseSearchTemplate />
@@ -89,8 +88,27 @@
                                     class="transition-shadow rounded-xl shadow hover:shadow-xl bg-white/90"
                                     @copy="handelCopy" @db-click="onMenu" @right-click="onContextMenu" />
 
-                                <p class="flex items-center text-center justify-center" v-if="isEmpty">暂无任何成绩捏~</p>
                             </template>
+                        </div>
+                        <div v-if="isEmpty && !(isLoadingPage || isLoading)">
+                            <Empty>
+                                <EmptyHeader>
+                                    <EmptyMedia variant="icon">
+                                        <CircleOff />
+                                    </EmptyMedia>
+                                </EmptyHeader>
+                                <EmptyTitle>暂无任何成绩</EmptyTitle>
+                                <EmptyDescription>请检查导入的难度是否拥有成绩 (是否有添加数据源)、过滤是否合理、搜索是否正确，又或者你只是忘记导入任何成绩了
+                                </EmptyDescription>
+                                <EmptyContent>
+                                    <Button @click="resetAll" variant="outline" class="flex items-center space-x-2 text-blue-600 border-blue-200 hover:bg-blue-50
+                     dark:text-stone-500 dark:hover:text-black dark:border-stone-500">
+                                        <RotateCcw :size="16" />
+                                        <span>重置筛选</span>
+                                    </Button>
+                                    <Button @click="showAdvanced = true">导入成绩</Button>
+                                </EmptyContent>
+                            </Empty>
                         </div>
                         <!-- <Popover>
                             <PopoverTrigger>
@@ -183,12 +201,13 @@ import {
     DialogHeader,
     DialogTitle,
 } from '@/components/shadcn/ui/dialog'
+import { Button } from '@/components/shadcn/ui/button'
 import ScoreCard from '@/components/ScoreCard.vue';
 import SongInfo from '@/components/SongInfo.vue';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/shadcn/ui/card'
 import { Popover, PopoverTrigger, PopoverContent } from '@/components/shadcn/ui/popover';
 import { Badge } from '@/components/shadcn/ui/badge';
-import { Search, X, ChevronDown, ChevronUp, PanelLeft } from 'lucide-vue-next'
+import { Search, X, ChevronDown, ChevronUp, PanelLeft, CircleOff, RotateCcw } from 'lucide-vue-next'
 import { Input } from '@/components/shadcn/ui/input'
 import { useCollectionStore } from '@/store/collections';
 import type { MaiMaiSong, ScoreExtend, SongDifficultyAny, SongType } from '@/types/songs';
@@ -214,6 +233,14 @@ import {
     NavigationMenuTrigger,
     navigationMenuTriggerStyle
 } from "@/components/shadcn/ui/navigation-menu"
+import {
+    Empty,
+    EmptyContent,
+    EmptyDescription,
+    EmptyHeader,
+    EmptyTitle,
+    EmptyMedia
+} from "@/components/shadcn/ui/empty";
 import type { Score } from '@/types/datasource';
 import InfiniteScrollArea from '@/components/InfiniteScrollArea.vue';
 import AdvanceFilter from '@/components/AdvanceFilter/AdvanceFilter.vue';
@@ -287,10 +314,11 @@ const onSearch = debounce((val: string | number) => {
     searchValue.value = String(val)
 }, 200);
 
-const onReset = () => {
+const onResetInput = () => {
     searchInput.value = ""
     searchValue.value = ""
 }
+
 
 const handleOrderStatus = (_order: OrderBadge, index: number) => {
     OrderBadges.value.forEach((o, i) => {
@@ -318,6 +346,12 @@ const handelMoveToOtherCollection = (coll_label: string, score_id: string) => {
     } else {
         toast.error("添加失败")
     }
+}
+const resetAll = () => {
+    //重置过滤器
+    AdvanceFilterRef.value?.resetAllFilters()
+    //重置搜索
+    onResetInput();
 }
 
 const createUnplayedScore = (diff_id: number, song: MaiMaiSong, song_type: SongType, level_index: number): Score => {
