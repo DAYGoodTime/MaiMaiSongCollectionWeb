@@ -303,6 +303,7 @@ export const useSongSearchWorker = (searchKeyWord: MaybeRefOrGetter<string>, sea
                     const index_list = song[index_key as LevelFields];
                     return Array.isArray(index_list) && index_list.some(i => i === level_filter.level_value);
                 }
+                return false;
             }
             //范围定数过滤
             if (LEVEL_RANGE_MATCH_PATTEN.test(tag)) {
@@ -312,7 +313,7 @@ export const useSongSearchWorker = (searchKeyWord: MaybeRefOrGetter<string>, sea
                 const levelEnd = Number(end)
                 return indexValueList.some(level_value => level_value >= levelStart && level_value <= levelEnd)
             }
-            // 成绩标签过滤
+            // 成绩标签过滤 (example:紫鸟加)
             if (RANKING_MATCH_PATTEN.test(tag)) {
                 const splits = tag.split("_");
                 if (splits.length === 2) {
@@ -327,8 +328,9 @@ export const useSongSearchWorker = (searchKeyWord: MaybeRefOrGetter<string>, sea
                         );
                     }
                 }
+                return false;
             }
-            // 成绩范围标签过滤
+            // 成绩范围标签过滤 (example:12.0-13.5)
             if (isValidAchievementRange(tag)) {
                 const matched = tag.match(BASE_NUMBER_RANGE_PATTEN);
                 if (!matched || matched.length !== 3) return false;

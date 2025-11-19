@@ -2,16 +2,16 @@ import type { AnyScore, Score } from "@/types/datasource";
 import { Clipboard } from "@capacitor/clipboard"
 import { useRoute, useRouter, type RouteLocationRaw } from "vue-router";
 import { toast } from "vue-sonner";
-import { getSongDiffUniId } from "./StrUtil";
+import versionList from '@/assets/data/versions.json' with { type: 'json' };
+import { BASE_NUMBER_RANGE_PATTEN, conventLevelPrefix, conventLevelTag, conventVersionByInt, getSongDiffUniId, isAllFinal, isValidAchievementRange, LEVEL_MATCH_PATTEN, LEVEL_RANGE_MATCH_PATTEN, RANKING_MATCH_PATTEN } from "./StrUtil";
 import type { LevelFields, MaiMaiSong, ScoreExtend, SongDifficultyAny, SongType, SongUniId } from "@/types/songs";
 import { fcMapping, fsMapping, rateMapping } from "@/api/usagi";
 import { ref } from "vue";
 import type { LXNSScore } from "@/types/lxns";
 import type { UsagiScore } from "@/types/usagi";
-import { conventLevelPrefix, conventLevelTag, LEVEL_MATCH_PATTEN, RANKING_MATCH_PATTEN, LEVEL_RANGE_MATCH_PATTEN, isValidAchievementRange, BASE_NUMBER_RANGE_PATTEN } from "@/utils/StrUtil";
-import { rankingList } from "@/utils/urlUtils";
-import type { SongDifficulty, SongDifficultyUtage } from "@/types/songs";
 import { useScores } from "@/store/datasources/scores";
+import type { Tag } from "@/components/TagInputCombobox.vue";
+import { rankingList } from "./urlUtils";
 
 type DebouncedFunction<T extends any[]> = (...args: T) => void;
 
@@ -242,76 +242,6 @@ export const getSongDiffByScore = (song: MaiMaiSong, score: Score): SongDifficul
   const uni_id = getSongDiffUniId(song, score)
   return song[uni_id]
 }
-export const filterDiffByLevelTag = (song_id: number, diffs: SongDifficulty[] | SongDifficultyUtage[], tags: string[]) => {
-  const result: string[] = []
-  for (const diff of diffs) {
-    //宴谱默认拒绝
-    if (diff.type === "utage" || ("kanji" in diff)) continue;
-    for (const tag of tags) {
-      const isLevelPatten = LEVEL_MATCH_PATTEN.test(tag);
-      const isLevelRangePatten = LEVEL_RANGE_MATCH_PATTEN.test(tag)
-      if (!isLevelPatten && !isLevelRangePatten) continue;
-      if (isLevelPatten) {
-        const level_filter = conventLevelTag(tag);
-        if (level_filter) {
-          if (diff.level_index === level_filter.level_index
-            && diff.level_value === level_filter.level_value
-          ) {
-            result.push(`${song_id}_${diff.type}_${diff.level_index}`)
-          }
-        }
-
-      }
-      if (isLevelRangePatten) {
-        const [start, end] = tag.split("-");
-        const levelStart = Number(start);
-        const levelEnd = Number(end)
-        if (diff.level_value >= levelStart && diff.level_value <= levelEnd) {
-          result.push(`${song_id}_${diff.type}_${diff.level_index}`)
-        }
-      }
-    }
-  }
-  return result;
-}
-export const filterDiffByAchievementTag = (song_id: number, diffs: SongDifficulty[] | SongDifficultyUtage[], tags: string[]): string[] => {
-  const result: string[] = []
-  const ScoreStore = useScores()
-  for (const diff of diffs) {
-    let score;
-    if (diff.type === "utage" && ("kanji" in diff)) {
-      //处理宴谱
-      score = ScoreStore.getScoreByUni(diff.diff_id, diff.type, diff.level_index)
-    } else {
-      score = ScoreStore.getScoreByUni(song_id, diff.type, diff.level_index);
-    }
-    if (!score) continue;
-    for (const tag of tags) {
-      if (RANKING_MATCH_PATTEN.test(tag)) {
-        const splits = tag.split("_");
-        if (splits.length < 2) continue;
-        const level_index_tag = conventLevelPrefix(splits[0]);
-        const ranking_target = rankingList.find(r => r.id === splits[1]);
-        if (!ranking_target) continue;
-        if (diff.level_index === level_index_tag
-          && (ranking_target.min <= score.achievements && ranking_target.max >= score.achievements)
-        ) {
-          result.push(`${score.diff_id}_${diff.type}_${diff.level_index}`)
-        }
-      }
-      if (isValidAchievementRange(tag)) {
-        const matched = tag.match(BASE_NUMBER_RANGE_PATTEN);
-        if (!matched || matched.length !== 3) continue;
-        const start = parseFloat(matched[1]);
-        const end = parseFloat(matched[2]);
-        if (start <= score.achievements && end >= score.achievements) {
-          result.push(`${score.diff_id}_${diff.type}_${diff.level_index}`)
-        }
-      }
-    }
-  }
-  return result;
-}
 export const getSongDiffValueIndex = (song: MaiMaiSong) => {
   let list: number[] = []
   for (let i = 0; i <= 4; i++) {
@@ -319,4 +249,57 @@ export const getSongDiffValueIndex = (song: MaiMaiSong) => {
     Array.prototype.push.apply(list, arr.filter(v => typeof v !== 'string'))
   }
   return list;
+}
+export function filterDiffByTag(tags: Tag[], diff: SongDifficultyAny, song_id: number): boolean {
+  const ScoreStore = useScores();
+  const score = ScoreStore.getScoreByUni(song_id, diff.type, diff.level_index);
+  const tagFilters = tags.map(t => t.value)
+  const matchesTags = tagFilters.length === 0 ? true : tagFilters.every(tag => {
+    // 定数tag过滤
+    if (LEVEL_MATCH_PATTEN.test(tag)) {
+      const level_filter = conventLevelTag(tag);
+      if (level_filter) {
+        return diff.level_value === level_filter.level_value
+      }
+      return false;
+    }
+    //范围定数过滤
+    if (LEVEL_RANGE_MATCH_PATTEN.test(tag)) {
+      const [start, end] = tag.split("-");
+      const levelStart = Number(start);
+      const levelEnd = Number(end)
+      return diff.level_value >= levelStart && diff.level_value <= levelEnd
+    }
+    // 成绩标签过滤 (example:紫鸟加)
+    if (RANKING_MATCH_PATTEN.test(tag)) {
+      const splits = tag.split("_");
+      if (splits.length === 2) {
+        const level_index_tag = conventLevelPrefix(splits[0]);
+        const ranking_target = rankingList.find(r => r.id === splits[1]);
+        if (ranking_target && diff.level_index === level_index_tag && score) {
+          return score.achievements >= ranking_target.min && score.achievements <= ranking_target.max
+        }
+        return false;
+      }
+    }
+    // 成绩范围标签过滤 (example:12.0-13.5)
+    if (isValidAchievementRange(tag)) {
+      const matched = tag.match(BASE_NUMBER_RANGE_PATTEN);
+      if (!matched || matched.length !== 3) return false;
+      const start = parseFloat(matched[1]);
+      const end = parseFloat(matched[2]);
+      return diff.level_value >= start && diff.level_value <= end;
+    }
+    // 旧框版本特判
+    if (tag === "ALL FiNALE") {
+      return isAllFinal(conventVersionByInt(diff.version) ?? "");
+    }
+    // 版本标签过滤
+    const versionMatch = versionList.find(v => v.id === tag);
+    if (versionMatch) {
+      return (conventVersionByInt(diff.version) ?? "") === tag;
+    }
+    return false;
+  });
+  return matchesTags
 }

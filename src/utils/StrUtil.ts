@@ -2,8 +2,9 @@ import type { Score } from "@/types/datasource";
 import type { MaiMaiSong, ScoreExtend, SongDifficulty, SongUniId } from "@/types/songs";
 import { pinyin } from "pinyin-pro";
 import { getSongDiffByScoreEx } from "./functionUtil";
-import versionList from '@/assets/data/versions.json' with { type: 'json' };
 import { getImageAssertUrl } from "./urlUtils";
+import versionList from '@/assets/data/versions.json' with { type: 'json' };
+
 
 export const LEVEL_MATCH_PATTEN =
   /^[绿黄红紫白](?:(?:1[0-5]|[1-9])\+|(?:1[0-5]|[1-9])(?:\.\d)?)$/;

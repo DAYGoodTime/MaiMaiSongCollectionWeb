@@ -84,7 +84,6 @@ import MultiSelectTags from '@/components/MultiSelectTags.vue'
 import { Button } from '@/components/shadcn/ui/button';
 import { Label } from 'reka-ui';
 import type { MaiMaiSong } from '@/types/songs';
-import { filterDiffByAchievementTag, filterDiffByLevelTag } from '@/utils/functionUtil';
 import type { Tag } from '@/components/TagInputCombobox.vue';
 import { computed, ref } from 'vue';
 import { LEVEL_MATCH_PATTEN, LEVEL_RANGE_MATCH_PATTEN } from '@/utils/StrUtil';
@@ -93,6 +92,7 @@ import { storeToRefs } from 'pinia';
 import { useCollectionStore } from '@/store/collections';
 import { toast } from 'vue-sonner';
 import VirtualSelectViewer from '@/components/VirtualSelectViewer.vue';
+import { filterDiffByTag } from '@/utils/functionUtil';
 
 const { UserCollectionList } = storeToRefs(useCollectionStore())
 
@@ -157,27 +157,14 @@ const handelImport = () => {
     open.value = false
 }
 const getScoreId = (song: MaiMaiSong, targetLevels: number[]) => {
-    let result: string[] = []
     const diffs = [...song.difficulties.standard, ...song.difficulties.dx]
-    if (!hasLevelTag.value) Array.prototype.push.apply(diffs, song.difficulties.utage)
-    const tags = props.tags.map(t => t.value);
-    if (hasLevelTag.value) {
-        Array.prototype.push.apply(result, filterDiffByLevelTag(song.id, diffs, tags))
-    }
-    if (hasAchievementTag.value) {
-        const achievementList = filterDiffByAchievementTag(song.id, diffs, tags);
-        result = result.filter(sid => achievementList.indexOf(sid) > -1);
-    }
-    //这种不需要指定难度
-    if (!hasTargetScoreTag.value) {
-        const filtered = diffs.filter(diff => targetLevels.includes(diff.level_index) || diff.type === "utage")
-        const filteredIds = filtered.map(diff => {
-            const diff_id = ("diff_id" in diff) ? diff.diff_id : song.id;
-            return `${diff_id}_${diff.type}_${diff.level_index}`
-        })
-        Array.prototype.push.apply(result, filteredIds)
-        result = result.filter(sid => filteredIds.indexOf(sid) > -1);
-    }
-    return result;
+    let filteredDiffs = diffs.filter(diff =>
+        filterDiffByTag(props.tags, diff, song.id)
+        && targetLevels.includes(diff.level_index)
+    );
+    return filteredDiffs.map(diff => {
+        const diff_id = ("diff_id" in diff) ? diff.diff_id : song.id;
+        return `${diff_id}_${diff.type}_${diff.level_index}`
+    })
 }
 </script>
