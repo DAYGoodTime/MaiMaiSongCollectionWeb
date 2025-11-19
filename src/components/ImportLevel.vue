@@ -23,14 +23,7 @@
                     <Label class="block text-sm font-medium text-gray-700 mb-3">
                         自义定谱面定数范围 <span class="text-xs font-light">滑块可以快速选定常用的定数范围，如果需要其他范围，可以从左右两边手动输入你想要的定数</span>
                     </Label>
-                    <div class="flex items-center space-x-4 pt-2">
-                        <Input type="number" class="w-12 text-center h-8 text-xs pr-0 pl-1" :step="0.1" :min="1.0"
-                            :max="levelRange[1]" v-model:model-value="levelRange[0]" />
-                        <Slider v-model:model-value="levelRangeSlider" :min="12.0" :max="15.0" :step="0.1"
-                            :show-min-max="false" :show-ticks="true" class="flex-1" />
-                        <Input type="number" class="w-12 text-center h-8 text-xs pr-0 pl-1" :step="0.1"
-                            :min="levelRange[0]" :max="15.0" v-model:model-value="levelRange[1]" />
-                    </div>
+                    <LevelRangeSelector v-model:model-value="levelRange" />
                 </div>
             </div>
             <DialogFooter>
@@ -52,16 +45,15 @@ import {
 } from '@/components/shadcn/ui/dialog'
 import { Label } from '@/components/shadcn/ui/label'
 import { Button } from '@/components/shadcn/ui/button'
-import { Input } from '@/components/shadcn/ui/input'
-import Slider from '@/components/shadcn/ui/slider/Slider.vue'
 import { useCollectionStore } from '@/store/collections';
 import { toast } from 'vue-sonner';
-import { ref, watch } from 'vue'
+import { ref } from 'vue'
 import MultiSelectTags from '@/components/MultiSelectTags.vue'
 import type { FilterProps } from '@/types/component'
 import { storeToRefs } from 'pinia'
 import { useScores } from '@/store/datasources/scores'
 import { useSongStore } from '@/store/datasources/song'
+import LevelRangeSelector from './LevelRangeSelector.vue'
 
 interface LevelRange {
     start: number
@@ -78,12 +70,7 @@ const { title, description } = defineProps({
     }
 })
 const showOpen = defineModel<boolean>("open")
-const levelRange = ref([12.0, 15.0])
-const levelRangeSlider = ref([12.0, 15.0])
-watch(levelRangeSlider, (newRange) => {
-    const [newMin, newMax] = newRange;
-    levelRange.value = [newMin, newMax]
-})
+const levelRange = ref<[number, number]>([12.0, 15.0])
 const ScoreStore = useScores()
 const SongStore = useSongStore()
 const { UserCollectionList, CurrentCollectionLabel } = storeToRefs(useCollectionStore());
@@ -106,6 +93,8 @@ const handelImportByLevel = () => {
     const result_score = new Set<string>([])
     const coll_index = UserCollectionList.value.findIndex(c => c.label == CurrentCollectionLabel.value);
     const ranges = selectedLevelRanges.value.map(prop => [prop.value.start, prop.value.end]);
+    console.log("range", levelRange.value);
+
     for (const song of song_list) {
         const difficulties = [...song.difficulties.standard, ...song.difficulties.dx];
         for (const diff of difficulties) {

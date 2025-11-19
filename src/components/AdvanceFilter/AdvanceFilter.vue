@@ -68,19 +68,8 @@
                 <Label class="block text-sm font-medium text-gray-700 mb-3">
                     筛选谱面定数 <span class="text-xs font-light">滑块可以快速选定常用的定数范围，如果需要其他范围，可以从左右两边手动输入你想要的定数</span>
                 </Label>
-                <div class="flex items-center space-x-4 pt-2">
-                    <Input type="number" :step="0.1" :min="1.0" :max="filters.difficultyRange[1]"
-                        class="w-12 text-center h-8 text-xs pr-0 pl-1"
-                        :model-value="filters.difficultyRange[0].toFixed(1)"
-                        @update:model-value="handleRangeChange($event, 0)" />
-                    <Slider :model-value="filters.difficultyRange"
-                        @update:model-value="(value) => updateFilters({ difficultyRange: value as [number, number] || [1.0, 15.0] })"
-                        :min="12.0" :max="15.0" :step="0.1" :show-min-max="false" :show-ticks="true" class="flex-1" />
-                    <Input type="number" :step="0.1" :min="filters.difficultyRange[0]" :max="15.0"
-                        class="w-12 text-center h-8 text-xs pr-0 pl-1"
-                        :model-value="filters.difficultyRange[1].toFixed(1)"
-                        @update:model-value="handleRangeChange($event, 1)" />
-                </div>
+                <LevelRangeSelector :model-value="filters.difficultyRange" ref="levelRangeSelector"
+                    @update:model-value="(val) => updateFilters({ difficultyRange: val })" />
             </div>
             <!-- 筛选 DX Score -->
             <div>
@@ -138,15 +127,15 @@
 </template>
 
 <script setup lang="tsx">
-import { reactive, watch } from 'vue'
+import { reactive, useTemplateRef, watch } from 'vue'
 import { ChevronUp, ChevronDown, RotateCcw } from 'lucide-vue-next'
 import { Label } from '@/components/shadcn/ui/label'
 import { Button } from '@/components/shadcn/ui/button'
 import { Checkbox } from '@/components/shadcn/ui/checkbox'
-import { Input } from '@/components/shadcn/ui/input'
+
 import MultiSelectButtons from '@/components/MultiSelectButtons.vue'
 import MultiSelectTags from '@/components/MultiSelectTags.vue'
-import Slider from '@/components/shadcn/ui/slider/Slider.vue'
+
 import type { AdvanceFilterEmits, AdvanceFilterProps, AdvanceFilterFilters, FilterProps, RangeAble } from '@/types/component'
 import SongGenreList from '@/assets/data/song_genres.json' with { type: 'json' }
 import SongMapList from '@/assets/data/song_maps.json' with { type: 'json' }
@@ -154,6 +143,7 @@ import SongVersionList from '@/assets/data/versions.json' with { type: 'json' }
 import { cn } from '@/lib/utils'
 import MultiSelectComboboxTags from '../MultiSelectComboboxTags.vue'
 import { DX_SCORE_TIERS } from '@/utils/StrUtil'
+import LevelRangeSelector from '../LevelRangeSelector.vue'
 
 
 // Model
@@ -164,6 +154,7 @@ const emit = defineEmits<AdvanceFilterEmits>()
 
 // 响应式数据
 const isExpanded = defineModel("isExpanded")
+const levelRangeSelector = useTemplateRef("levelRangeSelector")
 
 // 默认值
 const defaultFilters: AdvanceFilterFilters = {
@@ -171,7 +162,7 @@ const defaultFilters: AdvanceFilterFilters = {
     musicCategories: [],
     version: [],
     mapCategories: [],
-    difficultyRange: [12.0, 15.0],
+    difficultyRange: [1.0, 15.0],
     dxScore: [],
     fullCombo: [],
     fullSync: [],
@@ -230,31 +221,10 @@ const updateFilters = (updates: Partial<AdvanceFilterFilters>) => {
     emit('update:modelValue', { ...filters })
 }
 
-const handleRangeChange = (value: string | number, index: 0 | 1) => {
-    const parsedValue = typeof value === 'string' ? parseFloat(value) : value
-    if (isNaN(parsedValue)) return
-
-    const newRange: [number, number] = [...filters.difficultyRange]
-    newRange[index] = parsedValue
-
-    // 保证 min <= max
-    if (index === 0 && newRange[0] > newRange[1]) {
-        newRange[0] = newRange[1]
-    }
-    if (index === 1 && newRange[1] < newRange[0]) {
-        newRange[1] = newRange[0]
-    }
-
-    // 保证在范围内
-    newRange[0] = Math.max(1.0, newRange[0])
-    newRange[1] = Math.min(15.0, newRange[1])
-
-    updateFilters({ difficultyRange: newRange })
-}
-
 // 重置所有筛选条件
 const resetAllFilters = () => {
     Object.assign(filters, defaultFilters)
+    levelRangeSelector.value?.reset()
     emit('update:modelValue', { ...defaultFilters })
 }
 
