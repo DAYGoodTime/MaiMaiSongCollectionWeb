@@ -43,9 +43,6 @@ export const useSongStore = defineStore("ds_song", () => {
             }
         } catch (e) {
             toast.warning("更新歌曲源失败")
-            SONG_LIST.value.list = DEFAULT_SONGS as any;
-            SONG_LIST.value.version = CURRENT_SONG_VERSION
-            console.warn("更新歌曲源失败,回退到默认源", e);
         } finally {
             LastSongUpdateTime.value = new Date().getTime()
         }
