@@ -1,7 +1,7 @@
 {
   "name": "songcollections",
   "private": true,
-  "version": "1.2.4",
+  "version": "1.2.6",
   "type": "module",
   "scripts": {
     "dev": "vite",
@@ -16,6 +16,7 @@
     "@capacitor/android": "^7.4.2",
     "@capacitor/clipboard": "^7.0.2",
     "@capacitor/core": "^7.4.2",
+    "@capacitor/filesystem": "^8.1.0",
     "@day_time/capacitor-nfc-day": "^0.0.10",
     "@material/web": "^2.3.0",
     "@tanstack/vue-virtual": "^3.13.12",
