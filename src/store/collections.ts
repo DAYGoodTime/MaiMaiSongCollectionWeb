@@ -1,6 +1,6 @@
 import { exportFile, useRouterHelper } from "@/utils/functionUtil";
 import { getFromKey, putToStorage } from "@/utils/storage";
-import { formatDate } from "@/utils/StrUtil";
+import { formatDate, formatDateForFile } from "@/utils/StrUtil";
 import { useLocalStorage, type RemovableRef } from "@vueuse/core";
 import { defineStore } from "pinia";
 import { computed, ref, type Ref } from "vue";
@@ -115,9 +115,9 @@ export const useCollectionStore = defineStore("collections", () => {
   }
   const exportCollectionData = () => {
     if (UserCollectionList.value.length > 0) {
-      const fileNameColl = formatDate(new Date()) + "-collection.json";
+      const fileNameColl = formatDateForFile(new Date()) + "-collection.json";
       exportFile(CollectionSerializer.write(UserCollectionList.value), fileNameColl)
-      const fileNameMessage = formatDate(new Date()) + "-messages.json";
+      const fileNameMessage = formatDateForFile(new Date()) + "-messages.json";
       exportFile(JSON.stringify(CollectionMessageMap.value), fileNameMessage)
     }
   }

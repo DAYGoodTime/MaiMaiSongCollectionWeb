@@ -418,9 +418,12 @@ const initScoreList = () => {
         }
         //更新索引
         updateIndex(result)
-        supportPcCount.value = result.some(score =>
-            score.score.play_count !== undefined || score.score.play_count === 0
-        );
+        let checkScore = result[0].score;
+        if (checkScore) {
+            supportPcCount.value = checkScore.play_count !== undefined || checkScore.play_count === 0
+        } else {
+            supportPcCount.value = false;
+        }
         const playCountIndex = OrderBadges.value.findIndex(o => o.value === "play_count");
         if (supportPcCount.value && playCountIndex === -1) {
             OrderBadges.value.push({ label: "游玩次数", value: "play_count", status_index: 0 });

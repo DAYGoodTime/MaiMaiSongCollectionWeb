@@ -11,7 +11,7 @@ import { Switch } from '@/components/shadcn/ui/switch'
 import { Checkbox } from "@/components/shadcn/ui/checkbox";
 import { Label } from "@/components/shadcn/ui/label";
 import TagInputCombobox from "@/components/TagInputCombobox.vue";
-import type { Tag, TagOption } from "@/components/TagInputCombobox.vue";
+import type { TagOption } from "@/components/TagInputCombobox.vue";
 import type { MaiMaiSong, SongType } from "@/types/songs";
 import SongInfo from "@/components/SongInfo.vue";
 import ScoreInfo from "@/components/ScoreInfo.vue";

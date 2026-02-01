@@ -1,7 +1,7 @@
 import type { AnyScore, AvailableDataSourceType, DataSource, DataSourceType, Score } from "@/types/datasource"
 import type { MaiMaiSong, SongType } from "@/types/songs"
 import { conventToScore, exportFile, toFishStyleId, toLXNSStyleId, toLXNSType } from "@/utils/functionUtil"
-import { formatDate } from "@/utils/StrUtil"
+import { formatDate, formatDateForFile } from "@/utils/StrUtil"
 import { useLocalStorage, type RemovableRef } from "@vueuse/core"
 import { defineStore } from "pinia"
 import { computed, toRaw } from "vue"
@@ -106,22 +106,22 @@ export const useScores = defineStore("scores", () => {
             selectedSource.value = type
         }
     }
-    const exportScores = (type: AvailableDataSourceType) => {
+    const exportScores = async (type: AvailableDataSourceType) => {
         switch (type) {
             case "usagi":
                 if (hasUsagiData.value) {
-                    const fileName = formatDate(UsagiScores.value.update_time) + "-Usagi.json";
-                    exportFile(JSON.stringify(UsagiScores.value.list), fileName)
+                    const fileName = formatDateForFile(UsagiScores.value.update_time) + "-Usagi.json";
+                    await exportFile(JSON.stringify(UsagiScores.value.list), fileName)
                 } else toast.error("数据源为空，无法导出"); break;
             case "divingfish":
                 if (hasDivingFishData.value) {
-                    const fileName = formatDate(DivingFishScores.value.update_time) + "-divingFish.json";
-                    exportFile(JSON.stringify(DivingFishScores.value.list), fileName)
+                    const fileName = formatDateForFile(DivingFishScores.value.update_time) + "-divingFish.json";
+                    await exportFile(JSON.stringify(DivingFishScores.value.list), fileName)
                 } else toast.error("数据源为空，无法导出"); break;
             case "lxns":
                 if (hasLXNSData.value) {
-                    const fileName = formatDate(LXNSScores.value.update_time) + "-LXNS.json";
-                    exportFile(JSON.stringify(LXNSScores.value.list), fileName)
+                    const fileName = formatDateForFile(LXNSScores.value.update_time) + "-LXNS.json";
+                    await exportFile(JSON.stringify(LXNSScores.value.list), fileName)
                 } else toast.error("数据源为空，无法导出"); break;
         }
     }

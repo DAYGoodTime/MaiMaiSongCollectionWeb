@@ -1,5 +1,6 @@
 import type { AnyScore, Score } from "@/types/datasource";
 import { Clipboard } from "@capacitor/clipboard"
+import { Filesystem, Directory, Encoding } from "@capacitor/filesystem";
 import { useRoute, useRouter, type RouteLocationRaw } from "vue-router";
 import { toast } from "vue-sonner";
 import versionList from '@/assets/data/versions.json' with { type: 'json' };
@@ -10,8 +11,10 @@ import { ref } from "vue";
 import type { LXNSScore } from "@/types/lxns";
 import type { UsagiScore } from "@/types/usagi";
 import { useScores } from "@/store/datasources/scores";
-import type { Tag, TagOption } from "@/components/TagInputCombobox.vue";
+import type { TagOption } from "@/components/TagInputCombobox.vue";
 import { rankingList } from "./urlUtils";
+import { isWebEnv } from "@/api/base";
+import { Capacitor } from "@capacitor/core";
 
 type DebouncedFunction<T extends any[]> = (...args: T) => void;
 
@@ -56,16 +59,41 @@ export function useRouterHelper() {
   }
   return { router, route, JumpTo, JumpToFromEvent, backHome }
 }
-export function exportFile(content: any, fileName: string, type: string = "application/json") {
-  const blob = new Blob([content], { type: type })
-  const url = URL.createObjectURL(blob)
-  const a = document.createElement('a')
-  a.href = url
-  a.download = fileName
-  document.body.appendChild(a)
-  a.click()
-  document.body.removeChild(a)
-  URL.revokeObjectURL(url)
+export async function exportFile(content: any, fileName: string, type: string = "application/json") {
+  if (isWebEnv()) {
+    const blob = new Blob([content], { type: type })
+    const url = URL.createObjectURL(blob)
+    const a = document.createElement('a')
+    a.href = url
+    a.download = fileName
+    document.body.appendChild(a)
+    a.click()
+    document.body.removeChild(a)
+    URL.revokeObjectURL(url)
+    return;
+  } else if (Capacitor.getPlatform() === "android") {
+    let currentStatus = (await Filesystem.checkPermissions()).publicStorage
+    if (currentStatus !== 'granted') {
+      //尝试请求
+      console.log("permissions:", currentStatus);
+      console.log("request result", (await Filesystem.requestPermissions()).publicStorage);
+      return
+    }
+    //写入文件
+    console.log("writefile", fileName);
+
+    let result = await Filesystem.writeFile({
+      path: fileName,
+      data: content,
+      directory: Directory.Documents,
+      encoding: Encoding.UTF8,
+      recursive: true
+    });
+    toast.success(`导出成功，已存入到 ${result.uri}`)
+    return;
+  }
+  toast.error("暂不支持导出")
+  // for iso...
 }
 export function useCopyHelper() {
   const handelCopy = (title: string, message: string) => {

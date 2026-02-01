@@ -68,6 +68,11 @@ export function formatDate(date: Date | string): string {
     minute: '2-digit'
   })
 }
+export function formatDateForFile(date: Date | string): string {
+  let _date = new Date(date)
+  if (isNaN(_date.getTime())) return date as string;
+  return `${_date.getFullYear()}-${_date.getMonth()}-${_date.getDate()}_${_date.getHours()}-${_date.getMinutes()}-${_date.getSeconds()}`
+}
 export function formatDxRating(dx_rating: number | undefined) {
   if (dx_rating) {
     return dx_rating.toFixed(0)
