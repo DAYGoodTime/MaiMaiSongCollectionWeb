@@ -47,10 +47,13 @@ export default defineConfig({
     rollupOptions: {
       output: {
         manualChunks(id) {
-          // 将大的 JSON 文件单独打包
-          if (id.includes("song_data_default.json")) {
-            return "song-data";
+          // 把data目录下的所有json文件单独打包
+          if (id.includes("src/assets/data") && id.endsWith(".json")) {
+            // 提取文件名，兼容不同路径分隔符
+            const fileName = id.split(/[/\\]/).pop()?.replace(".json", "");
+            return `${fileName}`;
           }
+
           // 将 vue 全家桶和核心依赖打包到一起
           if (
             id.includes("node_modules") &&

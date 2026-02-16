@@ -72,12 +72,11 @@
 <script setup lang="ts">
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/shadcn/ui/card'
 import { Button } from '@/components/shadcn/ui/button'
-import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/shadcn/ui/dialog'
 import { RefreshCw, Tag } from 'lucide-vue-next'
 import { analysisTag, type AdvanceFilterFiltersForTag } from '@/utils/tagUtils'
 import AdvanceFilter from '@/components/AdvanceFilter/AdvanceFilter.vue'
 import { useScores } from '@/store/datasources/scores'
-import type { DiffTAG, GroupInfo, GroupInfoForCounter, TAGGroup } from '@/types/tag'
+import type { GroupInfoForCounter } from '@/types/tag'
 import { ref } from 'vue'
 import DiffTagInfo from '@/components/DiffTagInfo.vue'
 
