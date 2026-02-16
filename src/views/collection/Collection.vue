@@ -191,6 +191,7 @@
                 </DialogTitle>
             </DialogHeader>
             <SongInfo :song="SongInfoSong" :infoOnly="true" />
+            <DiffTagInfo :tag-info="DiffTagInfos"></DiffTagInfo>
         </DialogContent>
     </Dialog>
 </template>
@@ -256,6 +257,9 @@ import { useSidebar } from '@/components/shadcn/ui/sidebar';
 import { useScores } from '@/store/datasources/scores';
 import { useSongStore } from '@/store/datasources/song';
 import { useScoreSearchWorker } from '@/utils/workerHelper';
+import { type GroupInfo } from '@/types/tag';
+import { getDiffTag } from '@/utils/tagUtils';
+import DiffTagInfo from '@/components/DiffTagInfo.vue';
 
 
 const { route, backHome } = useRouterHelper()
@@ -449,6 +453,7 @@ const { handelCopy } = useCopyHelper()
 //menu
 const openSongInfoMenu = ref(false)
 const SongInfoNoteDesigner = ref("")
+const DiffTagInfos = ref<GroupInfo[]>([])
 const SongInfoSong = ref<MaiMaiSong>({
     id: 0,
     title: '',
@@ -471,10 +476,12 @@ const SongInfoSong = ref<MaiMaiSong>({
     level_3: [],
     level_4: []
 })
-const onMenu = (_ref: HTMLDivElement | null, song: MaiMaiSong, noteDesigner: string) => {
+const onMenu = (_ref: HTMLDivElement | null, song: MaiMaiSong, noteDesigner: string, score: ScoreExtend) => {
     openSongInfoMenu.value = true
     SongInfoNoteDesigner.value = noteDesigner;
     SongInfoSong.value = song;
+    DiffTagInfos.value = getDiffTag(song.title, score.score.level_index, score.score.type)
+    console.log("debug-tag:", score, DiffTagInfos.value);
 }
 //context
 const ContextMenuTarget = ref()

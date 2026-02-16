@@ -1,5 +1,5 @@
 import type { AnyScore, AvailableDataSourceType, DataSource, DataSourceType, Score } from "@/types/datasource"
-import type { MaiMaiSong, SongType } from "@/types/songs"
+import type { MaiMaiSong, ScoreExtend, SongType } from "@/types/songs"
 import { conventToScore, exportFile, toFishStyleId, toLXNSStyleId, toLXNSType } from "@/utils/functionUtil"
 import { formatDate, formatDateForFile } from "@/utils/StrUtil"
 import { useLocalStorage, type RemovableRef } from "@vueuse/core"
@@ -165,6 +165,24 @@ export const useScores = defineStore("scores", () => {
         }
         return result;
     }
+    const getScoreEXList = () => {
+        const result: ScoreExtend[] = []
+        for (const entry of Object.entries(getDataSource.value.list)) {
+            const uni_id = entry[0]
+            const score = entry[1]
+            const song = SongStore.getSong(score.id)
+            if (!song) {
+                console.warn("不存在的歌曲:", score.id);
+                continue
+            };
+            result.push({
+                score,
+                song,
+                score_id: uni_id
+            })
+        }
+        return result;
+    }
     const getScoreByUni = (id: number, type: SongType, level_index: number) => {
         return getDataSource.value.list[`${id}_${type}_${level_index}`]
     }
@@ -184,6 +202,7 @@ export const useScores = defineStore("scores", () => {
         selectedSource,
         checkScoreVersion,
         getScoreList,
+        getScoreEXList,
         getScoreByUni,
         updateScores,
         exportScores,

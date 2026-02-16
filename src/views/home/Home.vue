@@ -1,4 +1,10 @@
 <script setup lang="ts">
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/shadcn/ui/dialog'
 import { reactive, ref, computed, useTemplateRef } from "vue";
 import { Filter, Search, CircleQuestionMark } from 'lucide-vue-next'
 import SongSearch from "@/components/SongSearch.vue";
@@ -12,12 +18,15 @@ import { Checkbox } from "@/components/shadcn/ui/checkbox";
 import { Label } from "@/components/shadcn/ui/label";
 import TagInputCombobox from "@/components/TagInputCombobox.vue";
 import type { TagOption } from "@/components/TagInputCombobox.vue";
-import type { MaiMaiSong, SongType } from "@/types/songs";
+import type { MaiMaiSong, SongDifficultyAny, SongType } from "@/types/songs";
 import SongInfo from "@/components/SongInfo.vue";
 import ScoreInfo from "@/components/ScoreInfo.vue";
 import ImportFromResult from "./ImportFromResult.vue";
 import { toast } from "vue-sonner";
 import { useAppStore } from "@/store/appStore";
+import type { GroupInfo } from '@/types/tag';
+import DiffTagInfo from '@/components/DiffTagInfo.vue';
+import { getDiffTag } from '@/utils/tagUtils';
 const bpmRangeValue = ref([0, 300]);
 const enableBpmFilter = ref(false);
 const appStore = useAppStore()
@@ -48,6 +57,56 @@ const handelOpenImportDialog = () => {
   } else {
     toast.warning("没有歌曲可供导入")
   }
+}
+const DiffInfoMenuModal = ref(false)
+const DiffInfo = ref<{
+  song: MaiMaiSong,
+  diff: SongDifficultyAny,
+  tags: GroupInfo[]
+}>({
+  song: {
+    id: 0,
+    title: '',
+    artist: '',
+    genre: '',
+    bpm: 0,
+    map: null,
+    version: '',
+    rights: null,
+    aliases: [],
+    disabled: false,
+    difficulties: {
+      standard: [],
+      dx: [],
+      utage: []
+    },
+    level_0: [],
+    level_1: [],
+    level_2: [],
+    level_3: [],
+    level_4: []
+  },
+  diff: {
+    type: 'standard',
+    level: '',
+    level_value: 0,
+    level_index: 0,
+    note_designer: '',
+    version: 0,
+    tap_num: 0,
+    hold_num: 0,
+    slide_num: 0,
+    touch_num: 0,
+    break_num: 0
+  },
+  tags: []
+})
+const handelScoreInfoMenu = (song: MaiMaiSong, diff: SongDifficultyAny) => {
+  DiffInfo.value.tags = getDiffTag(song.title, diff.level_index, diff.type);
+  DiffInfo.value.song = song;
+  DiffInfo.value.diff = diff;
+  DiffInfoMenuModal.value = true
+  console.log("debug", DiffInfo.value);
 }
 </script>
 <template>
@@ -129,9 +188,21 @@ const handelOpenImportDialog = () => {
       <div v-if="selectedSong">
         <SongInfo :song="selectedSong" v-model:selected-type="SelectedType" />
         <div class="space-y-4">
-          <ScoreInfo :difficulties="getScoreList" :song="selectedSong" />
+          <ScoreInfo :difficulties="getScoreList" :song="selectedSong" @menu="handelScoreInfoMenu" />
         </div>
       </div>
     </div>
   </div>
+  <!-- Song Info Menu -->
+  <Dialog v-model:open="DiffInfoMenuModal">
+    <DialogContent class="lg:!max-w-fit">
+      <DialogHeader>
+        <DialogTitle>
+          <p>{{ DiffInfo?.song.title }}</p>
+        </DialogTitle>
+      </DialogHeader>
+      <SongInfo :song="DiffInfo.song" :infoOnly="true" />
+      <DiffTagInfo :tag-info="DiffInfo.tags"></DiffTagInfo>
+    </DialogContent>
+  </Dialog>
 </template>

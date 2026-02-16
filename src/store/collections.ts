@@ -1,6 +1,6 @@
 import { exportFile, useRouterHelper } from "@/utils/functionUtil";
 import { getFromKey, putToStorage } from "@/utils/storage";
-import { formatDate, formatDateForFile } from "@/utils/StrUtil";
+import { formatDateForFile } from "@/utils/StrUtil";
 import { useLocalStorage, type RemovableRef } from "@vueuse/core";
 import { defineStore } from "pinia";
 import { computed, ref, type Ref } from "vue";

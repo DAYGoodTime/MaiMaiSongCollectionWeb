@@ -2,7 +2,7 @@
     <div ref="ScoreCardRef" @click.right.native="(e) => emit('rightClick', e, ScoreCardRef, props.score.score_id)"
         data-component="ScoreCard">
         <div class="w-72 h-full sm:w-64 rounded-lg shadow-lg transition-all duration-300 hover:shadow-xl dark:border"
-            @dblclick="() => emit('dbClick', ScoreCardRef, props.score.song, getNoteDesigner(SongDiff))">
+            @dblclick="() => emit('dbClick', ScoreCardRef, props.score.song, getNoteDesigner(SongDiff), props.score)">
             <div :class="cardClass" @click="handleTitleEnter(scoreTitle)" @mouseenter="handleTitleEnter(scoreTitle)"
                 @mouseleave="hideTooltip()" class="cursor-pointer p-2">
                 <div class="flex gap-1">
@@ -128,7 +128,7 @@ const dxScoreText = computed(() => {
 const played = computed(() => props.score.score.is_played === undefined ? true : props.score.score.is_played);
 
 const emit = defineEmits<{
-    (e: 'dbClick', ref: HTMLDivElement | null, song: MaiMaiSong, noteDesigner: string): void
+    (e: 'dbClick', ref: HTMLDivElement | null, song: MaiMaiSong, noteDesigner: string, score: ScoreExtend): void
     (e: 'copy', text: string, message: string): void
     (e: 'singleClick', ref: HTMLDivElement | null): void
     (e: 'rightClick', event: Event, ref: HTMLDivElement | null, score_id: string): void

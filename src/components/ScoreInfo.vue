@@ -64,6 +64,8 @@
                     </div>
 
                     <div class="flex items-center gap-2 self-end sm:self-center">
+                        <Button @click="emit('menu', props.song, diff.difficulty)" variant="outline"
+                            class="text-black">查看标签</Button>
                         <DropdownMenu>
                             <DropdownMenuTrigger as-child>
                                 <Button :disabled="!diff.score" variant="outline"
@@ -90,7 +92,7 @@ import { Card, CardContent } from '@/components/shadcn/ui/card'
 import { DropdownMenu, DropdownMenuTrigger, DropdownMenuItem, DropdownMenuContent } from './shadcn/ui/dropdown-menu';
 import { Button } from './shadcn/ui/button';
 import { getAchievementIcon, getDxScoreIcon } from '@/utils/urlUtils';
-import type { MaiMaiSong, SongDifficulty, SongDifficultyUtage } from '@/types/songs';
+import type { MaiMaiSong, SongDifficulty, SongDifficultyAny, SongDifficultyUtage } from '@/types/songs';
 import { formatDxRating, formatLevelValue, getTotalDxScore, LevelIndexToLabel, conventVersionByInt } from '@/utils/StrUtil';
 import { useCollectionStore } from '@/store/collections';
 import { toast } from 'vue-sonner';
@@ -152,6 +154,9 @@ function getClassColorByIndex(index: number, isUtage: boolean) {
         default: return baseClass;
     }
 }
+const emit = defineEmits<{
+    (e: 'menu', song: MaiMaiSong, diff: SongDifficultyAny): void
+}>()
 
 // collection
 const { pushScoreToCollection } = useCollectionStore();

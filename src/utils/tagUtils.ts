@@ -1,0 +1,162 @@
+import TAG_JSON from "@/assets/data/tag_data.json" with { type: 'json' }
+import type { AdvanceFilterFilters } from "@/types/component"
+import type { ScoreExtend, SongType } from "@/types/songs"
+import type { DiffTAG, DiffTagCounter, GroupInfo, GroupInfoForCounter } from "@/types/tag"
+import { getDxScoreRadio } from "./StrUtil"
+
+
+const LEVELS = ["basic", "advance", "expert", "master", "remaster"]
+const DXTYPE = {
+    "standard": "std",
+    "dx": "dx",
+    "utage": "utage"
+}
+
+export const getDiffTag = (song_name: string, level_index: number, type: SongType): GroupInfo[] => {
+    const tags: Array<DiffTAG> = TAG_JSON.tagSongs.filter((tag) =>
+        tag.song_id === song_name &&
+        LEVELS[level_index] === tag.sheet_difficulty &&
+        DXTYPE[type] === tag.sheet_type
+    ).map(tag => TAG_JSON.tags.find(tags => tags.id == tag.tag_id)).filter(t => t != undefined);
+    return TAG_JSON.tagGroups.map(group => {
+        return {
+            group,
+            tags: tags.filter(tag => tag?.group_id === group.id)
+        }
+    })
+}
+export interface AdvanceFilterFiltersForTag extends AdvanceFilterFilters {
+    achievement_range: [number, number]
+}
+
+const advanceFilter = (filter: AdvanceFilterFiltersForTag, list: ScoreExtend[]): ScoreExtend[] => {
+    const levelFilter = new Set(filter.difficulty.map(f => f.value));
+    const categoryFilter = new Set(filter.musicCategories.map(f => f.value));
+    const versionFilter = new Set(filter.version.map(f => f.value));
+    const mapFilter = new Set(filter.mapCategories.map(f => f.value));
+    const dxScoreFilter = filter.dxScore.map(f => f.value);
+    const fcFilter = new Set(filter.fullCombo.map(f => f.value));
+    const fsFilter = new Set(filter.fullSync.map(f => f.value));
+    const typeFilter = new Set(filter.Type.map(f => f.value));
+    const [minDifficulty, maxDifficulty] = filter.difficultyRange;
+    const [minAchievement, maxAchievement] = filter.achievement_range;
+    return list.filter(s => {
+        // Unplayed Filter
+        if (!filter.showUnplayed && s.score.is_played === false) {
+            return false;
+        }
+
+        // Level Filter without utage
+        if (s.score.type !== "utage" && levelFilter.size > 0 && !levelFilter.has(s.score.level_index)) {
+            return false;
+        }
+        // Level Filter for utage
+        if (levelFilter.size > 0 && s.score.type === "utage" && !levelFilter.has(-1)) {
+            return false;
+        }
+
+        // Category Filter
+        if (categoryFilter.size > 0 && !categoryFilter.has(s.song.genre ?? "")) {
+            return false;
+        }
+
+        // Version Filter
+        if (versionFilter.size > 0 && !versionFilter.has(s.song.version)) {
+            return false;
+        }
+
+        // Map Filter
+        if (mapFilter.size > 0 && !mapFilter.has(s.song.map ?? "")) {
+            return false;
+        }
+        // DX score Filter
+        const radio = getDxScoreRadio(s)
+        if (dxScoreFilter.length > 0
+            &&
+            !dxScoreFilter.some(f =>
+                radio >= f.min
+                && radio < f.max
+            )
+        ) {
+            return false;
+        }
+        // FC Filter
+        if (fcFilter.size > 0 && !fcFilter.has(s.score.fc ?? "NAN")) {
+            return false;
+        }
+
+        // FS Filter
+        if (fsFilter.size > 0 && !fsFilter.has(s.score.fs ?? "NAN")) {
+            return false;
+        }
+
+        // Type Filter
+        if (typeFilter.size > 0 && !typeFilter.has(s.score.type)) {
+            return false;
+        }
+
+        //Difficulty Range Filter
+        const numericLevel = getNumericLevelValue(s.score);
+        if (numericLevel === null || numericLevel < minDifficulty || numericLevel > maxDifficulty) {
+            return false;
+        }
+        //Achievement Range Filter
+        if (s.score.achievements === null || s.score.achievements < minAchievement || s.score.achievements > maxAchievement) {
+            return false;
+        }
+        return true;
+    });
+}
+const getNumericLevelValue = (score: ScoreExtend['score']): number | null => {
+    if (score.type !== "utage" && typeof score.level_value === 'number') {
+        return score.level_value;
+    }
+    // 针对 'utage' 或其他没有 level_value 的情况，解析 level 字符串
+    const levelStr = score.level;
+    // '13+'
+    if (levelStr.includes('+')) {
+        const baseLevel = parseFloat(levelStr);
+        return !isNaN(baseLevel) ? baseLevel + 0.6 : null;
+    }
+    const level = parseFloat(levelStr);
+    return !isNaN(level) ? level : null;
+};
+export const analysisTag = (score_list: ScoreExtend[], filter: AdvanceFilterFiltersForTag): GroupInfoForCounter[] => {
+    const filtered = advanceFilter(filter, score_list);
+    const tagMap = new Map<number, DiffTagCounter>();
+    filtered.map(score => {
+        const tags: Array<DiffTAG> = TAG_JSON.tagSongs.filter((tag) =>
+            tag.song_id === score.song.title &&
+            LEVELS[score.score.level_index] === tag.sheet_difficulty &&
+            DXTYPE[score.score.type] === tag.sheet_type
+        ).map(tag => TAG_JSON.tags.find(tags => tags.id == tag.tag_id)).filter(t => t != undefined);
+        tags.forEach(tag => {
+            if (tag) {
+                const old = tagMap.get(tag.id)
+                if (old) {
+                    old.count++;
+                    tagMap.set(tag.id, old)
+                } else {
+                    tagMap.set(tag.id, {
+                        tag,
+                        count: 0
+                    })
+                }
+            }
+        })
+    })
+    const tags: Array<DiffTagCounter> = []
+    for (const v of tagMap.values()) {
+        tags.push(v)
+    }
+    return TAG_JSON.tagGroups.map(group => {
+        const group_tags = tags.filter(tag => tag.tag.group_id === group.id);
+        let total = 0;
+        group_tags.forEach(t => total += t.count)
+        return {
+            group,
+            tags: group_tags,
+            total
+        }
+    });
+}

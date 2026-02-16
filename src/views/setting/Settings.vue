@@ -94,6 +94,8 @@
                     </div>
                 </CardContent>
             </Card>
+            <!-- 标签统计 -->
+            <DifficultyCard />
 
             <div class="text-center text-sm text-muted-foreground pt-4">
                 版本: {{ getProjectVersion() }}
@@ -174,6 +176,7 @@ import UsagiCard from './UsagiCard.vue'
 import ActionConfirm from '@/components/ActionConfirm.vue'
 import { useSongStore } from '@/store/datasources/song'
 import { checkVersion } from '@/api/other'
+import DifficultyCard from './DifficultyCard.vue'
 
 // 响应式数据
 const showSetNameDialog = ref(false)
