@@ -123,7 +123,7 @@ const getNumericLevelValue = (score: ScoreExtend['score']): number | null => {
 };
 export const analysisTag = (score_list: ScoreExtend[], filter: AdvanceFilterFiltersForTag): GroupInfoForCounter[] => {
     const filtered = advanceFilter(filter, score_list);
-    const tagMap = new Map<number, DiffTagCounter>();
+    const tagMap: Record<number, DiffTagCounter> = {};
     filtered.map(score => {
         const tags: Array<DiffTAG> = TAG_JSON.tagSongs.filter((tag) =>
             tag.song_id === score.song.title &&
@@ -132,30 +132,42 @@ export const analysisTag = (score_list: ScoreExtend[], filter: AdvanceFilterFilt
         ).map(tag => TAG_JSON.tags.find(tags => tags.id == tag.tag_id)).filter(t => t != undefined);
         tags.forEach(tag => {
             if (tag) {
-                const old = tagMap.get(tag.id)
+                const old = tagMap[tag.id]
                 if (old) {
-                    old.count++;
-                    tagMap.set(tag.id, old)
+                    let multiplier = 1 + (score.score.achievements ?? 0) - 100 //根据达成率设置权重倍率
+                    let level_value = score.score.level_value ?? 0
+                    if (level_value >= 13) {
+                        multiplier *= 0.0007 * Math.pow(Math.E, 0.5921 * level_value) //根据定数进一步倍增权重
+                    } else if (level_value >= 11) {
+                        //level 11 ~ 13 (大部分为基础紫谱/底力红谱)
+                        multiplier *= 0.25 * level_value - 1.75
+                    } else {
+                        //level < 11 (大部分为红谱以下)
+                        multiplier *= 0.1 * level_value - 0.1
+                    }
+                    multiplier = Math.pow(multiplier, 2) //扩大权重系数
+                    tagMap[tag.id].count += (1 * multiplier) / tags.length
                 } else {
-                    tagMap.set(tag.id, {
+                    tagMap[tag.id] = {
                         tag,
                         count: 0
-                    })
+                    }
                 }
             }
         })
     })
     const tags: Array<DiffTagCounter> = []
-    for (const v of tagMap.values()) {
-        tags.push(v)
+    for (const v of Object.entries(tagMap)) {
+        tags.push(v[1])
     }
     return TAG_JSON.tagGroups.map(group => {
         const group_tags = tags.filter(tag => tag.tag.group_id === group.id);
         let total = 0;
         group_tags.forEach(t => total += t.count)
+        group_tags.sort((a, b) => b.count - a.count)
         return {
             group,
-            tags: group_tags,
+            tags: group_tags,//按权重进行排序
             total
         }
     });
