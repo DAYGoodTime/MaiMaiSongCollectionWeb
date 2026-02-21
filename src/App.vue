@@ -21,7 +21,7 @@ const appStore = useAppStore()
 const checkUpdate = async () => {
   if (SongStore.checkSongUpdate()) {
     console.log("正在尝试更新歌曲源");
-    await SongStore.updateSongFromAPI()
+    await SongStore.updateSongFromAPI(false)
   }
   let needReSync = ScoreStore.checkScoreVersion()
   if (needReSync) {

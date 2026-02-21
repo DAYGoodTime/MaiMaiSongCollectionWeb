@@ -27,7 +27,7 @@ export const useSongStore = defineStore("ds_song", () => {
     const getSong = (song_id: number | string): MaiMaiSong | undefined => {
         return SONG_LIST.value.list[song_id as keyof Record<number, MaiMaiSong>];
     }
-    const updateSongFromAPI = async () => {
+    const updateSongFromAPI = async (manual: boolean = true) => {
         try {
             const result = await QuerySongs();
             if (result.version != SONG_LIST.value.version) {
@@ -39,10 +39,12 @@ export const useSongStore = defineStore("ds_song", () => {
                 }
                 return true
             } else {
-                toast.info("歌曲源已经是最新版本，无需更新")
+                if (manual)
+                    toast.info("歌曲源已经是最新版本，无需更新")
             }
         } catch (e) {
-            toast.warning("更新歌曲源失败")
+            if (manual)
+                toast.warning("更新歌曲源失败")
         } finally {
             LastSongUpdateTime.value = new Date().getTime()
         }

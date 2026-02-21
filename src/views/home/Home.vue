@@ -195,7 +195,7 @@ const handelScoreInfoMenu = (song: MaiMaiSong, diff: SongDifficultyAny) => {
   </div>
   <!-- Song Info Menu -->
   <Dialog v-model:open="DiffInfoMenuModal">
-    <DialogContent class="lg:!max-w-fit">
+    <DialogContent class="lg:!max-w-fit max-h-full overflow-y-auto">
       <DialogHeader>
         <DialogTitle>
           <p>{{ DiffInfo?.song.title }}</p>
