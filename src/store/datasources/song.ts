@@ -30,8 +30,8 @@ export const useSongStore = defineStore("ds_song", () => {
     const updateSongFromAPI = async (manual: boolean = true) => {
         try {
             const result = await QuerySongs();
-            if (result.version != SONG_LIST.value.version) {
-                toast.info("歌曲数据源有变动，正在更新~")
+            if (result.version && result.version != SONG_LIST.value.version) {
+                console.log("歌曲数据源有变动，正在更新~");
                 SONG_LIST.value = {
                     list: result.list,
                     update_time: formatDate(new Date()),
@@ -39,12 +39,18 @@ export const useSongStore = defineStore("ds_song", () => {
                 }
                 return true
             } else {
-                if (manual)
+                if (result.version && manual) {
                     toast.info("歌曲源已经是最新版本，无需更新")
+                } else if (manual) {
+                    toast.warning("更新歌曲源失败")
+                }
+                console.warn("更新歌曲源失败,请求结果：", result);
             }
         } catch (e) {
-            if (manual)
+            if (manual) {
                 toast.warning("更新歌曲源失败")
+                console.warn("更新歌曲源失败", e);
+            }
         } finally {
             LastSongUpdateTime.value = new Date().getTime()
         }
