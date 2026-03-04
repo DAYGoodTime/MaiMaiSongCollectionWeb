@@ -25,7 +25,7 @@ const usagiApiClient = createApiClient({
 
 const UsagiService = {
     queryUsagiUserScore: (uuid: string): Promise<UsagiScore[]> => {
-        return usagiApiClient.get<UsagiScore[]>(`v1/maimai/scores?uuid=${uuid}`);
+        return usagiApiClient.get<UsagiScore[]>(`/otoge/maimai/usagicard/scores?uuid=${uuid}`);
     },
 };
 
