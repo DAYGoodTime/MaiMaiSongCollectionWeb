@@ -1,5 +1,11 @@
 import type { SongType } from "./songs";
 
+export interface UsagiResponse<T> {
+    code: number,
+    message: string,
+    data: T
+}
+
 export interface UsagiScore {
     /** 曲目 ID LXNS格式*/
     id: number,
