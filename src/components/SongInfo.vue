@@ -4,8 +4,8 @@
             <div class="flex flex-col md:flex-row items-center md:items-start gap-6">
                 <!-- 歌曲封面 -->
                 <div class="flex-shrink-0">
-                    <img :src="getImageCoverUrl(song.id)" alt="歌曲封面"
-                        class="w-28 h-28 rounded-xl object-cover shadow-md border border-gray-200" loading="lazy">
+                    <CoverImage :id="song.id" alt="歌曲封面"
+                        class="w-28 h-28 rounded-xl object-cover shadow-md border border-gray-200" />
                 </div>
                 <!-- 歌曲详情 -->
                 <div class="flex-1 w-full">
@@ -87,7 +87,7 @@
 import { Card, CardContent } from '@/components/shadcn/ui/card'
 import { Button } from '@/components/shadcn/ui/button'
 import { Badge } from '@/components/shadcn/ui/badge'
-import { getImageCoverUrl } from '@/utils/urlUtils'
+import CoverImage from '@/components/CoverImage.vue'
 
 import type { MaiMaiSong, SongType } from '@/types/songs'
 import { computed, onMounted, reactive, ref, watch } from 'vue'

@@ -32,8 +32,8 @@
           <ComboboxItem :value="option" class=" transition-colors rounded-lg py-2 w-full">
             <div class="flex items-center gap-3 p-3 w-full overflow-hidden">
               <div class="shrink-0">
-                <img :src="getImageCoverUrl(option.id)" class="w-14 h-14 rounded-lg object-cover border border-gray-200"
-                  loading="lazy" :alt="option.title" />
+                <CoverImage :id="option.id" class="w-14 h-14 rounded-lg object-cover border border-gray-200"
+                  :alt="option.title" />
               </div>
               <div class="flex-1 min-w-0 overflow-hidden">
                 <p class="text-lg font-semibold truncate">
@@ -69,7 +69,7 @@ import {
 } from "@/components/shadcn/ui/combobox";
 import { debounce } from "@/utils/functionUtil";
 import type { MaiMaiSong } from "@/types/songs";
-import { getImageCoverUrl } from "@/utils/urlUtils";
+import CoverImage from "@/components/CoverImage.vue";
 import { ComboboxCancel } from "@/components/shadcn/ui/combobox";
 import type { TagOption } from "./TagInputCombobox.vue";
 import { useAppStore } from '@/store/appStore';

@@ -141,11 +141,11 @@ const handelImport = () => {
     if (index === -1) {
         toast.error("未找到目标合集", { position: "top-center" }); return;
     }
-    const onlyLevelPurple = selectedDiffs.value.length === 0 && !hasLevelTag.value;
+    const DefaultLevel = selectedDiffs.value.length === 0 && !hasLevelTag.value;
     const diffList: string[] = []
     for (const song of props.list) {
-        if (onlyLevelPurple) {
-            Array.prototype.push.apply(diffList, getScoreId(song, [3]))
+        if (DefaultLevel) {
+            Array.prototype.push.apply(diffList, getScoreId(song, [3, 4]))
             continue;
         }
         const targetLevels = selectedDiffs.value.map(diff => diff.value)

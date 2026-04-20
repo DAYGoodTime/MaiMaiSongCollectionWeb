@@ -7,8 +7,8 @@
                 @mouseleave="hideTooltip()" class="cursor-pointer p-2">
                 <div class="flex gap-1">
                     <div class="w-12 h-12 rounded overflow-hidden flex-shrink-0">
-                        <img :src="getImageCoverUrl(props.score.song.id ?? 0)" alt="Song Cover"
-                            class="object-cover w-full h-full" loading="lazy">
+                        <CoverImage :id="props.score.song.id ?? 0" alt="Song Cover"
+                            class="object-cover w-full h-full" />
                     </div>
                     <div class="flex-1 text-white min-w-0">
                         <div class="flex justify-between items-start">
@@ -57,7 +57,8 @@ import type { MaiMaiSong, ScoreExtend } from '@/types/songs';
 import { conventFcFsStr, getDxScoreRadio, getTotalDxScore } from '@/utils/StrUtil';
 import { getDxScoreIcon, getFCFSIcon } from '@/utils/urlUtils';
 import { computed, useTemplateRef, type VNode } from 'vue';
-import { getAchievementIcon, getImageAssertUrl, getImageCoverUrl } from '@/utils/urlUtils';
+import { getAchievementIcon, getImageAssertUrl } from '@/utils/urlUtils';
+import CoverImage from '@/components/CoverImage.vue';
 import { formatAchievement, formatDxRating, formatLevelValue, getNoteDesigner } from '@/utils/StrUtil';
 import { getSongDiffByScoreEx } from '@/utils/functionUtil';
 import { useScores } from '@/store/datasources/scores';
