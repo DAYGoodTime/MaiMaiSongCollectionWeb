@@ -1,5 +1,5 @@
 <template>
-  <img :src="src" :alt="alt" :class="class" loading="lazy" @error="onError" />
+  <img :src="src" :alt="props.alt" :class="props.class" loading="lazy" @error="onError" />
 </template>
 
 <script setup lang="ts">

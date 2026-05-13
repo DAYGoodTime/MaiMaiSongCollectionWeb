@@ -86,7 +86,8 @@
                             <template v-else>
                                 <ScoreCard v-for="(card, _index) in items" :key="card.score_id" :score="card"
                                     class="transition-shadow rounded-xl shadow hover:shadow-xl bg-white/90"
-                                    @copy="handelCopy" @db-click="onMenu" @right-click="onContextMenu" />
+                                    @copy="handelCopy" @db-click="onOpenSongInfo"
+                                    @contextmenu="onContextMenu($event, card.score_id)" />
 
                             </template>
                         </div>
@@ -110,15 +111,6 @@
                                 </EmptyContent>
                             </Empty>
                         </div>
-                        <!-- <Popover>
-                            <PopoverTrigger>
-
-                            </PopoverTrigger>
-                            <PopoverContent>
-                                <Textarea @update:model-value="onUpdateMessage" v-model="scoreMessage"
-                                    placeholder="关于这个铺子的一些心得？" class="w-full" />
-                            </PopoverContent>
-                        </Popover> -->
                     </template>
                 </InfiniteScrollArea>
 
@@ -190,8 +182,10 @@
                     </p>
                 </DialogTitle>
             </DialogHeader>
-            <SongInfo :song="SongInfoSong" :infoOnly="true" />
-            <DiffTagInfo :tag-info="DiffTagInfos"></DiffTagInfo>
+            <div class="max-h-[80dvh] overflow-y-auto">
+                <SongInfo :song="SongInfoSong" :infoOnly="true" />
+                <DiffTagInfo :tag-info="DiffTagInfos"></DiffTagInfo>
+            </div>
         </DialogContent>
     </Dialog>
 </template>
@@ -340,7 +334,8 @@ const handelRemoveScore = (score_id: string) => {
         initScoreList();
         toast.success("删除成功");
     } else {
-        toast.error("删除失败");
+        toast.error("删除失败 id不存在");
+        console.log(`尝试删除失败 歌曲id${score_id}`);
     }
 }
 
@@ -349,6 +344,7 @@ const handelMoveToOtherCollection = (coll_label: string, score_id: string) => {
         toast.success("添加成功")
     } else {
         toast.error("添加失败")
+        console.log(`尝试添加失败 合集 ${coll_label} 歌曲id${score_id}`);
     }
 }
 const resetAll = () => {
@@ -396,6 +392,10 @@ const initScoreList = () => {
         const result: ScoreExtend[] = [];
         let unplayedCount = 0;
         for (const level_str of coll.list) {
+            if (!level_str) {
+                console.warn(`有空的level标识符,出现在合集\'${coll.label}\'中`);
+                continue;
+            }
             const [diff_id_str, song_type, level_index_str] = level_str.split("_");
             if (!diff_id_str || !song_type || !level_index_str) continue;
             const diff_id = Number(diff_id_str)
@@ -476,7 +476,7 @@ const SongInfoSong = ref<MaiMaiSong>({
     level_3: [],
     level_4: []
 })
-const onMenu = (_ref: HTMLDivElement | null, song: MaiMaiSong, noteDesigner: string, score: ScoreExtend) => {
+const onOpenSongInfo = (_ref: HTMLDivElement | null, song: MaiMaiSong, noteDesigner: string, score: ScoreExtend) => {
     openSongInfoMenu.value = true
     SongInfoNoteDesigner.value = noteDesigner;
     SongInfoSong.value = song;
@@ -486,9 +486,13 @@ const onMenu = (_ref: HTMLDivElement | null, song: MaiMaiSong, noteDesigner: str
 //context
 const ContextMenuTarget = ref()
 const ContextMenuTargetScoreId = ref("")
-const onContextMenu = (_event: Event, ref: HTMLDivElement | null, score_id: string) => {
+const onContextMenu = (e: Event, score_id: string) => {
+    const target = (e.target as HTMLElement).closest('[data-component="ScoreCard"]')
+
+    console.log("score_id", score_id);
+
     ContextMenuTargetScoreId.value = score_id
-    ContextMenuTarget.value = ref;
+    ContextMenuTarget.value = target;
 }
 const onContextMenuTrigger = (e: PointerEvent) => {
     const target = (e.target as HTMLElement).closest('[data-component="ScoreCard"]')
@@ -496,21 +500,4 @@ const onContextMenuTrigger = (e: PointerEvent) => {
         e.preventDefault()
     }
 }
-//Score message
-// const scoreMessage = ref("")
-// const scoreMessageValue = ref("")
-// const onUpdateMessage = debounce((val: string | number) => {
-//     scoreMessageValue.value = String(val)
-// }, 200);
-// const toggleDescMenu = () => {
-//     const CollectionMessageMap = collectionStore.CollectionMessageMap;
-
-//     const msgObj = CollectionMessageMap[props.score.score_id];
-//     if (!msgObj) {
-//         CollectionMessageMap[props.score.score_id] = { message: "" };
-//     }
-
-//     message.value = CollectionMessageMap[props.score.score_id].message;
-//     openMenu.value = !openMenu.value;
-// }
 </script>

@@ -103,6 +103,7 @@ export const useCollectionStore = defineStore("collections", () => {
     return UserCollectionList.value.findIndex(c => c.label === name) !== -1
   }
   const pushScoreToCollection = (label: string, score_id: string): boolean => {
+    if (!score_id) return false;
     const coll = UserCollectionList.value.find(c => c.label === label)
     if (!coll) return false;
     coll.list.add(score_id)
