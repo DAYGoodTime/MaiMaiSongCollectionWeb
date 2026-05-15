@@ -66,17 +66,10 @@ export const useScoreSearchWorker = (searchKeyWord: MaybeRefOrGetter<string>, fi
         }
     }
     //watch
-    watch(() => toValue(searchKeyWord), (newSearch) => {
-        if (!searchWorker) {
-            initWorker();
-        }
-        if (ready && searchWorker) {
-            isLoading.value = true;
-            searchWorker.postMessage({ type: 'search', payload: newSearch })
-        }
+    watch(() => toValue(searchKeyWord), (_newSearch) => {
+        search()
     })
     watch(() => toValue(filter), (_newFilter) => {
-        isLoading.value = true;
         search();
     }, { deep: true })
     watch(() => toValue(order), (newOrder) => {
@@ -356,17 +349,10 @@ export const useSongSearchWorker = (searchKeyWord: MaybeRefOrGetter<string>, sea
         return matchesTags
     }
     //watch
-    watch(() => toValue(searchKeyWord), (newSearch) => {
-        if (!searchWorker) {
-            initWorker();
-        }
-        if (ready && searchWorker) {
-            isLoading.value = true;
-            searchWorker.postMessage({ type: 'search', payload: newSearch })
-        }
+    watch(() => toValue(searchKeyWord), (_newSearch) => {
+        search()
     })
     watch(() => toValue(searchOptions), (_newOptions) => {
-        isLoading.value = true;
         search()
     }, { deep: true })
     //init

@@ -325,10 +325,8 @@ function _filterDiffByTag(tag: string, diff: SongDifficultyAny, score: Score): b
   }
   return false;
 }
-export function filterDiffByTag(tagOption: TagOption, diff: SongDifficultyAny, song_id: number): boolean {
+export function filterDiffByTag(tagOption: TagOption, diff: SongDifficultyAny, score: Score): boolean {
   if (tagOption.tags.length === 0) return true;
-  const ScoreStore = useScores();
-  const score = ScoreStore.getScoreByUni(song_id, diff.type, diff.level_index);
   const tagFilters = tagOption.tags.map(t => t.value)
   const matchesTags = tagOption.matchEvery ?
     tagFilters.every(tag => _filterDiffByTag(tag, diff, score))

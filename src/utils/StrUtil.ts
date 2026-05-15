@@ -33,7 +33,7 @@ export function conventLevelTag(
 ): { level_index: number; level_value: number | string } | null {
   if (!LEVEL_MATCH_PATTEN.test(tag)) return null;
   let level_index: number | null = conventLevelPrefix(tag.substring(0, 1));
-  if (!level_index) return null;
+  if (level_index == null) return null;
   const level = tag.substring(1, tag.length);
   let level_value = isNaN(Number(level)) ? String(level) : Number(level);
   if (!level.includes(".") && !level.includes("+"))
@@ -45,14 +45,16 @@ export function conventLevelTag(
 }
 
 export function LevelIndexToLabel(index: number) {
-  if (index < 0 || index > 5)
+  if (index < -1 || index > 4)
     throw new Error("level index out of range")
   switch (index) {
+    case -1: return "UTAGE";
     case 0: return "BASIC";
     case 1: return "ADVANCED";
     case 2: return "EXPERT";
     case 3: return "MASTER";
     case 4: return "Re:MASTER";
+    default: return ""
   }
 }
 
@@ -71,7 +73,7 @@ export function formatDate(date: Date | string): string {
 export function formatDateForFile(date: Date | string): string {
   let _date = new Date(date)
   if (isNaN(_date.getTime())) return date as string;
-  return `${_date.getFullYear()}-${_date.getMonth()}-${_date.getDate()}_${_date.getHours()}-${_date.getMinutes()}-${_date.getSeconds()}`
+  return `${_date.getFullYear()}-${_date.getMonth() + 1}-${_date.getDate()}_${_date.getHours()}-${_date.getMinutes()}-${_date.getSeconds()}`
 }
 export function formatDxRating(dx_rating: number | undefined) {
   if (dx_rating) {
@@ -109,7 +111,6 @@ const commonNoteDesignerAliasMapping = new Map([
   ["玉子豆腐", [toPy("玉子豆腐")]],
   ["鳩ホルダー", ["九鸟", toPy("九鸟")]],
   ["Luxizhel", ["泸溪河", toPy("泸溪河")]],
-  ["玉子豆腐", [toPy("玉子豆腐")]],
   ["華火職人", ["华火职人", toPy("华火职人")]],
   ["チャン@DP皆伝", ["DP", "DP" + toPy("皆传")]],
   ["ぴちネコ", ["桃子猫", toPy("桃子猫")]],

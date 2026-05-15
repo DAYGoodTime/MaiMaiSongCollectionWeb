@@ -82,7 +82,7 @@ import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, D
 import { SelectItem, SelectLabel, SelectTrigger, Select, SelectValue, SelectContent } from '@/components/shadcn/ui/select'
 import MultiSelectTags from '@/components/MultiSelectTags.vue'
 import { Button } from '@/components/shadcn/ui/button';
-import { Label } from 'reka-ui';
+import { Label } from '@/components/shadcn/ui/label';
 import type { MaiMaiSong } from '@/types/songs';
 import type { TagOption } from '@/components/TagInputCombobox.vue';
 import { computed, ref } from 'vue';
@@ -93,6 +93,7 @@ import { useCollectionStore } from '@/store/collections';
 import { toast } from 'vue-sonner';
 import VirtualSelectViewer from '@/components/VirtualSelectViewer.vue';
 import { filterDiffByTag } from '@/utils/functionUtil';
+import { useScores } from '@/store/datasources/scores';
 
 const { UserCollectionList } = storeToRefs(useCollectionStore())
 
@@ -103,7 +104,7 @@ const open = defineModel("open", {
 const diffOptions: FilterProps<number>[] = [{ label: 'BASIC', value: 0 }, { label: 'ADVANCED', value: 1 }, { label: 'EXPERT', value: 2 }, { label: 'MASTER', value: 3 }, { label: 'Re:MASTER', value: 4 }, { label: 'U•TA•GE', value: -1 }];
 const selectedDiffs = ref<FilterProps<number>[]>([])
 const props = defineProps<{
-    list: MaiMaiSong[] | []
+    list: MaiMaiSong[]
     tagOption: TagOption,
     max_limit: number
 }>()
@@ -127,9 +128,11 @@ const getLevelClass = (level_index: number) => {
         case 3: return `${base} bg-MASTER`;
         case 4: return `${base} bg-REMASTER`;
         case -1: return `${base} bg-UTAGE`;
+        default: return base
     }
 }
 const Importing = ref(false)
+const ScoreStore = useScores();
 const handelImport = () => {
     if (!selectedCollection.value || selectedCollection.value.length === 0) {
         toast.warning("请选择需要导入的合集", { position: "top-center" })
@@ -142,13 +145,9 @@ const handelImport = () => {
         toast.error("未找到目标合集", { position: "top-center" }); return;
     }
     const DefaultLevel = selectedDiffs.value.length === 0 && !hasLevelTag.value;
+    const targetLevels = DefaultLevel ? [3, 4] : selectedDiffs.value.map(diff => diff.value)
     const diffList: string[] = []
     for (const song of props.list) {
-        if (DefaultLevel) {
-            Array.prototype.push.apply(diffList, getScoreId(song, [3, 4]))
-            continue;
-        }
-        const targetLevels = selectedDiffs.value.map(diff => diff.value)
         Array.prototype.push.apply(diffList, getScoreId(song, targetLevels))
     }
     UserCollectionList.value[index].list = new Set<string>(diffList)
@@ -159,7 +158,7 @@ const handelImport = () => {
 const getScoreId = (song: MaiMaiSong, targetLevels: number[]) => {
     const diffs = [...song.difficulties.standard, ...song.difficulties.dx]
     let filteredDiffs = diffs.filter(diff =>
-        filterDiffByTag(props.tagOption, diff, song.id)
+        filterDiffByTag(props.tagOption, diff, ScoreStore.getScoreByUni(song.id, diff.type, diff.level_index))
         && targetLevels.includes(diff.level_index)
     );
     return filteredDiffs.map(diff => {

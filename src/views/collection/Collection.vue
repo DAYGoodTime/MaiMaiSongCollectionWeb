@@ -155,7 +155,7 @@
                         高级筛选</PopoverTrigger>
                     <PopoverContent class=" w-3/4 pr-0">
                         <AdvanceFilter class="h-96 !p-1" :model-value="AdvanceFilterForm" :show-trigger="false"
-                            v-model:is-expanded="showAdvancedFilter"
+                            is-expanded="true"
                             @update:model-value="(filter) => onFilterUpdate(filter as AdvanceFilterFilters)" />
                     </PopoverContent>
                 </Popover>
@@ -183,7 +183,7 @@
                 </DialogTitle>
             </DialogHeader>
             <div class="max-h-[80dvh] overflow-y-auto">
-                <SongInfo :song="SongInfoSong" :infoOnly="true" />
+                <SongInfo v-if="SongInfoSong" :song="SongInfoSong" :infoOnly="true" />
                 <DiffTagInfo :tag-info="DiffTagInfos"></DiffTagInfo>
             </div>
         </DialogContent>
@@ -206,7 +206,7 @@ import { Search, X, ChevronDown, ChevronUp, PanelLeft, CircleOff, RotateCcw } fr
 import { Input } from '@/components/shadcn/ui/input'
 import { useCollectionStore } from '@/store/collections';
 import type { MaiMaiSong, ScoreExtend, SongDifficultyAny, SongType } from '@/types/songs';
-import { debounce, toLXNSStyleId, useCopyHelper, useRouterHelper } from '@/utils/functionUtil';
+import { createUnplayedScore, toLXNSStyleId, useCopyHelper, useRouterHelper } from '@/utils/functionUtil';
 import { computed, onMounted, ref, toRaw, useTemplateRef, watch } from 'vue';
 import { toast } from 'vue-sonner';
 
@@ -244,7 +244,7 @@ import ScoreStatisticsCard from '@/views/collection/component/ScoreStatisticsCar
 import AdvanceFeature from './component/AdvanceFeature.vue';
 import { type OrderBadge } from '@/types/component';
 import { storeToRefs } from 'pinia';
-import { createReusableTemplate } from '@vueuse/core';
+import { createReusableTemplate, useDebounceFn } from '@vueuse/core';
 import { cn } from '@/lib/utils';
 import CollectionFloatingNav from './component/CollectionFloatingNav.vue';
 import { useSidebar } from '@/components/shadcn/ui/sidebar';
@@ -271,7 +271,6 @@ const [DefineSearchTemplate, ReuseSearchTemplate] = createReusableTemplate()
 const searchInput = ref("")
 const searchValue = ref("")
 const showAdvanced = ref(false)
-const showAdvancedFilter = ref(true)
 const supportPcCount = ref(false)
 const isFilterExpended = ref(false)
 const isLoadingPage = ref(true)
@@ -308,7 +307,7 @@ const AdvanceFilterForm = ref<AdvanceFilterFilters>({
 const { searchResults, isLoading, updateIndex } = useScoreSearchWorker(searchValue, AdvanceFilterForm, selectedOrder)
 
 //handler
-const onSearch = debounce((val: string | number) => {
+const onSearch = useDebounceFn((val: string | number) => {
     searchValue.value = String(val)
 }, 200);
 
@@ -422,9 +421,8 @@ const initScoreList = () => {
         }
         //更新索引
         updateIndex(result)
-        let checkScore = result[0].score;
-        if (checkScore) {
-            supportPcCount.value = checkScore.play_count !== undefined || checkScore.play_count === 0
+        if (result.length > 0) {
+            supportPcCount.value = result[0].score.play_count !== undefined && result[0].score.play_count !== null
         } else {
             supportPcCount.value = false;
         }
@@ -454,28 +452,7 @@ const { handelCopy } = useCopyHelper()
 const openSongInfoMenu = ref(false)
 const SongInfoNoteDesigner = ref("")
 const DiffTagInfos = ref<GroupInfo[]>([])
-const SongInfoSong = ref<MaiMaiSong>({
-    id: 0,
-    title: '',
-    artist: '',
-    genre: '',
-    bpm: 0,
-    map: null,
-    version: '',
-    rights: null,
-    aliases: [],
-    disabled: false,
-    difficulties: {
-        standard: [],
-        dx: [],
-        utage: []
-    },
-    level_0: [],
-    level_1: [],
-    level_2: [],
-    level_3: [],
-    level_4: []
-})
+const SongInfoSong = ref<MaiMaiSong | null>(null)
 const onOpenSongInfo = (_ref: HTMLDivElement | null, song: MaiMaiSong, noteDesigner: string, score: ScoreExtend) => {
     openSongInfoMenu.value = true
     SongInfoNoteDesigner.value = noteDesigner;
@@ -495,6 +472,7 @@ const onContextMenu = (e: Event, score_id: string) => {
     ContextMenuTarget.value = target;
 }
 const onContextMenuTrigger = (e: PointerEvent) => {
+    //阻止不在ScoreCard的区域内使用右键菜单
     const target = (e.target as HTMLElement).closest('[data-component="ScoreCard"]')
     if (!target) {
         e.preventDefault()

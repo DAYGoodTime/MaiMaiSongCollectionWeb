@@ -124,7 +124,7 @@ const getNumericLevelValue = (score: ScoreExtend['score']): number | null => {
 export const analysisTag = (score_list: ScoreExtend[], filter: AdvanceFilterFiltersForTag): GroupInfoForCounter[] => {
     const filtered = advanceFilter(filter, score_list);
     const tagMap: Record<number, DiffTagCounter> = {};
-    filtered.map(score => {
+    filtered.forEach(score => {
         const tags: Array<DiffTAG> = TAG_JSON.tagSongs.filter((tag) =>
             tag.song_id === score.song.title &&
             LEVELS[score.score.level_index] === tag.sheet_difficulty &&
@@ -133,26 +133,22 @@ export const analysisTag = (score_list: ScoreExtend[], filter: AdvanceFilterFilt
         tags.forEach(tag => {
             if (tag) {
                 const old = tagMap[tag.id]
-                if (old) {
-                    let multiplier = 1 + (score.score.achievements ?? 0) - 100 //根据达成率设置权重倍率
-                    let level_value = score.score.level_value ?? 0
-                    if (level_value >= 13) {
-                        multiplier *= 0.0007 * Math.pow(Math.E, 0.5921 * level_value) //根据定数进一步倍增权重
-                    } else if (level_value >= 11) {
-                        //level 11 ~ 13 (大部分为基础紫谱/底力红谱)
-                        multiplier *= 0.25 * level_value - 1.75
-                    } else {
-                        //level < 11 (大部分为红谱以下)
-                        multiplier *= 0.1 * level_value - 0.1
-                    }
-                    multiplier = Math.pow(multiplier, 2) //扩大权重系数
-                    tagMap[tag.id].count += (1 * multiplier) / tags.length
-                } else {
-                    tagMap[tag.id] = {
-                        tag,
-                        count: 0
-                    }
+                if (!old) {
+                    tagMap[tag.id] = { tag, count: 0 }
                 }
+                let multiplier = 1 + (score.score.achievements ?? 0) - 100 //根据达成率设置权重倍率
+                let level_value = score.score.level_value ?? 0
+                if (level_value >= 13) {
+                    multiplier *= 0.0007 * Math.pow(Math.E, 0.5921 * level_value) //根据定数进一步倍增权重
+                } else if (level_value >= 11) {
+                    //level 11 ~ 13 (大部分为基础紫谱/底力红谱)
+                    multiplier *= 0.25 * level_value - 1.75
+                } else {
+                    //level < 11 (大部分为红谱以下)
+                    multiplier *= 0.1 * level_value - 0.1
+                }
+                multiplier = Math.pow(multiplier, 2) //扩大权重系数
+                tagMap[tag.id].count += (1 * multiplier) / tags.length
             }
         })
     })
