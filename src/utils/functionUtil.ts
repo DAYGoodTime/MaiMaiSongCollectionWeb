@@ -333,3 +333,24 @@ export function filterDiffByTag(tagOption: TagOption, diff: SongDifficultyAny, s
     : tagFilters.some(tag => _filterDiffByTag(tag, diff, score))
   return matchesTags
 }
+//创建“未游玩”状态的成绩
+export const createUnplayedScore = (diff_id: number, song: MaiMaiSong, song_type: SongType, level_index: number): Score => {
+  const diff = song[`${diff_id}_${song_type}_${level_index}` as keyof MaiMaiSong] as unknown as SongDifficultyAny
+  return {
+    id: song.id,
+    song_name: song.title,
+    level: diff ? diff.level : "0",
+    diff_id,
+    level_index,
+    level_value: diff ? diff.level_value : 1.0,
+    achievements: 0,
+    fc: null,
+    fs: null,
+    dx_score: 0,
+    dx_rating: 0,
+    rate_type: '',
+    type: song_type,
+    is_played: false,
+    play_count: 0
+  }
+}

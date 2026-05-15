@@ -68,14 +68,13 @@
                             class="text-black">查看标签</Button>
                         <DropdownMenu>
                             <DropdownMenuTrigger as-child>
-                                <Button :disabled="!diff.score" variant="outline"
-                                    class="h-8 text-black dark:bg-stone-500 dark:text-white">
+                                <Button variant="outline" class="h-8 text-black dark:bg-stone-500 dark:text-white">
                                     添加进合集
                                 </Button>
                             </DropdownMenuTrigger>
                             <DropdownMenuContent>
                                 <DropdownMenuItem v-for="coll in getCollectionNames" :key="coll"
-                                    @click="() => addScoreToCollection(coll, diff.difficulty)">{{ coll }}
+                                    @click="() => addScoreToCollection(coll, diff.difficulty, !!diff.score)">{{ coll }}
                                 </DropdownMenuItem>
                             </DropdownMenuContent>
                         </DropdownMenu>
@@ -161,8 +160,11 @@ const emit = defineEmits<{
 // collection
 const { pushScoreToCollection } = useCollectionStore();
 const { getCollectionNames } = storeToRefs(useCollectionStore())
-function addScoreToCollection(label: string, diff: SongDifficulty | SongDifficultyUtage) {
+function addScoreToCollection(label: string, diff: SongDifficulty | SongDifficultyUtage, hasScore: boolean) {
     const diff_id = diff.type === "utage" ? (diff as SongDifficultyUtage).diff_id : props.song.id
+    if (!hasScore) {
+        toast.warning("该难度暂无游玩记录，将以「未游玩」状态添加进合集，并且默认不展示", { position: "top-center" });
+    }
     if (pushScoreToCollection(label, `${diff_id}_${diff.type}_${diff.level_index}`)) {
         toast.success("添加成功");
     } else {
