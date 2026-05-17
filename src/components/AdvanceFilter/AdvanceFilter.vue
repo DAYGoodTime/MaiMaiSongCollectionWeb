@@ -142,7 +142,7 @@ import SongMapList from '@/assets/data/song_maps.json' with { type: 'json' }
 import SongVersionList from '@/assets/data/versions.json' with { type: 'json' }
 import { cn } from '@/lib/utils'
 import MultiSelectComboboxTags from '../MultiSelectComboboxTags.vue'
-import { DX_SCORE_TIERS } from '@/utils/StrUtil'
+import { DX_SCORE_TIERS, getLevelClass } from '@/utils/StrUtil'
 import LevelRangeSelector from '../LevelRangeSelector.vue'
 
 
@@ -169,19 +169,6 @@ const defaultFilters: AdvanceFilterFilters = {
     Type: [],
     showUnplayed: false
 }
-//diff
-const getLevelClass = (level_index: number) => {
-    const base = `rounded-full w-4 h-4`;
-    switch (level_index) {
-        case 0: return `${base} bg-BASIC`;
-        case 1: return `${base} bg-ADVANCED`;
-        case 2: return `${base} bg-EXPERT`;
-        case 3: return `${base} bg-MASTER`;
-        case 4: return `${base} bg-REMASTER`;
-        case -1: return `${base} bg-UTAGE`;
-    }
-}
-
 // 筛选条件
 const filters = reactive<AdvanceFilterFilters>({
     ...defaultFilters,

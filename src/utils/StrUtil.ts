@@ -231,3 +231,16 @@ export function getDxScoreThreshold(dxScore: number, totalDxScore: number) {
   }
   return 0;
 }
+
+export const getLevelClass = (level_index: number) => {
+  const base = `rounded-full w-4 h-4`;
+  switch (level_index) {
+    case 0: return `${base} bg-BASIC`;
+    case 1: return `${base} bg-ADVANCED`;
+    case 2: return `${base} bg-EXPERT`;
+    case 3: return `${base} bg-MASTER`;
+    case 4: return `${base} bg-REMASTER`;
+    case -1: return `${base} bg-UTAGE`;
+    default: return base
+  }
+}

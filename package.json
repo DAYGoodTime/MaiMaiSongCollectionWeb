@@ -1,7 +1,7 @@
 {
   "name": "songcollections",
   "private": true,
-  "version": "1.2.9",
+  "version": "1.3.2",
   "type": "module",
   "scripts": {
     "dev": "vite",
@@ -10,7 +10,8 @@
     "build:fast": "vite build",
     "preview": "vite preview",
     "preview:build": "vite build && vite preview",
-    "build:android": "vite build && npx cap sync --inline"
+    "build:android": "vite build && npx cap sync --inline",
+    "build:release": "vite build && pwsh -Command \"Copy-Item .env dist\\.env; $v=(Get-Content package.json | ConvertFrom-Json).version; $out=\\\"$((Get-Location).Path)\\\\dist-$v.zip\\\"; if (Test-Path $out) { Remove-Item $out }; Push-Location dist; Compress-Archive -Path * -DestinationPath $out; Pop-Location; Write-Host \\\"dist-$v.zip created\\\"\""
   },
   "dependencies": {
     "@capacitor/android": "^7.4.2",

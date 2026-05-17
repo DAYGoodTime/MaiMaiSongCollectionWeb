@@ -41,8 +41,8 @@ const bpmOption = reactive({
 })
 const tooltipsOpen = ref(false)
 
-const SelectedType = ref<SongType>("standard")
-const getScoreList = computed(() => selectedSong.value?.difficulties[SelectedType.value] ?? []);
+const selectedType = ref<SongType>("standard")
+const getScoreList = computed(() => selectedSong.value?.difficulties[selectedType.value] ?? []);
 const SearchRef = useTemplateRef("search")
 const SEARCH_NUMBER_LIMIT = 300;
 const openImportDialog = ref(false)
@@ -63,50 +63,14 @@ const DiffInfo = ref<{
   song: MaiMaiSong,
   diff: SongDifficultyAny,
   tags: GroupInfo[]
-}>({
-  song: {
-    id: 0,
-    title: '',
-    artist: '',
-    genre: '',
-    bpm: 0,
-    map: null,
-    version: '',
-    rights: null,
-    aliases: [],
-    disabled: false,
-    difficulties: {
-      standard: [],
-      dx: [],
-      utage: []
-    },
-    level_0: [],
-    level_1: [],
-    level_2: [],
-    level_3: [],
-    level_4: []
-  },
-  diff: {
-    type: 'standard',
-    level: '',
-    level_value: 0,
-    level_index: 0,
-    note_designer: '',
-    version: 0,
-    tap_num: 0,
-    hold_num: 0,
-    slide_num: 0,
-    touch_num: 0,
-    break_num: 0
-  },
-  tags: []
-})
+} | null>(null)
 const handelScoreInfoMenu = (song: MaiMaiSong, diff: SongDifficultyAny) => {
-  DiffInfo.value.tags = getDiffTag(song.title, diff.level_index, diff.type);
-  DiffInfo.value.song = song;
-  DiffInfo.value.diff = diff;
-  DiffInfoMenuModal.value = true
-  console.log("debug", DiffInfo.value);
+  if (DiffInfo.value) {
+    DiffInfo.value.tags = getDiffTag(song.title, diff.level_index, diff.type);
+    DiffInfo.value.song = song;
+    DiffInfo.value.diff = diff;
+    DiffInfoMenuModal.value = true
+  }
 }
 </script>
 <template>
@@ -185,8 +149,8 @@ const handelScoreInfoMenu = (song: MaiMaiSong, diff: SongDifficultyAny) => {
           </Accordion>
         </CardContent>
       </Card>
-      <div v-if="selectedSong">
-        <SongInfo :song="selectedSong" v-model:selected-type="SelectedType" />
+      <div v-if="selectedSong && DiffInfo">
+        <SongInfo :song="selectedSong" v-model:selected-type="selectedType" />
         <div class="space-y-4">
           <ScoreInfo :difficulties="getScoreList" :song="selectedSong" @menu="handelScoreInfoMenu" />
         </div>

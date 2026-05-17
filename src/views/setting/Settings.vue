@@ -56,7 +56,7 @@
             </Card>
 
             <!-- 水鱼数据源 -->
-            <DivingFIshCard />
+            <DivingFishCard />
             <!-- 落雪数据源 -->
             <LXNSCard />
             <!-- Usagi数据源 -->
@@ -99,7 +99,7 @@
 
             <div class="text-center text-sm text-muted-foreground pt-4">
                 版本: {{ getProjectVersion() }}
-                <span v-if="hasNewVersion">{{ `(最新版本:${newVersion})` }}</span>
+                <span v-if="newVersion">{{ `(最新版本:${newVersion})` }}</span>
             </div>
         </div>
 
@@ -139,7 +139,7 @@
                         如果需要同步其他用户的数据，你可以在下方输入新的用户名。
                     </DialogDescription>
                 </DialogHeader>
-                <form @submit.prevent="() => nameCallback.callback()" class="space-y-4 pt-4">
+                <form @submit.prevent="confirmAndDownload" class="space-y-4 pt-4">
                     <div class="space-y-2">
                         <Label for="username-confirm">用户名</Label>
                         <Input id="username-confirm" v-model="tempUserName" placeholder="请输入用户名" required />
@@ -159,7 +159,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, reactive, onMounted, computed } from 'vue'
+import { ref, reactive, onMounted } from 'vue'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/shadcn/ui/card'
 import { Button } from '@/components/shadcn/ui/button'
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/shadcn/ui/dialog'
@@ -171,7 +171,7 @@ import { useCollectionStore } from '@/store/collections'
 import { useAppStore } from '@/store/appStore'
 import { getProjectVersion, formatDate } from '@/utils/StrUtil'
 import LXNSCard from './LXNSCard.vue'
-import DivingFIshCard from './DivingFIshCard.vue'
+import DivingFishCard from './DivingFishCard.vue'
 import UsagiCard from './UsagiCard.vue'
 import ActionConfirm from '@/components/ActionConfirm.vue'
 import { useSongStore } from '@/store/datasources/song'
@@ -187,7 +187,6 @@ const DataSourceUpdating = reactive({
     collDataUpload: false
 })
 const { exportCollectionData, uploadCollectionData, downloadCollectionData } = useCollectionStore()
-const { updateSongFromAPI } = useSongStore()
 const SongStore = useSongStore();
 
 
@@ -195,16 +194,19 @@ const SongStore = useSongStore();
 //upload
 const appStore = useAppStore();
 const tempUserName = ref("")
-const updateName = () => {
-
-    if (tempUserName.value.trim().length === 0) {
+const validateUserName = (name: string): boolean => {
+    if (name.trim().length === 0) {
         toast.error("请输入用户名");
-        return;
+        return false;
     }
-    if (tempUserName.value.length > 20) {
+    if (name.length > 20) {
         toast.error("用户名太长了");
-        return;
+        return false;
     }
+    return true;
+}
+const updateName = () => {
+    if (!validateUserName(tempUserName.value)) return;
     appStore.UserName = tempUserName.value.trim();
     toast.success("用户名更新为:" + tempUserName.value.trim());
     showSetNameDialog.value = false;
@@ -226,50 +228,36 @@ const uploadCollData = async () => {
     }
     DataSourceUpdating.collDataUpload = false
 }
-const nameCallback = ref({
-    callback: () => { }
-})
 const newNameSet = ref(false)
 const handelDownloadCollData = () => {
-    if (appStore.hasUserName) {
-        tempUserName.value = appStore.UserName;
-        nameCallback.value = {
-            callback: async () => {
-                if (tempUserName.value.trim().length === 0) {
-                    toast.error("请输入用户名");
-                    return;
-                }
-                if (tempUserName.value.length > 20) {
-                    toast.error("用户名太长了");
-                    return;
-                }
-                const name = tempUserName.value.trim();;
-                DataSourceUpdating.collDataDownload = true
-                DataSourceUpdating.name = true
-                const b = await downloadCollectionData(name)
-                DataSourceUpdating.collDataDownload = false
-                DataSourceUpdating.name = false
-                if (b) {
-                    toast.success("同步成功")
-                    showNameConfirmDialog.value = false;
-                    tempUserName.value = ""
-                } else {
-                    toast.error("同步失败，请确认该用户名是否有数据")
-                }
-            }
-        }
-        //new name not need to confirm
-        if (newNameSet.value) {
-            nameCallback.value.callback();
-        } else {
-            showNameConfirmDialog.value = true;
-        }
-    } else {
+    if (!appStore.hasUserName) {
         toast.error("请先设置名称再进行上传", {
             position: "top-center"
         })
         showSetNameDialog.value = true;
         return;
+    }
+    tempUserName.value = appStore.UserName;
+    if (newNameSet.value) {
+        confirmAndDownload();
+    } else {
+        showNameConfirmDialog.value = true;
+    }
+}
+const confirmAndDownload = async () => {
+    if (!validateUserName(tempUserName.value)) return;
+    const name = tempUserName.value.trim();
+    DataSourceUpdating.collDataDownload = true
+    DataSourceUpdating.name = true
+    const b = await downloadCollectionData(name)
+    DataSourceUpdating.collDataDownload = false
+    DataSourceUpdating.name = false
+    if (b) {
+        toast.success("同步成功")
+        showNameConfirmDialog.value = false;
+        tempUserName.value = ""
+    } else {
+        toast.error("同步失败，请确认该用户名是否有数据")
     }
 }
 const UpdatingSongs = ref(false)
@@ -277,7 +265,7 @@ const handelUpdateSongs = async () => {
     if (UpdatingSongs.value) return;
     UpdatingSongs.value = true;
     try {
-        if (await updateSongFromAPI()) {
+        if (await SongStore.updateSongFromAPI()) {
             toast.success("歌曲数据源更新完成")
         }
     } catch (error: any) {
@@ -305,7 +293,6 @@ const checkAnyProjectVersion = async () => {
     }
 }
 const newVersion = ref("")
-const hasNewVersion = computed(() => newVersion.value)
 onMounted(() =>
     checkAnyProjectVersion()
 )

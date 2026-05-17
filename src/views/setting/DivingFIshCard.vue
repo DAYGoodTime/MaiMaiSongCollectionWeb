@@ -1,162 +1,92 @@
 <template>
-    <div>
-        <!-- 水鱼数据源 -->
-        <Card>
-            <CardHeader>
-                <CardTitle class="flex items-center justify-between">
-                    <div class="flex items-center gap-2">
-                        <Fish class="h-5 w-5" />
-                        <div>
-                            <span>水鱼数据源 </span>
-                            <span class="block md:inline">{{ ScoreStore.selectedSource === 'divingfish' ? '(当前默认数据源)' :
-                                ''
-                                }}</span>
-                        </div>
-                    </div>
-                    <div v-if="ScoreStore.hasDivingFishData" class="flex gap-4">
-                        <Button variant="outline" @click="ScoreStore.exportScores('divingfish')">
-                            导出
-                        </Button>
-                        <ActionConfirm title="你确定要删除该数据源吗?" confirm-text="删除" cancel-text="保留"
-                            @confirm="ScoreStore.ClearDataSource('divingfish')">
-                            <Button variant="destructive">
-                                删除
-                            </Button>
-                        </ActionConfirm>
-                    </div>
-
-                </CardTitle>
-                <CardDescription>
-                    管理水鱼成绩的同步和更新
-                </CardDescription>
-            </CardHeader>
-            <CardContent>
-                <div class="flex items-center justify-between">
-                    <div class="space-y-1">
-                        <p class="text-sm font-medium">最后更新时间</p>
-                        <p class="text-sm text-muted-foreground">
-                            {{ formatDate(ScoreStore.DivingFishScores.update_time) }}
-                        </p>
-                    </div>
-                    <div class="flex items-center gap-2">
-                        <Button v-if="ScoreStore.hasDivingFishData && ScoreStore.selectedSource !== 'divingfish'"
-                            variant="outline" @click="() => ScoreStore.switchDataSource('divingfish')"
-                            :disabled="!ScoreStore.hasDivingFishData">
-                            设为默认
-                        </Button>
-                        <Button @click="handelUpdate" :disabled="DataSourceUpdating" class="gap-2">
-                            <RefreshCw :class="{ 'animate-spin': DataSourceUpdating }" class="h-4 w-4" />
-                            <span>{{ DataSourceUpdating ? '更新中...' : '更新' }}</span>
-                        </Button>
-                    </div>
-
-                </div>
-            </CardContent>
-        </Card>
-        <!-- 水鱼对话框 -->
-        <Dialog v-model:open="showFishDialog">
-            <DialogContent class="sm:max-w-[425px]">
-                <DialogHeader>
-                    <DialogTitle>水鱼数据源认证</DialogTitle>
-                    <DialogDescription>
-                        请输入您的水鱼账号中的成绩导入Token以更新数据源。
-                        可前往<a class="text-blue-600 hover:underline"
-                            href="https://www.diving-fish.com/maimaidx/prober/#Profile" target="_blank">账号详情</a>获取。
-                    </DialogDescription>
-                </DialogHeader>
-                <form @submit.prevent="updateFishDataSource" class="space-y-4 pt-4">
-                    <div class="space-y-2">
-                        <Label for="fish-token">成绩导入Token</Label>
-                        <Input id="fish-token" v-model="fishCredentials" placeholder="请输入成绩导入Token" required
-                            :disabled="DataSourceUpdating" />
-                    </div>
-                    <div class="flex items-center gap-2">
-                        <Checkbox id="remember" v-model="remember" />
-                        <Label for="remember">记住凭证(保存在本地)</Label>
-                    </div>
-                    <DialogFooter class="gap-4 lg:gap-2">
-                        <Button type="button" variant="outline" @click="showFishDialog = false">
-                            取消
-                        </Button>
-                        <Button type="submit" :disabled="DataSourceUpdating">
-                            {{ DataSourceUpdating ? '更新中...' : '确认更新' }}
-                        </Button>
-                    </DialogFooter>
-                </form>
-            </DialogContent>
-        </Dialog>
-    </div>
+    <DataSourceCard
+        title="水鱼数据源"
+        description="管理水鱼成绩的同步和更新"
+        source-key="divingfish"
+        :update-time="ScoreStore.DivingFishScores.update_time"
+        :is-updating="DataSourceUpdating"
+        dialog-title="水鱼数据源认证"
+        credential-label="成绩导入Token"
+        credential-placeholder="请输入成绩导入Token"
+        ref="cardRef"
+        @request-update="handelUpdate"
+        @update="handleDialogSubmit"
+        @export="ScoreStore.exportScores('divingfish')"
+        @delete="ScoreStore.ClearDataSource('divingfish')"
+        @set-default="ScoreStore.switchDataSource('divingfish')"
+    >
+        <template #icon>
+            <Fish class="h-5 w-5" />
+        </template>
+        <template #dialog-description>
+            请输入您的水鱼账号中的成绩导入Token以更新数据源。
+            可前往<a class="text-blue-600 hover:underline"
+                href="https://www.diving-fish.com/maimaidx/prober/#Profile" target="_blank">账号详情</a>获取。
+        </template>
+    </DataSourceCard>
 </template>
+
 <script setup lang="ts">
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/shadcn/ui/card'
-import { Button } from '@/components/shadcn/ui/button'
-import { Input } from '@/components/shadcn/ui/input'
-import { Label } from '@/components/shadcn/ui/label'
-import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/shadcn/ui/dialog'
-import { Fish, RefreshCw } from 'lucide-vue-next'
-import { Checkbox } from "@/components/shadcn/ui/checkbox";
-import { formatDate } from '@/utils/StrUtil';
 import { ref } from 'vue'
+import { Fish } from 'lucide-vue-next'
 import { toast } from 'vue-sonner'
-import ActionConfirm from '@/components/ActionConfirm.vue'
 import DivingFishService from '@/api/fish'
 import { HttpError } from '@/api/base'
 import { useOAuthStore } from '@/store/oauth'
 import { MAX_ERROR_COUNT, useScores } from '@/store/datasources/scores'
-const OAuthStore = useOAuthStore();
+import DataSourceCard from './DataSourceCard.vue'
+
+const OAuthStore = useOAuthStore()
 const ScoreStore = useScores()
 const DataSourceUpdating = ref(false)
-const showFishDialog = ref(false)
-const fishCredentials = ref('')
-const ErrorCount = ref(0);
-const remember = ref(false)
+const ErrorCount = ref(0)
+const cardRef = ref<InstanceType<typeof DataSourceCard>>()
 
-// 更新水鱼数据源
-const updateFishDataSource = async () => {
-    if (!fishCredentials.value) {
-        toast.error('请填写水鱼成绩导入Token', { position: "top-center" })
-        return
-    }
+// 更新水鱼数据源核心逻辑
+const updateFishDataSource = async (token: string, remember: boolean) => {
     DataSourceUpdating.value = true
     try {
-        const result = await DivingFishService.queryFishUserScores(fishCredentials.value);
+        const result = await DivingFishService.queryFishUserScores(token)
         if (result) {
             ScoreStore.updateScores(result.records, 'divingfish')
-            toast.success('水鱼数据源更新成功！', { position: "top-center" })
-            if (showFishDialog.value && remember.value) {
-                //保存凭证
-                OAuthStore.DataSourceCredentials.divingfish = fishCredentials.value
+            toast.success('水鱼数据源更新成功！', { position: 'top-center' })
+            if (remember) {
+                OAuthStore.DataSourceCredentials.divingfish = token
             }
-            // 关闭对话框
-            showFishDialog.value = false
-            // 清空表单
-            fishCredentials.value = ''
-        } else toast.error('水鱼数据源更新失败,返回的数据源为空', { position: "top-center" })
+            cardRef.value?.closeDialog()
+        } else {
+            toast.error('水鱼数据源更新失败,返回的数据源为空', { position: 'top-center' })
+        }
     } catch (error) {
         if (error instanceof HttpError) {
             if (error.status === 400) {
-                toast.error('水鱼数据源更新失败 token无效', { position: "top-center" })
-                return;
+                toast.error('水鱼数据源更新失败 token无效', { position: 'top-center' })
+                return
             }
         }
-        toast.error('水鱼数据源更新失败', { position: "top-center" })
-        console.error(error);
-        ErrorCount.value++;
-        if (ErrorCount.value >= MAX_ERROR_COUNT && OAuthStore.hasCredentials("divingfish")) {
-            toast.warning("错误次数过多,已为你删除缓存凭证")
-            OAuthStore.removeCredentials("divingfish")
+        toast.error('水鱼数据源更新失败', { position: 'top-center' })
+        console.error(error)
+        ErrorCount.value++
+        if (ErrorCount.value >= MAX_ERROR_COUNT && OAuthStore.hasCredentials('divingfish')) {
+            toast.warning('错误次数过多,已为你删除缓存凭证')
+            OAuthStore.removeCredentials('divingfish')
         }
     } finally {
         DataSourceUpdating.value = false
     }
 }
+
+// 点击更新按钮：有缓存凭证则直接更新，否则打开 Dialog
 const handelUpdate = async () => {
-    if (OAuthStore.hasCredentials("divingfish")) {
-        //尝试直接更新
-        fishCredentials.value = OAuthStore.DataSourceCredentials.divingfish;
-        await updateFishDataSource();
+    if (OAuthStore.hasCredentials('divingfish')) {
+        await updateFishDataSource(OAuthStore.DataSourceCredentials.divingfish, false)
     } else {
-        showFishDialog.value = true;
+        cardRef.value?.openDialog()
     }
+}
+
+// Dialog 提交时触发
+const handleDialogSubmit = async (credentials: string, remember: boolean) => {
+    await updateFishDataSource(credentials, remember)
 }
 </script>

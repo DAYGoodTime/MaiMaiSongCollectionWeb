@@ -11,7 +11,7 @@
 <script setup lang="ts">
 import { Input } from '@/components/shadcn/ui/input'
 import Slider from '@/components/shadcn/ui/slider/Slider.vue'
-import { computed, defineModel } from 'vue';
+import { computed } from 'vue';
 const GLOBAL_MAX = 15.0
 const GLOBAL_MIN = 1.0
 const COMMON_MIN = 12.0;

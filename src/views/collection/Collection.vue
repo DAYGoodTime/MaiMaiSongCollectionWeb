@@ -205,7 +205,7 @@ import { Badge } from '@/components/shadcn/ui/badge';
 import { Search, X, ChevronDown, ChevronUp, PanelLeft, CircleOff, RotateCcw } from 'lucide-vue-next'
 import { Input } from '@/components/shadcn/ui/input'
 import { useCollectionStore } from '@/store/collections';
-import type { MaiMaiSong, ScoreExtend, SongDifficultyAny, SongType } from '@/types/songs';
+import type { MaiMaiSong, ScoreExtend, SongType } from '@/types/songs';
 import { createUnplayedScore, toLXNSStyleId, useCopyHelper, useRouterHelper } from '@/utils/functionUtil';
 import { computed, onMounted, ref, toRaw, useTemplateRef, watch } from 'vue';
 import { toast } from 'vue-sonner';
@@ -236,7 +236,6 @@ import {
     EmptyTitle,
     EmptyMedia
 } from "@/components/shadcn/ui/empty";
-import type { Score } from '@/types/datasource';
 import InfiniteScrollArea from '@/components/InfiniteScrollArea.vue';
 import AdvanceFilter from '@/components/AdvanceFilter/AdvanceFilter.vue';
 import type { AdvanceFilterFilters } from '@/types/component';
@@ -354,12 +353,55 @@ const resetAll = () => {
 }
 
 
-const initScoreList = () => {
-    supportPcCount.value = false
-    isLoadingPage.value = true;
-    if (AdvanceFilterRef.value) {
-        AdvanceFilterRef.value.resetAllFilters()
+const buildScoreList = (
+    coll: NonNullable<ReturnType<typeof getCollectionByLabel>>,
+    statisticsBoard: NonNullable<typeof StatisticsBoardRef.value>
+): ScoreExtend[] => {
+    const result: ScoreExtend[] = [];
+    for (const level_str of coll.list) {
+        if (!level_str) {
+            console.warn(`有空的level标识符,出现在合集\'${coll.label}\'中`);
+            continue;
+        }
+        const [diff_id_str, song_type, level_index_str] = level_str.split("_");
+        if (!diff_id_str || !song_type || !level_index_str) continue;
+        const diff_id = Number(diff_id_str)
+        const song_id = toLXNSStyleId(diff_id)
+        const song = SongStore.getSong(song_id) || SongStore.getSong(diff_id)
+        if (!song) {
+            console.warn("不存在的歌曲:", song_id, diff_id, level_str);
+            continue
+        };
+        const level_index = Number(level_index_str);
+        const score_id = song_type === "utage" ? diff_id : song_id;
+        let score = ScoreStore.getScoreByUni(score_id, song_type as SongType, level_index);
+        if (score) {
+            statisticsBoard.updateStatisticsBoard(score, song);
+        } else {
+            score = createUnplayedScore(score_id, song, song_type as SongType, level_index);
+        }
+        result.push({
+            score: score,
+            song: toRaw(song),
+            score_id: level_str
+        });
     }
+    return result;
+}
+
+const syncOrderBadges = (hasPcCount: boolean): void => {
+    const playCountIndex = OrderBadges.value.findIndex(o => o.value === "play_count");
+    if (hasPcCount && playCountIndex === -1) {
+        OrderBadges.value.push({ label: "游玩次数", value: "play_count", status_index: 0 });
+    } else if (!hasPcCount && playCountIndex !== -1) {
+        OrderBadges.value.splice(playCountIndex, 1);
+    }
+}
+
+const initScoreList = () => {
+    isLoadingPage.value = true;
+    supportPcCount.value = false
+    AdvanceFilterRef.value?.resetAllFilters()
     const coll = getCollectionByLabel(route.query.label as string)
     if (!coll) {
         toast.error("合集不存在", { position: "top-center" })
@@ -369,50 +411,12 @@ const initScoreList = () => {
     CurrentCollectionLabel.value = coll.label
     if (coll && StatisticsBoardRef.value) {
         StatisticsBoardRef.value.initStatistics();
-        const result: ScoreExtend[] = [];
-        let unplayedCount = 0;
-        for (const level_str of coll.list) {
-            if (!level_str) {
-                console.warn(`有空的level标识符,出现在合集\'${coll.label}\'中`);
-                continue;
-            }
-            const [diff_id_str, song_type, level_index_str] = level_str.split("_");
-            if (!diff_id_str || !song_type || !level_index_str) continue;
-            const diff_id = Number(diff_id_str)
-            const song_id = toLXNSStyleId(diff_id)
-            const song = SongStore.getSong(song_id) || SongStore.getSong(diff_id)
-            if (!song) {
-                console.warn("不存在的歌曲:", song_id, diff_id, level_str);
-                continue
-            };
-            const level_index = Number(level_index_str);
-            const score_id = song_type === "utage" ? diff_id : song_id;
-            let score = ScoreStore.getScoreByUni(score_id, song_type as SongType, level_index);
-            if (score) {
-                StatisticsBoardRef.value.updateStatisticsBoard(score, song);
-            } else {
-                unplayedCount++;
-                score = createUnplayedScore(score_id, song, song_type as SongType, level_index);
-            }
-            result.push({
-                score: score,
-                song: toRaw(song),
-                score_id: level_str
-            });
-        }
-        //更新索引
+        const result = buildScoreList(coll, StatisticsBoardRef.value)
         updateIndex(result)
-        if (result.length > 0) {
-            supportPcCount.value = result[0].score.play_count !== undefined && result[0].score.play_count !== null
-        } else {
-            supportPcCount.value = false;
-        }
-        const playCountIndex = OrderBadges.value.findIndex(o => o.value === "play_count");
-        if (supportPcCount.value && playCountIndex === -1) {
-            OrderBadges.value.push({ label: "游玩次数", value: "play_count", status_index: 0 });
-        } else if (!supportPcCount.value && playCountIndex !== -1) {
-            OrderBadges.value.splice(playCountIndex, 1);
-        }
+        supportPcCount.value = result.length > 0
+            ? result[0].score.play_count !== undefined && result[0].score.play_count !== null
+            : false
+        syncOrderBadges(supportPcCount.value)
     }
     isLoadingPage.value = false
 }
@@ -446,9 +450,6 @@ const ContextMenuTarget = ref()
 const ContextMenuTargetScoreId = ref("")
 const onContextMenu = (e: Event, score_id: string) => {
     const target = (e.target as HTMLElement).closest('[data-component="ScoreCard"]')
-
-    console.log("score_id", score_id);
-
     ContextMenuTargetScoreId.value = score_id
     ContextMenuTarget.value = target;
 }

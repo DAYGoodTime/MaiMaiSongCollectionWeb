@@ -10,7 +10,6 @@ import { fcMapping, fsMapping, rateMapping } from "@/api/usagi";
 import { ref } from "vue";
 import type { LXNSScore } from "@/types/lxns";
 import type { UsagiScore } from "@/types/usagi";
-import { useScores } from "@/store/datasources/scores";
 import type { TagOption } from "@/components/TagInputCombobox.vue";
 import { rankingList } from "./urlUtils";
 import { isWebEnv } from "@/api/base";

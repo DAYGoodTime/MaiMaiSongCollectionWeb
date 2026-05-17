@@ -86,7 +86,7 @@ import { Label } from '@/components/shadcn/ui/label';
 import type { MaiMaiSong } from '@/types/songs';
 import type { TagOption } from '@/components/TagInputCombobox.vue';
 import { computed, ref } from 'vue';
-import { LEVEL_MATCH_PATTEN, LEVEL_RANGE_MATCH_PATTEN } from '@/utils/StrUtil';
+import { getLevelClass, LEVEL_MATCH_PATTEN, LEVEL_RANGE_MATCH_PATTEN } from '@/utils/StrUtil';
 import type { FilterProps } from '@/types/component';
 import { storeToRefs } from 'pinia';
 import { useCollectionStore } from '@/store/collections';
@@ -119,18 +119,7 @@ const hasTargetScoreTag = computed(() => {
     return hasLevelTag.value || hasAchievementTag.value
 })
 const selectedCollection = ref<string>("")
-const getLevelClass = (level_index: number) => {
-    const base = `rounded-full w-4 h-4`;
-    switch (level_index) {
-        case 0: return `${base} bg-BASIC`;
-        case 1: return `${base} bg-ADVANCED`;
-        case 2: return `${base} bg-EXPERT`;
-        case 3: return `${base} bg-MASTER`;
-        case 4: return `${base} bg-REMASTER`;
-        case -1: return `${base} bg-UTAGE`;
-        default: return base
-    }
-}
+
 const Importing = ref(false)
 const ScoreStore = useScores();
 const handelImport = () => {
