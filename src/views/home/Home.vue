@@ -65,12 +65,12 @@ const DiffInfo = ref<{
   tags: GroupInfo[]
 } | null>(null)
 const handelScoreInfoMenu = (song: MaiMaiSong, diff: SongDifficultyAny) => {
-  if (DiffInfo.value) {
-    DiffInfo.value.tags = getDiffTag(song.title, diff.level_index, diff.type);
-    DiffInfo.value.song = song;
-    DiffInfo.value.diff = diff;
-    DiffInfoMenuModal.value = true
+  DiffInfo.value = {
+    tags: getDiffTag(song.title, diff.level_index, diff.type),
+    song,
+    diff,
   }
+  DiffInfoMenuModal.value = true
 }
 </script>
 <template>
@@ -149,7 +149,7 @@ const handelScoreInfoMenu = (song: MaiMaiSong, diff: SongDifficultyAny) => {
           </Accordion>
         </CardContent>
       </Card>
-      <div v-if="selectedSong && DiffInfo">
+      <div v-if="selectedSong">
         <SongInfo :song="selectedSong" v-model:selected-type="selectedType" />
         <div class="space-y-4">
           <ScoreInfo :difficulties="getScoreList" :song="selectedSong" @menu="handelScoreInfoMenu" />
@@ -165,8 +165,8 @@ const handelScoreInfoMenu = (song: MaiMaiSong, diff: SongDifficultyAny) => {
           <p>{{ DiffInfo?.song.title }}</p>
         </DialogTitle>
       </DialogHeader>
-      <SongInfo :song="DiffInfo.song" :infoOnly="true" />
-      <DiffTagInfo :tag-info="DiffInfo.tags"></DiffTagInfo>
+      <SongInfo v-if="DiffInfo?.song" :song="DiffInfo.song" :infoOnly="true" />
+      <DiffTagInfo :tag-info="DiffInfo?.tags"></DiffTagInfo>
     </DialogContent>
   </Dialog>
 </template>

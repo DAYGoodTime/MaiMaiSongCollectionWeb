@@ -35,11 +35,11 @@ import { Badge } from '@/components/shadcn/ui/badge';
 import { computed } from 'vue';
 
 const props = defineProps<{
-    tagInfo: GroupInfo[]
+    tagInfo?: GroupInfo[]
 }>()
 
 const isEmpty = computed(() => {
-    return props.tagInfo.every(g => g.tags.length === 0)
+    return props.tagInfo != null && props.tagInfo.every(g => g.tags.length === 0)
 })
 const handelTagDescription = (text: string, event: MouseEvent) => {
     showTooltip(event.target as HTMLElement, text);
