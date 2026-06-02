@@ -1,7 +1,7 @@
 import type { ScoreExtend } from "@/types/songs";
 import FlexSearch, { Document } from "flexsearch";
 import { pinyin } from "pinyin-pro";
-import { getNoteDesigners } from "./StrUtil";
+import { getNoteDesignerWithId } from "./StrUtil";
 
 let scoreIndex: Document<ScoreIndexDoc>;
 let scoreMap = new Map<string, ScoreExtend>();
@@ -40,7 +40,7 @@ const init = (scoreList: ScoreExtend[]) => {
                 { field: 'aliases', priority: 8 },
                 { field: 'aliasesPinYin', priority: 7 },
                 { field: 'artist', priority: 5 },
-                { field: 'noteDesigners', priority: 1 }
+                { field: 'noteDesigners', priority: 3 }
             ],
             store: ["score_obj"],//"title", "titlePinYin", "aliases", "aliasesPinYin", "artist", "noteDesigners" for debugging
 
@@ -66,7 +66,7 @@ const init = (scoreList: ScoreExtend[]) => {
             artist: song.artist,
             aliases: song.aliases ?? [""],
             aliasesPinYin: [...aliasesPinYinSet],
-            noteDesigners: getNoteDesigners(song),
+            noteDesigners: getNoteDesignerWithId(song, score_id),
             score_obj: item
         };
         scoreIndex.add(indexedDoc);

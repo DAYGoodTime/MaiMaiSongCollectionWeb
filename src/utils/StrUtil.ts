@@ -5,7 +5,6 @@ import { getSongDiffByScoreEx } from "./functionUtil";
 import { getImageAssertUrl } from "./urlUtils";
 import versionList from '@/assets/data/versions.json' with { type: 'json' };
 
-
 export const LEVEL_MATCH_PATTEN =
   /^[绿黄红紫白](?:(?:1[0-5]|[1-9])\+|(?:1[0-5]|[1-9])(?:\.\d)?)$/;
 export const LEVEL_RANGE_MATCH_PATTEN = /^(?:15(?:\.0)?|1[0-4](?:\.\d)?|[1-9](?:\.\d)?)-(?:15(?:\.0)?|1[0-4](?:\.\d)?|[1-9](?:\.\d)?)$/;
@@ -101,35 +100,49 @@ export const getSongDiffUniId = (song: MaiMaiSong, score: Score): SongUniId => {
 }
 export const toPy = (str: string) => pinyin(str, { toneType: 'none', separator: '', v: true })
 const commonNoteDesignerAliasMapping = new Map([
-  ["サファ太", ["沙发太", toPy("沙发太")]],
-  ["ロシェ@ペンギン", ["企鹅", toPy("企鹅")]],
-  ["はっぴー", ["哈皮", toPy("哈皮"), "狗", toPy("狗")]],
-  ["翠楼屋", ["脆脆薯条", toPy("脆脆薯条"), toPy("翠楼屋")]],
-  ["小鳥遊さん", ["小鸟游", toPy("小鸟游")]],
-  ["mai-Star", ["maistar", toPy("麦思达"), "麦思达"]],
-  ["ニャイン", ["二大爷", toPy("二大爷")]],
-  ["玉子豆腐", [toPy("玉子豆腐")]],
-  ["鳩ホルダー", ["九鸟", toPy("九鸟")]],
-  ["Luxizhel", ["泸溪河", toPy("泸溪河")]],
-  ["華火職人", ["华火职人", toPy("华火职人")]],
-  ["チャン@DP皆伝", ["DP", "DP" + toPy("皆传")]],
-  ["ぴちネコ", ["桃子猫", toPy("桃子猫")]],
-  ["隅田川星人", [toPy("隅田川星人")]],
+  ["サファ太", ["サファ太", "沙发太", toPy("沙发太")]],
+  ["ロシェ@ペンギン", ["ロシェ@ペンギン", "企鹅", toPy("企鹅")]],
+  ["はっぴー", ["はっぴー", "哈皮", "原田ひろゆき", toPy("哈皮"), "狗", toPy("狗")]],
+  ["翠楼屋", ["翠楼屋", "脆脆薯条", toPy("脆脆薯条"), toPy("翠楼屋")]],
+  ["小鳥遊さん", ["小鳥遊さん", "小鸟游", toPy("小鸟游")]],
+  ["mai-Star", ["mai-Star", "maistar", toPy("麦思达"), "麦思达"]],
+  ["ニャイン", ["ニャイン", "二大爷", toPy("二大爷")]],
+  ["玉子豆腐", ["玉子豆腐", toPy("玉子豆腐")]],
+  ["鳩ホルダー", ["鳩ホルダー", "九鸟", toPy("九鸟")]],
+  ["Luxizhel", ["Luxizhel", "泸溪河", toPy("泸溪河")]],
+  ["華火職人", ["華火職人", "华火职人", toPy("华火职人")]],
+  ["チャン@DP皆伝", ["チャン@DP皆伝", "DP皆传", toPy("皆传")]],
+  ["ぴちネコ", ["ぴちネコ", "桃子猫", toPy("桃子猫")]],
+  ["隅田川星人", ["隅田川星人", toPy("隅田川星人")]],
+  ["譜面-100号", ["譜面-100号", toPy("铺面100号"), "铺面100号", "100号"]],
 ])
-
-export function getNoteDesigners(song: MaiMaiSong) {
-  const diffs = [...song.difficulties.dx, ...song.difficulties.standard]
-  const list = new Set<string>();
-  diffs.forEach(d => {
-    if (d.note_designer && d.note_designer !== '-') {
-      list.add(d.note_designer.toLocaleLowerCase());
-      if (commonNoteDesignerAliasMapping.has(d.note_designer)) {
-        const alias = commonNoteDesignerAliasMapping.get(d.note_designer) as string[]
-        alias.forEach(a => list.add(a))
-      }
+type SongTypeWithUtage = "standard" | "dx" | "utage"
+const MAX_INDEX_LENGTH = 3;
+const getNoteDesignerNames = (noteDesigner: string) => {
+  if (!noteDesigner || noteDesigner === "-") return [];
+  return commonNoteDesignerAliasMapping.get(noteDesigner) ?? [noteDesigner];
+};
+export function getNoteDesignerWithId(song: MaiMaiSong, score_id: string) {
+  try {
+    const [_diff_id_str, song_type, level_index_str] = score_id.split("_");
+    const score_diff = song.difficulties[song_type as SongTypeWithUtage][Number(level_index_str)];
+    if (score_diff && song_type !== "utage") {
+      return getNoteDesignerNames(score_diff.note_designer) ?? []
     }
-  })
-  return [...list].reverse();
+  } catch (e) {
+    console.warn("error in get note designer", score_id, song.difficulties);
+  }
+  return []
+}
+export function getNoteDesigners(song: MaiMaiSong) {
+  const result: string[][] = Array.from({ length: MAX_INDEX_LENGTH }, () => []);
+  for (let i = 2; i <= MAX_INDEX_LENGTH + 1; i++) {
+    for (const difficulties of [song.difficulties.dx, song.difficulties.standard]) {
+      const noteDesigner = difficulties[i]?.note_designer;
+      result[i - 2].push(...getNoteDesignerNames(noteDesigner));
+    }
+  }
+  return result;
 }
 export function getNoteDesigner(diff?: SongDifficulty) {
   if (!diff) return ""

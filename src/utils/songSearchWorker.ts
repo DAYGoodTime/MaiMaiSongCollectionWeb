@@ -12,7 +12,9 @@ interface SongIndexDoc {
     aliases: string[]
     aliasesPinYin: string[]
     artist: string
-    noteDesigners: string[],
+    noteDesigner_2?: string[],
+    noteDesigner_3?: string[],
+    noteDesigner_4?: string[],
     song_obj: MaiMaiSong
 }
 
@@ -41,7 +43,7 @@ self.onmessage = ({ data }) => {
         default: console.warn(`scoreWorkers:未知的指令 ${type}`);
     }
 }
-
+const MAX_DIFF_LENGTH = 4
 const init = (songMap: Record<number, MaiMaiSong>, limit: number) => {
     if (!isNaN(limit)) searchLimit = Number(limit)
     SONG_MAP = songMap;
@@ -52,6 +54,11 @@ const init = (songMap: Record<number, MaiMaiSong>, limit: number) => {
     }
     ready = false;
     if (songIndex) songIndex.clear();
+    //make diff noteDesigner field
+    let noteDesignersFields = []
+    for (let i = MAX_DIFF_LENGTH; i >= 2; i--) {
+        noteDesignersFields.push({ field: `noteDesigner_${i}`, priority: i + 1 })
+    }
     songIndex = new FlexSearch.Document({
         document: {
             id: 'id',
@@ -61,7 +68,7 @@ const init = (songMap: Record<number, MaiMaiSong>, limit: number) => {
                 { field: 'aliases', priority: 8 },
                 { field: 'aliasesPinYin', priority: 7 },
                 { field: 'artist', priority: 6 },
-                { field: 'noteDesigners', priority: 5 }
+                ...noteDesignersFields
             ],
             store: ["song_obj"]//"title", "titlePinYin", "aliases", "aliasesPinYin", "artist", "noteDesigners" for debugging
         },
@@ -77,6 +84,11 @@ const init = (songMap: Record<number, MaiMaiSong>, limit: number) => {
                 if (py.length > 0) aliasesPYSet.add(py)
             })
         }
+        let noteDesignersDocs: Record<string, string[]> = {}
+        for (let i = 0; i < MAX_DIFF_LENGTH - 1; i++) {
+            let key = `noteDesigner_${i + 2}`
+            noteDesignersDocs[key] = noteDesigners[i]
+        }
         const indexedDoc = {
             id: song.id,
             title: song.title.toLocaleLowerCase(),
@@ -84,7 +96,7 @@ const init = (songMap: Record<number, MaiMaiSong>, limit: number) => {
             artist: song.artist,
             aliases: song.aliases ?? [],
             aliasesPinYin: [...aliasesPYSet],
-            noteDesigners,
+            ...noteDesignersDocs,
             song_obj: song
         };
         songIndex.add(indexedDoc)
