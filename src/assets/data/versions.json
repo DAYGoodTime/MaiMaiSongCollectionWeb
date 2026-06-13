@@ -138,5 +138,12 @@
         "label_full": "舞萌DX2025",
         "alias": "镜 2025 PRISM",
         "version_id": 25000
+    },
+    {
+        "icon": "",
+        "id": "舞萌DX2026",
+        "label_full": "舞萌DX2026",
+        "alias": "彩 2026 PRISMPLUS",
+        "version_id": 25500
     }
 ]
