@@ -1,4 +1,5 @@
 import type { Score } from "./datasource";
+import type { FishChartStat } from "./divingfish";
 
 type LevelLabelOrValue = number | string
 export type LevelFields<LevelIndex extends string[] = []> =
@@ -58,6 +59,7 @@ export interface ScoreExtend {
   score: Score;
   song: MaiMaiSong;
   score_id: string
+  chart_data?: FishChartStat
 }
 export type SongType = "standard" | "dx" | "utage"
 export type SongDifficultyAny = SongDifficulty | SongDifficultyUtage

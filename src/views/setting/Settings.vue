@@ -96,7 +96,8 @@
             </Card>
             <!-- 标签统计 -->
             <DifficultyCard />
-
+            <!-- 水鱼拟合数据 -->
+            <FishChartStats />
             <div class="text-center text-sm text-muted-foreground pt-4">
                 版本: {{ getProjectVersion() }}
                 <span v-if="newVersion">{{ `(最新版本:${newVersion})` }}</span>
@@ -177,6 +178,7 @@ import ActionConfirm from '@/components/ActionConfirm.vue'
 import { useSongStore } from '@/store/datasources/song'
 import { checkVersion } from '@/api/other'
 import DifficultyCard from './DifficultyCard.vue'
+import FishChartStats from './FishChartStats.vue'
 
 // 响应式数据
 const showSetNameDialog = ref(false)

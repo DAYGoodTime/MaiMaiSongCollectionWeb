@@ -1,4 +1,4 @@
-import type { FishRecordResponse } from "@/types/divingfish";
+import type { FishChartStatsResponse, FishRecordResponse } from "@/types/divingfish";
 import apiRouterClient from "./router";
 import { createApiClient, isWebEnv } from "./base";
 
@@ -24,6 +24,9 @@ const DivingFishService = {
             return apiRouterClient(token).get<FishRecordResponse>("maimai/fish")
         }
         return fishApiClient(token).get<FishRecordResponse>(`player/records`);
+    },
+    queryFishChartData: (): Promise<FishChartStatsResponse> => {
+        return fishApiClient("").get<FishChartStatsResponse>(`chart_stats`);
     },
 };
 

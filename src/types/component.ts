@@ -31,8 +31,10 @@ export type AdvanceFilterEmits = {
     (e: 'update:modelValue', value: AdvanceFilterProps['modelValue']): void;
 };
 //Order
+export type OrderField = "achievement" | "dx_rating" | "play_count" | "level" | "dx_score" | "chart_level_stat" | "chart_level_diff"
 export interface OrderBadge {
     label: string,
-    value: string,
-    status_index: number
+    value: OrderField,
+    status_index: number,
+    isSupport: () => boolean
 }

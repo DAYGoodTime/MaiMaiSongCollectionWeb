@@ -184,6 +184,12 @@ export function getDxScoreRadio(ex: ScoreExtend) {
   if (radio > 1) return 0;
   return radio;
 }
+export function getChartLevel(ex: ScoreExtend): number {
+  if (ex.chart_data) {
+    return Number(ex.chart_data.fit_diff.toFixed(3))
+  }
+  return 0;
+}
 export function isValidAchievementRange(tag: string): boolean {
   if (!tag || typeof tag !== 'string' || tag.length === 0) return false;
   const matched = tag.match(BASE_NUMBER_RANGE_PATTEN);

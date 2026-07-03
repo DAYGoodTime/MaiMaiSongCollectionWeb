@@ -54,7 +54,7 @@
 
 <script setup lang="tsx">
 import type { MaiMaiSong, ScoreExtend } from '@/types/songs';
-import { conventFcFsStr, getDxScoreRadio, getTotalDxScore } from '@/utils/StrUtil';
+import { conventFcFsStr, getChartLevel, getDxScoreRadio, getTotalDxScore } from '@/utils/StrUtil';
 import { getDxScoreIcon, getFCFSIcon } from '@/utils/urlUtils';
 import { computed, useTemplateRef, type VNode } from 'vue';
 import { getAchievementIcon, getImageAssertUrl } from '@/utils/urlUtils';
@@ -63,6 +63,7 @@ import { formatAchievement, formatDxRating, formatLevelValue, getNoteDesigner } 
 import { getSongDiffByScoreEx } from '@/utils/functionUtil';
 import { useScores } from '@/store/datasources/scores';
 import { showTooltip, hideTooltip } from '@/lib/useTooltip';
+import { useAppStore } from '@/store/appStore';
 
 const props = defineProps<{
     score: ScoreExtend
@@ -72,6 +73,7 @@ const ScoreCardRef = useTemplateRef('ScoreCardRef')
 const DxScoreIconRef = useTemplateRef('DxScoreIconRef')
 const CardDetailRef = useTemplateRef('CardDetailRef')
 const ScoreStore = useScores();
+const appStore = useAppStore()
 
 const handleTitleEnter = (title: string) => {
     const copyFn = () => emit('copy', title, '已成功复制歌曲名到剪切板中');
@@ -108,13 +110,26 @@ const scoreTitle = computed(() => {
         return `[${SongDiff.value.kanji}] ${SongDiff.value.is_buddy ? '[双]' : ''} ${props.score.song.title}`
     } else return props.score.song.title
 })
+const formatChartLevelDiff = (value: number) => {
+    if (!Number.isFinite(value)) return '';
+    if (value === 0) return '0';
+
+    return `${value > 0 ? '+' : ''}${Math.abs(value) < 0.0001 ? Math.abs(value).toExponential(2) : Number(value.toPrecision(4)).toString()}`
+}
 const details = computed(() => {
     const diff = SongDiff.value
     const levelValue = diff ? formatLevelValue(diff.level_value) : '';
     const palyCount = ScoreStore.isSupportPlayCount ? `pc:${props.score.score.play_count}` : ''
     let baseDetails = `#${ScoreStore.showCurrentStyleId(props.score.song.id, props.score.score.type)} ${levelValue} → ${formatDxRating(props.score.score.dx_rating)} ${palyCount} `;
     if (props.score.score.type === "utage") {
-        baseDetails = `#${props.score.score.diff_id} ${props.score.score.level} ${palyCount}`;
+        baseDetails = `#${props.score.score.diff_id} ${props.score.score.level_value} ${palyCount}`;
+    }
+    const chart_level = getChartLevel(props.score)
+    if (appStore.SelectedCollOrder.value === 'chart_level_stat') {
+        baseDetails = `#${props.score.score.diff_id} ${chart_level}?(${levelValue}) ${palyCount}`;
+    }
+    if (appStore.SelectedCollOrder.value === 'chart_level_diff') {
+        baseDetails = `#${props.score.score.diff_id} ${formatChartLevelDiff(chart_level - Number(levelValue))}(${levelValue} → ${chart_level})`;
     }
     return baseDetails;
 });

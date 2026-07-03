@@ -2,7 +2,7 @@
     <AdvanceFeature v-model:open="showAdvanced" @on-score-list-changed="initScoreList" />
     <DefineSortingTemplate>
         <Badge class="flex justify-between w-28 h-8 cursor-pointer dark:bg-stone-400"
-            v-for="(order, index) in OrderBadges" @click="handleOrderStatus(order, index)">
+            v-for="(order, index) in AvailableOrders" @click="handleOrderStatus(order)">
             {{ order.label }}
             <ChevronDown v-if="order.status_index === 1" />
             <ChevronUp v-if="order.status_index === 2" />
@@ -206,7 +206,7 @@ import { Search, X, ChevronDown, ChevronUp, PanelLeft, CircleOff, RotateCcw } fr
 import { Input } from '@/components/shadcn/ui/input'
 import { useCollectionStore } from '@/store/collections';
 import type { MaiMaiSong, ScoreExtend, SongType } from '@/types/songs';
-import { createUnplayedScore, toLXNSStyleId, useCopyHelper, useRouterHelper } from '@/utils/functionUtil';
+import { createUnplayedScore, toFishStyleId, toLXNSStyleId, useCopyHelper, useRouterHelper } from '@/utils/functionUtil';
 import { computed, onMounted, ref, toRaw, useTemplateRef, watch } from 'vue';
 import { toast } from 'vue-sonner';
 
@@ -253,6 +253,8 @@ import { useScoreSearchWorker } from '@/utils/workerHelper';
 import { type GroupInfo } from '@/types/tag';
 import { getDiffTag } from '@/utils/tagUtils';
 import DiffTagInfo from '@/components/DiffTagInfo.vue';
+import { useChartData } from '@/store/chartStats.ts';
+import { useAppStore } from '@/store/appStore.ts';
 
 
 const { route, backHome } = useRouterHelper()
@@ -277,15 +279,12 @@ const isLoadingPage = ref(true)
 //Store
 const SongStore = useSongStore()
 const ScoreStore = useScores()
-
-//排序
-const OrderBadges = ref<OrderBadge[]>([
-    { label: "达成率", value: "achievement", status_index: 2 },
-    { label: "Dx Rating", value: "dx_rating", status_index: 0 },
-    { label: "定数", value: "level", status_index: 0 },
-    { label: "dx分", value: "dx_score", status_index: 0 },
-])
-const selectedOrder = ref<OrderBadge>(OrderBadges.value[0])
+const ChartDataStore = useChartData();
+const appStore = useAppStore()
+const { SelectedCollOrder, OrderBadges } = storeToRefs(appStore)
+const AvailableOrders = computed(() => {
+    return OrderBadges.value.filter(o => o.isSupport())
+})
 
 //高级过滤
 const AdvanceFilterForm = ref<AdvanceFilterFilters>({
@@ -303,7 +302,7 @@ const AdvanceFilterForm = ref<AdvanceFilterFilters>({
 
 
 //helper
-const { searchResults, isLoading, updateIndex } = useScoreSearchWorker(searchValue, AdvanceFilterForm, selectedOrder)
+const { searchResults, isLoading, updateIndex } = useScoreSearchWorker(searchValue, AdvanceFilterForm, SelectedCollOrder)
 
 //handler
 const onSearch = useDebounceFn((val: string | number) => {
@@ -316,11 +315,11 @@ const onResetInput = () => {
 }
 
 
-const handleOrderStatus = (_order: OrderBadge, index: number) => {
-    OrderBadges.value.forEach((o, i) => {
-        o.status_index = (i === index) ? (o.status_index === 2 ? 1 : o.status_index + 1) : 0;
+const handleOrderStatus = (order: OrderBadge) => {
+    OrderBadges.value.forEach((o) => {
+        o.status_index = o.value === order.value ? (o.status_index === 2 ? 1 : 2) : 0;
     });
-    selectedOrder.value = OrderBadges.value[index];
+    SelectedCollOrder.value = order
 }
 
 const onFilterUpdate = (filter: AdvanceFilterFilters) => {
@@ -380,23 +379,25 @@ const buildScoreList = (
         } else {
             score = createUnplayedScore(score_id, song, song_type as SongType, level_index);
         }
+        const fish_song_id = toFishStyleId(diff_id, score.type)
         result.push({
             score: score,
             song: toRaw(song),
-            score_id: level_str
+            score_id: level_str,
+            chart_data: toRaw(ChartDataStore.getDiffChartData(fish_song_id, score.level_index))
         });
     }
     return result;
 }
 
-const syncOrderBadges = (hasPcCount: boolean): void => {
-    const playCountIndex = OrderBadges.value.findIndex(o => o.value === "play_count");
-    if (hasPcCount && playCountIndex === -1) {
-        OrderBadges.value.push({ label: "游玩次数", value: "play_count", status_index: 0 });
-    } else if (!hasPcCount && playCountIndex !== -1) {
-        OrderBadges.value.splice(playCountIndex, 1);
-    }
-}
+// const syncOrderBadges = (hasPcCount: boolean): void => {
+//     const playCountIndex = appStore.OrderBadges.findIndex(o => o.value === "play_count");
+//     if (hasPcCount && playCountIndex === -1) {
+//         appStore.OrderBadges.push({ label: "游玩次数", value: "play_count", status_index: 0 });
+//     } else if (!hasPcCount && playCountIndex !== -1) {
+//         appStore.OrderBadges.splice(playCountIndex, 1);
+//     }
+// }
 
 const initScoreList = () => {
     isLoadingPage.value = true;
@@ -413,10 +414,10 @@ const initScoreList = () => {
         StatisticsBoardRef.value.initStatistics();
         const result = buildScoreList(coll, StatisticsBoardRef.value)
         updateIndex(result)
-        supportPcCount.value = result.length > 0
-            ? result[0].score.play_count !== undefined && result[0].score.play_count !== null
-            : false
-        syncOrderBadges(supportPcCount.value)
+        // supportPcCount.value = result.length > 0
+        //     ? result[0].score.play_count !== undefined && result[0].score.play_count !== null
+        //     : false
+        // syncOrderBadges(supportPcCount.value)
     }
     isLoadingPage.value = false
 }

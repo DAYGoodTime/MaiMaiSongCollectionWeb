@@ -38,3 +38,34 @@ export interface FishRecordResponse {
     /**用户的成绩记录列表，以具体难度谱面为单位 */
     records: FishScore[]
 }
+export interface FishChartStatsResponse {
+    //每个歌曲的 key是song id
+    charts: Record<string, Array<FishChartStat>>
+    diff_data: Record<string, FishDiffData>
+}
+export interface FishChartStat {
+    //样板数量
+    cnt: number,
+    //显示等级
+    diff: string,
+    //拟合难度
+    fit_diff: number,
+    //平均达成率
+    avg: number,
+    //平均dx scores
+    avg_dx: number,
+    //达成率标准差
+    std_dev: number,
+    //评级分布（依次对应 d, c, b, bb, bbb, a, aa, aaa, s, sp, ss, ssp, sss, sssp）
+    dist: Array<number>,
+    //Full Combo 分布（依次对应 非、fc、fcp、ap、app）
+    fc_dist: Array<number>
+}
+export interface FishDiffData {
+    //平均达成率
+    achievements: number,
+    //评级分布（依次对应 d, c, b, bb, bbb, a, aa, aaa, s, sp, ss, ssp, sss, sssp）
+    dist: Array<number>,
+    //Full Combo 分布（依次对应 非、fc、fcp、ap、app）
+    fc_dist: Array<number>
+}

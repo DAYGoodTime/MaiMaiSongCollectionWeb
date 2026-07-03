@@ -1,10 +1,10 @@
-import type { AdvanceFilterFilters } from '@/types/component';
+import type { AdvanceFilterFilters, OrderField } from '@/types/component';
 import type { LevelFields, MaiMaiSong, ScoreExtend } from '@/types/songs';
 import ScoreSearchWorker from '@/utils/scoreSearchWorker?worker'
 import SongSearchWorker from '@/utils/songSearchWorker?worker'
 import { onUnmounted, ref, toRaw, toValue, watch, type MaybeRefOrGetter } from 'vue';
 import type { OrderBadge } from '@/types/component';
-import { BASE_NUMBER_RANGE_PATTEN, conventLevelPrefix, conventLevelTag, getDxScoreRadio, getLevelValue, isAllFinal, isValidAchievementRange, LEVEL_MATCH_PATTEN, LEVEL_RANGE_MATCH_PATTEN, RANKING_MATCH_PATTEN } from '@/utils/StrUtil';
+import { BASE_NUMBER_RANGE_PATTEN, conventLevelPrefix, conventLevelTag, getChartLevel, getDxScoreRadio, getLevelValue, isAllFinal, isValidAchievementRange, LEVEL_MATCH_PATTEN, LEVEL_RANGE_MATCH_PATTEN, RANKING_MATCH_PATTEN } from '@/utils/StrUtil';
 import type { SearchOptions } from '@/components/SongSearch.vue';
 import { rankingList } from './urlUtils';
 import versionList from '@/assets/data/versions.json' with { type: 'json' };
@@ -190,7 +190,6 @@ const advanceFilter = (filter: AdvanceFilterFilters, list: ScoreExtend[]): Score
     });
 }
 //sorting
-type SortField = 'achievement' | 'dx_rating' | 'level' | 'play_count' | 'dx_score';
 const sortByNumber = (a: number | undefined, b: number | undefined, isAscending: boolean) => {
     const result = (a ?? 0) - (b ?? 0);
     return isAscending ? -result : result;
@@ -198,14 +197,18 @@ const sortByNumber = (a: number | undefined, b: number | undefined, isAscending:
 const orderBy = (list: ScoreExtend[], orderBy: OrderBadge) => {
     const ordered = [...list];
     const isAscending = orderBy.status_index === 2; // 2 表示升序
-    const sortField = orderBy.value as SortField;
+    const sortField = orderBy.value as OrderField;
 
-    const sortFunctions = new Map<SortField, (a: ScoreExtend, b: ScoreExtend) => number>([
+    const sortFunctions = new Map<OrderField, (a: ScoreExtend, b: ScoreExtend) => number>([
         ['achievement', (a, b) => sortByNumber(a.score.achievements, b.score.achievements, isAscending)],
         ['dx_rating', (a, b) => sortByNumber(a.score.dx_rating, b.score.dx_rating, isAscending)],
         ['level', (a, b) => sortByNumber(getLevelValue(a), getLevelValue(b), isAscending)],
         ['play_count', (a, b) => sortByNumber(a.score.play_count, b.score.play_count, isAscending)],
-        ['dx_score', (a, b) => sortByNumber(getDxScoreRadio(a), getDxScoreRadio(b), isAscending)]
+        ['dx_score', (a, b) => sortByNumber(getDxScoreRadio(a), getDxScoreRadio(b), isAscending)],
+        ['chart_level_stat', (a, b) => sortByNumber(getChartLevel(a), getChartLevel(b), isAscending)],
+        ['chart_level_diff', (a, b) => sortByNumber(
+            Math.abs(getChartLevel(a) - getLevelValue(a)),
+            Math.abs(getChartLevel(b) - getLevelValue(b)), isAscending)]
     ]);
     const sortFunction = sortFunctions.get(sortField);
     if (sortFunction) {
