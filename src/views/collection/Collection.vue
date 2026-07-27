@@ -170,32 +170,20 @@
     </CollectionFloatingNav>
 
     <!-- Song Info Menu -->
-    <Dialog v-model:open="openSongInfoMenu">
-        <DialogContent class="lg:!max-w-fit">
-            <DialogHeader>
-                <DialogTitle>
-                    <p>歌曲信息</p>
-                    <p class="mt-4" v-if="SongInfoNoteDesigner">该难度谱师: <span
-                            class="text-zinc-500 font-semibold cursor-pointer hover:opacity-50"
-                            @click="handelCopy(SongInfoNoteDesigner, '已成功复制谱师到剪切板中')">{{ SongInfoNoteDesigner
-                            }}</span>
-                    </p>
-                </DialogTitle>
-            </DialogHeader>
-            <div class="max-h-[80dvh] overflow-y-auto">
-                <SongInfo v-if="SongInfoSong" :song="SongInfoSong" :infoOnly="true" />
-                <DiffTagInfo :tag-info="DiffTagInfos"></DiffTagInfo>
+    <Teleport to="body">
+        <Transition name="fade">
+            <div v-if="openSongInfoMenu"
+                class="fixed inset-0 z-50 bg-black/50 flex items-center justify-center p-4 overflow-hidden"
+                @click.self="openSongInfoMenu = false">
+                <div class="my-auto">
+                    <SongInfo v-if="CurrentSelectedInfo" :song="CurrentSelectedInfo.song"
+                        :initial-diff-index="CurrentSelectedInfo.score.level_index" />
+                </div>
             </div>
-        </DialogContent>
-    </Dialog>
+        </Transition>
+    </Teleport>
 </template>
 <script setup lang="ts">
-import {
-    Dialog,
-    DialogContent,
-    DialogHeader,
-    DialogTitle,
-} from '@/components/shadcn/ui/dialog'
 import { Button } from '@/components/shadcn/ui/button'
 import ScoreCard from '@/components/ScoreCard.vue';
 import SongInfo from '@/components/SongInfo.vue';
@@ -250,9 +238,6 @@ import { useSidebar } from '@/components/shadcn/ui/sidebar';
 import { useScores } from '@/store/datasources/scores';
 import { useSongStore } from '@/store/datasources/song';
 import { useScoreSearchWorker } from '@/utils/workerHelper';
-import { type GroupInfo } from '@/types/tag';
-import { getDiffTag } from '@/utils/tagUtils';
-import DiffTagInfo from '@/components/DiffTagInfo.vue';
 import { useChartData } from '@/store/chartStats.ts';
 import { useAppStore } from '@/store/appStore.ts';
 
@@ -436,15 +421,10 @@ onMounted(() => {
 const { handelCopy } = useCopyHelper()
 //menu
 const openSongInfoMenu = ref(false)
-const SongInfoNoteDesigner = ref("")
-const DiffTagInfos = ref<GroupInfo[]>([])
-const SongInfoSong = ref<MaiMaiSong | null>(null)
-const onOpenSongInfo = (_ref: HTMLDivElement | null, song: MaiMaiSong, noteDesigner: string, score: ScoreExtend) => {
+const CurrentSelectedInfo = ref<ScoreExtend | null>(null)
+const onOpenSongInfo = (_ref: HTMLDivElement | null, _song: MaiMaiSong, _noteDesigner: string, score: ScoreExtend) => {
     openSongInfoMenu.value = true
-    SongInfoNoteDesigner.value = noteDesigner;
-    SongInfoSong.value = song;
-    DiffTagInfos.value = getDiffTag(song.title, score.score.level_index, score.score.type)
-    console.log("debug-tag:", score, DiffTagInfos.value);
+    CurrentSelectedInfo.value = score
 }
 //context
 const ContextMenuTarget = ref()
@@ -461,4 +441,20 @@ const onContextMenuTrigger = (e: PointerEvent) => {
         e.preventDefault()
     }
 }
+
+// ESC 关闭
+import { onKeyStroke } from '@vueuse/core'
+onKeyStroke('Escape', () => { openSongInfoMenu.value = false })
 </script>
+
+<style scoped>
+.fade-enter-active,
+.fade-leave-active {
+    transition: opacity 0.2s;
+}
+
+.fade-enter-from,
+.fade-leave-to {
+    opacity: 0;
+}
+</style>

@@ -20,7 +20,6 @@ import TagInputCombobox from "@/components/TagInputCombobox.vue";
 import type { TagOption } from "@/components/TagInputCombobox.vue";
 import type { MaiMaiSong, SongDifficultyAny, SongType } from "@/types/songs";
 import SongInfo from "@/components/SongInfo.vue";
-import ScoreInfo from "@/components/ScoreInfo.vue";
 import ImportFromResult from "./ImportFromResult.vue";
 import { toast } from "vue-sonner";
 import { useAppStore } from "@/store/appStore";
@@ -42,7 +41,6 @@ const bpmOption = reactive({
 const tooltipsOpen = ref(false)
 
 const selectedType = ref<SongType>("standard")
-const getScoreList = computed(() => selectedSong.value?.difficulties[selectedType.value] ?? []);
 const SearchRef = useTemplateRef("search")
 const SEARCH_NUMBER_LIMIT = 300;
 const openImportDialog = ref(false)
@@ -150,10 +148,7 @@ const handelScoreInfoMenu = (song: MaiMaiSong, diff: SongDifficultyAny) => {
         </CardContent>
       </Card>
       <div v-if="selectedSong">
-        <SongInfo :song="selectedSong" v-model:selected-type="selectedType" />
-        <div class="space-y-4">
-          <ScoreInfo :difficulties="getScoreList" :song="selectedSong" @menu="handelScoreInfoMenu" />
-        </div>
+        <SongInfo :song="selectedSong" v-model:selected-type="selectedType" @menu="handelScoreInfoMenu" />
       </div>
     </div>
   </div>
