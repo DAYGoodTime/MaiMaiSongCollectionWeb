@@ -1,7 +1,6 @@
 <template>
-    <Card class="mb-6 shadow-lg backdrop-blur-md rounded-xl overflow-hidden transition-colors duration-300"
-        :style="cardStyle">
-        <CardContent class="p-4">
+    <Card class="mb-6 shadow-lg rounded-xl overflow-hidden transition-colors duration-300" :style="cardStyle">
+        <CardContent class="p-4" :style="cardContentStyle">
             <!-- 基本信息区 -->
             <div class="flex gap-4 mb-4">
                 <!-- 封面 -->
@@ -22,7 +21,8 @@
                             {{ song.title }}
                         </h2>
                     </div>
-                    <div class="rounded-lg bg-muted/50 px-3 py-2 space-y-1.5 text-sm">
+                    <div class="rounded-lg px-3 py-2 space-y-1.5 text-sm"
+                        :style="{ background: `linear-gradient(135deg, hsl(var(${currentDiffVar}) / 0.2) 0%, hsl(var(${currentDiffVar}) / 0.28) 100%)` }">
                         <div v-for="info in infoRows" :key="info.label" class="flex items-center gap-2">
                             <span class="w-1 h-3.5 rounded-full flex-shrink-0 transition-colors duration-300"
                                 :style="{ background: `hsl(var(${currentDiffVar}))` }"></span>
@@ -45,7 +45,7 @@
                         <template v-if="availableTypeList.length > 1">
                             <Button v-for="type in availableTypeList" :key="type.value" size="sm"
                                 :variant="isSelectedType(type.value) ? 'default' : 'outline'"
-                                @click="SelectedType = type.value">
+                                :style="typeButtonStyle(type.value)" @click="SelectedType = type.value">
                                 {{ type.label }}
                             </Button>
                         </template>
@@ -144,7 +144,8 @@
                     </div>
 
                     <!-- 玩家最佳成绩 -->
-                    <div class="rounded-xl border bg-card p-4">
+                    <div class="rounded-xl border p-4"
+                        :style="{ background: `linear-gradient(145deg, hsl(var(${currentDiffVar}) / 0.15) 0%, hsl(var(${currentDiffVar}) / 0.22) 100%)`, borderColor: `hsl(var(${currentDiffVar}) / 0.4)` }">
                         <div class="flex items-center justify-between mb-3">
                             <span class="text-base font-semibold text-muted-foreground">玩家最佳成绩</span>
                         </div>
@@ -204,14 +205,10 @@
                         <DropdownMenuTrigger as-child>
                             <Button size="lg" class="w-full text-white font-bold shadow-md transition-all"
                                 :style="gradientButtonStyle">
-                                更多信息
+                                更多操作
                             </Button>
                         </DropdownMenuTrigger>
                         <DropdownMenuContent align="center" class="w-48">
-                            <DropdownMenuItem @click="emit('menu', song, currentDiff.difficulty)">
-                                查看标签
-                            </DropdownMenuItem>
-                            <DropdownMenuSeparator />
                             <DropdownMenuSub>
                                 <DropdownMenuSubTrigger>添加进合集</DropdownMenuSubTrigger>
                                 <DropdownMenuSubContent>
@@ -352,6 +349,14 @@ const cardStyle = computed(() => ({
     borderWidth: '2px',
     borderStyle: 'solid',
     borderColor: `hsl(var(${currentDiffVar.value}) / 0.45)`,
+    background: `linear-gradient(135deg, hsl(var(${currentDiffVar.value}) / 0.25) 0%, hsl(var(${currentDiffVar.value}) / 0.35) 100%)`,
+}))
+
+const cardContentStyle = computed(() => ({
+    background: `
+        linear-gradient(160deg, hsl(var(${currentDiffVar.value}) / 0.06) 0%, hsl(var(${currentDiffVar.value}) / 0.12) 100%), 
+        hsl(var(--background))
+    `,
 }))
 
 const gradientButtonStyle = computed(() => ({
@@ -369,6 +374,15 @@ const diffTabStyle = (idx: number, diff: SongDifficulty) => {
             color: 'white',
         }
         : { borderColor: `hsl(var(${varName}) / 0.5)`, color: `hsl(var(${varName}))`, background: 'transparent' }
+}
+
+const typeButtonStyle = (type: TypeValue) => {
+    if (!isSelectedType(type)) return {}
+    return {
+        background: `linear-gradient(135deg, hsl(var(${currentDiffVar.value})) 0%, hsl(var(${currentDiffVar.value}) / 0.7) 100%)`,
+        borderColor: `hsl(var(${currentDiffVar.value}))`,
+        color: 'white',
+    }
 }
 
 const diffLabel = (diff: SongDifficulty) => {
