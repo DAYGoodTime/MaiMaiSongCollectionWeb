@@ -5,7 +5,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/shadcn/ui/dialog'
-import { reactive, ref, computed, useTemplateRef } from "vue";
+import { reactive, ref, useTemplateRef } from "vue";
 import { Filter, Search, CircleQuestionMark } from 'lucide-vue-next'
 import SongSearch from "@/components/SongSearch.vue";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/shadcn/ui/accordion'

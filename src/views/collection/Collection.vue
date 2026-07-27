@@ -173,9 +173,14 @@
     <Teleport to="body">
         <Transition name="fade">
             <div v-if="openSongInfoMenu"
-                class="fixed inset-0 z-50 bg-black/50 flex items-center justify-center p-4 overflow-hidden"
+                class="fixed inset-0 z-50 bg-black/50 flex items-start justify-center p-4 overflow-y-auto"
                 @click.self="openSongInfoMenu = false">
-                <div class="my-auto">
+                <div class="my-6 w-full max-w-2xl relative">
+                    <button
+                        class="absolute -top-3 -right-3 z-10 flex items-center justify-center w-7 h-7 rounded-full bg-background border shadow-md md:hidden"
+                        @click="openSongInfoMenu = false">
+                        <X class="size-4" />
+                    </button>
                     <SongInfo v-if="CurrentSelectedInfo" :song="CurrentSelectedInfo.song"
                         :initial-diff-index="CurrentSelectedInfo.score.level_index" />
                 </div>

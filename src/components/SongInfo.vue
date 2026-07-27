@@ -195,6 +195,10 @@
                         </Badge>
                     </div>
                 </div>
+                <div v-if="getCurrentDiffTags">
+                    <span class="text-muted-foreground text-xs">铺面标签:</span>
+                    <DiffTagInfo :tag-info="getCurrentDiffTags"></DiffTagInfo>
+                </div>
                 <div v-if="!infoOnly && currentDiff">
                     <DropdownMenu>
                         <DropdownMenuTrigger as-child>
@@ -233,7 +237,7 @@ import { Badge } from '@/components/shadcn/ui/badge'
 import CoverImage from '@/components/CoverImage.vue'
 import { SelectItem, SelectLabel, SelectTrigger, Select, SelectValue, SelectContent } from './shadcn/ui/select'
 import { DropdownMenu, DropdownMenuTrigger, DropdownMenuItem, DropdownMenuContent, DropdownMenuSeparator, DropdownMenuSub, DropdownMenuSubTrigger, DropdownMenuSubContent } from './shadcn/ui/dropdown-menu'
-
+import DiffTagInfo from '@/components/DiffTagInfo.vue';
 import type { MaiMaiSong, SongDifficulty, SongDifficultyAny, SongDifficultyUtage, SongType } from '@/types/songs'
 import { computed, onMounted, reactive, ref, watch, type Directive } from 'vue'
 import { useCopyHelper } from '@/utils/functionUtil'
@@ -250,6 +254,7 @@ import {
 } from '@/utils/StrUtil'
 import { getFCFSIcon, getAchievementIcon, getDxScoreIcon } from '@/utils/urlUtils'
 import { toFishStyleId } from '@/utils/functionUtil'
+import { getDiffTag } from '@/utils/tagUtils'
 
 const DIFF_NAMES = ['Basic', 'Advan', 'Expert', 'Master', 'Re:Mas']
 const DIFF_VARS = ['--BASIC', '--ADVANCED', '--EXPERT', '--MASTER', '--REMASTER']
@@ -322,6 +327,7 @@ const currentDiff = computed(() => {
             icon: dxScoreIcon ?? '',
         },
         playcount: score ? score.play_count : 0,
+        raw: difficulty
     }
 })
 
@@ -384,6 +390,11 @@ const infoRows = computed(() => {
 const handelDataSourceSwitch = (ds: AcceptableValue) => {
     ScoreStore.switchDataSource(ds as DataSourceType)
 }
+
+const getCurrentDiffTags = computed(() => {
+    if (!currentDiff.value) return []
+    return getDiffTag(song.title, currentDiff.value.raw.level_index, currentDiff.value.raw.type)
+})
 
 // collection
 const { pushScoreToCollection } = useCollectionStore()
