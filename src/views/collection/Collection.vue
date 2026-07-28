@@ -182,7 +182,8 @@
                         <X class="size-4" />
                     </button>
                     <SongInfo v-if="CurrentSelectedInfo" :song="CurrentSelectedInfo.song"
-                        :initial-diff-index="CurrentSelectedInfo.score.level_index" />
+                        :initial-diff-index="CurrentSelectedInfo.score.level_index"
+                        v-model:selected-type="CurrentSelectedInfo.score.type" />
                 </div>
             </div>
         </Transition>

@@ -242,7 +242,7 @@ import { SelectItem, SelectLabel, SelectTrigger, Select, SelectValue, SelectCont
 import { DropdownMenu, DropdownMenuTrigger, DropdownMenuItem, DropdownMenuContent, DropdownMenuSub, DropdownMenuSubTrigger, DropdownMenuSubContent } from './shadcn/ui/dropdown-menu'
 import DiffTagInfo from '@/components/DiffTagInfo.vue';
 import type { MaiMaiSong, SongDifficulty, SongDifficultyUtage, SongType } from '@/types/songs'
-import { computed, onMounted, reactive, ref, watch, type Directive } from 'vue'
+import { computed, reactive, ref, watch, type Directive } from 'vue'
 import { useCopyHelper } from '@/utils/functionUtil'
 import type { AcceptableValue } from 'reka-ui'
 import type { DataSourceType } from '@/types/datasource'
@@ -431,19 +431,17 @@ const init = () => {
     hasType.standard = Array.isArray(song.difficulties.standard) && song.difficulties.standard.length > 0
     hasType.dx = Array.isArray(song.difficulties.dx) && song.difficulties.dx.length > 0
     hasType.utage = Array.isArray(song.difficulties.utage) && song.difficulties.utage.length > 0
-    let selected = false
     if (hasType.standard) {
-        SelectedType.value = 'standard'; selected = true
         availableTypeList.value.push(typeList[0])
     }
     if (hasType.dx) {
-        if (!selected) SelectedType.value = 'dx'
-        selected = true
         availableTypeList.value.push(typeList[1])
     }
     if (hasType.utage) {
-        if (!selected) SelectedType.value = 'utage'
         availableTypeList.value.push(typeList[2])
+    }
+    if (!hasType[SelectedType.value]) {
+        SelectedType.value = availableTypeList.value[0]?.value ?? 'standard'
     }
     // ponytail: use prop or clamp to available range
     const targetIdx = Math.min(initialDiffIndex, currentDifficulties.value.length - 1)
@@ -455,7 +453,6 @@ watch(() => SelectedType.value, () => {
     const len = currentDifficulties.value.length
     if (selectedDiffIndex.value >= len) selectedDiffIndex.value = Math.max(0, len - 1)
 })
-onMounted(init)
 
 const { handelCopy } = useCopyHelper()
 
