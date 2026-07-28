@@ -2,7 +2,7 @@
     <AdvanceFeature v-model:open="showAdvanced" @on-score-list-changed="initScoreList" />
     <DefineSortingTemplate>
         <Badge class="flex justify-between w-28 h-8 cursor-pointer dark:bg-stone-400"
-            v-for="(order, index) in AvailableOrders" @click="handleOrderStatus(order)">
+            v-for="(order, _index) in AvailableOrders" @click="handleOrderStatus(order)">
             {{ order.label }}
             <ChevronDown v-if="order.status_index === 1" />
             <ChevronUp v-if="order.status_index === 2" />

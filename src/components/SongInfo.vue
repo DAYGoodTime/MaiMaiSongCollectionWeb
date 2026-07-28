@@ -233,7 +233,7 @@ import { Button } from '@/components/shadcn/ui/button'
 import { Badge } from '@/components/shadcn/ui/badge'
 import CoverImage from '@/components/CoverImage.vue'
 import { SelectItem, SelectLabel, SelectTrigger, Select, SelectValue, SelectContent } from './shadcn/ui/select'
-import { DropdownMenu, DropdownMenuTrigger, DropdownMenuItem, DropdownMenuContent, DropdownMenuSeparator, DropdownMenuSub, DropdownMenuSubTrigger, DropdownMenuSubContent } from './shadcn/ui/dropdown-menu'
+import { DropdownMenu, DropdownMenuTrigger, DropdownMenuItem, DropdownMenuContent, DropdownMenuSub, DropdownMenuSubTrigger, DropdownMenuSubContent } from './shadcn/ui/dropdown-menu'
 import DiffTagInfo from '@/components/DiffTagInfo.vue';
 import type { MaiMaiSong, SongDifficulty, SongDifficultyAny, SongDifficultyUtage, SongType } from '@/types/songs'
 import { computed, onMounted, reactive, ref, watch, type Directive } from 'vue'
@@ -263,11 +263,6 @@ const { song, infoOnly, initialDiffIndex = 3 } = defineProps<{
     infoOnly?: boolean,
     initialDiffIndex?: number
 }>()
-
-const emit = defineEmits<{
-    (e: 'menu', song: MaiMaiSong, diff: SongDifficultyAny): void
-}>()
-
 const SelectedType = defineModel<SongType>('selectedType', { default: 'standard' })
 const selectedDiffIndex = defineModel<number>('selectedDiffIndex', { default: 3 })
 
