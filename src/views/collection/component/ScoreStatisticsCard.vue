@@ -9,207 +9,54 @@
                             <span class="text-sm text-muted-foreground">显示详细统计信息</span>
                         </Button>
                     </SheetTrigger>
-                    <SheetContent class="pr-0">
-                        <SheetHeader>
-                            <SheetTitle>详情统计</SheetTitle>
+                    <SheetContent
+                        class="flex flex-col gap-0 p-0 w-full sm:max-w-md lg:max-w-3xl xl:max-w-4xl">
+                        <SheetHeader class="shrink-0 px-5 pt-5 pb-4 border-b">
+                            <SheetTitle class="text-left text-lg">详情统计</SheetTitle>
+                            <SheetDescription class="text-left">
+                                共 {{ statisticsBoard.total }} 张谱面的成绩分布
+                            </SheetDescription>
+                            <div class="grid grid-cols-2 gap-2 pt-2 text-left">
+                                <div class="rounded-lg border bg-muted/40 px-3 py-2">
+                                    <p class="text-[11px] uppercase tracking-wide text-muted-foreground">平均达成率</p>
+                                    <p class="text-lg font-bold tabular-nums">{{ getAvgAchievement }}%</p>
+                                </div>
+                                <div v-if="statisticsBoard.totalPlayCount > 0"
+                                    class="rounded-lg border bg-muted/40 px-3 py-2">
+                                    <p class="text-[11px] uppercase tracking-wide text-muted-foreground">总游玩次数</p>
+                                    <p class="text-lg font-bold tabular-nums">{{ statisticsBoard.totalPlayCount }}</p>
+                                </div>
+                            </div>
                         </SheetHeader>
-                        <ScrollArea class="flex flex-col gap-2 max-h-full pr-4">
-                            <div class="flex flex-col gap-2 my-4">
-                                <p class="font-bold" v-if="statisticsBoard.totalPlayCount > 0">总计游玩次数:<span>{{
-                                    statisticsBoard.totalPlayCount }}</span></p>
-                                <p class="font-bold">平均达成率:<span>{{ getAvgAchievement }}%</span></p>
-                                <p class="font-bold">达成率分布</p>
-                                <!-- PC Layout -->
-                                <template v-if="isLg">
-                                    <div class="grid grid-cols-2 gap-2">
-                                        <div class="flex-1 space-y-2">
-                                            <div class="flex justify-between"
-                                                v-for="ranking in statisticsBoard.rank_first" :key="ranking.alt">
-                                                <div class="flex items-center gap-2">
-                                                    <img :src="ranking.icon" :alt="ranking.alt" class="h-8" />
+                        <ScrollArea class="flex-1 min-h-0">
+                            <div class="grid gap-4 p-5 lg:grid-cols-2">
+                                <section v-for="group in statGroups" :key="group.title"
+                                    class="rounded-xl border bg-card p-4 shadow-sm">
+                                    <h3 class="mb-3 text-sm font-semibold tracking-wide text-muted-foreground">
+                                        {{ group.title }}
+                                    </h3>
+                                    <ul class="space-y-2.5">
+                                        <li v-for="item in group.items" :key="item.key" class="space-y-1">
+                                            <div class="flex items-center justify-between gap-3">
+                                                <div class="flex min-w-0 items-center gap-2">
+                                                    <img v-if="item.icon" :src="item.icon" :alt="item.key"
+                                                        :title="item.key" :class="group.iconClass" loading="lazy" />
+                                                    <span v-if="item.text"
+                                                        class="truncate text-sm font-medium">{{ item.text }}</span>
                                                 </div>
-                                                <div>
-                                                    <span class="text-xl font-bold">{{ ranking.current }}</span>
-                                                    <span class="text-sm text-muted-foreground">
+                                                <div class="shrink-0 tabular-nums">
+                                                    <span class="text-lg font-bold">{{ item.current }}</span>
+                                                    <span class="text-xs text-muted-foreground">
                                                         / {{ statisticsBoard.total }}</span>
                                                 </div>
                                             </div>
-                                        </div>
-                                        <div class="flex-1 space-y-2">
-                                            <div class="flex justify-between" v-for="ranking in statisticsBoard.apfc"
-                                                :key="ranking.alt">
-                                                <div class="flex items-center gap-2">
-                                                    <img :src="ranking.icon" :alt="ranking.alt" class="h-8" />
-                                                </div>
-                                                <div>
-                                                    <span class="text-xl font-bold">{{ ranking.current }}</span>
-                                                    <span class="text-sm text-muted-foreground">
-                                                        / {{ statisticsBoard.total }}</span>
-                                                </div>
+                                            <div class="h-1.5 overflow-hidden rounded-full bg-muted">
+                                                <div class="h-full rounded-full bg-primary transition-[width] duration-500"
+                                                    :style="{ width: percent(item.current) }" />
                                             </div>
-                                        </div>
-                                    </div>
-                                    <div class="mb-4">
-                                        <div class="grid grid-cols-2 gap-2 pt-2">
-                                            <div class="flex-1 space-y-2">
-                                                <div class="flex justify-between"
-                                                    v-for="ranking in statisticsBoard.rank_second" :key="ranking.alt">
-                                                    <div class="flex items-center gap-2">
-                                                        <img :src="ranking.icon" :alt="ranking.alt" class="h-8" />
-                                                    </div>
-                                                    <div>
-                                                        <span class="text-xl font-bold">{{ ranking.current }}</span>
-                                                        <span class="text-sm text-muted-foreground">
-                                                            / {{ statisticsBoard.total }}</span>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                            <div class="flex-1 space-y-2">
-                                                <div class="flex justify-between" v-for="ranking in statisticsBoard.fs"
-                                                    :key="ranking.alt">
-                                                    <div class="flex items-center gap-2">
-                                                        <img :src="ranking.icon" :alt="ranking.alt" class="h-8" />
-                                                    </div>
-                                                    <div>
-                                                        <span class="text-xl font-bold">{{ ranking.current }}</span>
-                                                        <span class="text-sm text-muted-foreground">
-                                                            / {{ statisticsBoard.total }}</span>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        </div>
-                                        <p class="font-bold my-2">dx分统计:</p>
-                                        <div class="grid grid-cols-2 gap-2 mt-2">
-                                            <div class="flex justify-between" v-for="dxScore in statisticsBoard.dxScore"
-                                                :key="dxScore.alt">
-                                                <div class="flex items-center gap-2">
-                                                    <img v-if="dxScore.icon" :src="dxScore.icon" :alt="dxScore.alt"
-                                                        class="w-auto h-4" :title="dxScore.alt" />
-                                                    <span v-else>{{ '0星(<85%)' }}</span>
-                                                </div>
-                                                <div>
-                                                    <span class="text-xl font-bold">{{ dxScore.current }}</span>
-                                                    <span class="text-sm text-muted-foreground">/ {{
-                                                        statisticsBoard.total
-                                                    }}</span>
-                                                </div>
-                                            </div>
-                                        </div>
-                                        <p class="font-bold my-2">谱师统计:</p>
-                                        <div class="grid grid-cols-2 gap-2 mt-2">
-                                            <div class="flex justify-between items-center"
-                                                v-for="arr in getOrderedNoteDesigner" :key="String(arr[0])">
-                                                <span class="text-sm">{{ arr[0] }}</span>
-                                                <div class="min-w-fit">
-                                                    <span class="text-xl font-bold">{{ arr[1] }}</span>
-                                                    <span class="text-sm text-muted-foreground">/ {{
-                                                        statisticsBoard.total }}</span>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </template>
-                                <!-- Mobile Layout -->
-                                <template v-else>
-                                    <div class="space-y-2">
-                                        <div class="flex justify-between" v-for="ranking in statisticsBoard.rank_first"
-                                            :key="ranking.alt">
-                                            <div class="flex items-center gap-2">
-                                                <img :src="ranking.icon" :alt="ranking.alt" class="h-8"
-                                                    loading="lazy" />
-                                            </div>
-                                            <div>
-                                                <span class="text-xl font-bold">{{ ranking.current }}</span>
-                                                <span class="text-sm text-muted-foreground">
-                                                    / {{ statisticsBoard.total }}</span>
-                                            </div>
-                                        </div>
-                                    </div>
-                                    <div class="space-y-4 mb-4">
-                                        <div class="space-y-2">
-                                            <div class="flex justify-between"
-                                                v-for="ranking in statisticsBoard.rank_second" :key="ranking.alt">
-                                                <div class="flex items-center gap-2">
-                                                    <img :src="ranking.icon" :alt="ranking.alt" class="h-8"
-                                                        loading="lazy" />
-                                                </div>
-                                                <div>
-                                                    <span class="text-xl font-bold">{{ ranking.current }}</span>
-                                                    <span class="text-sm text-muted-foreground">
-                                                        / {{ statisticsBoard.total }}</span>
-                                                </div>
-                                            </div>
-                                        </div>
-                                        <div class="grid grid-cols-2 gap-2 pt-2">
-                                            <div class="space-y-2">
-                                                <div class="flex justify-between"
-                                                    v-for="ranking in statisticsBoard.apfc" :key="ranking.alt">
-                                                    <div class="flex items-center gap-2">
-                                                        <img :src="ranking.icon" :alt="ranking.alt" class="h-8"
-                                                            loading="lazy" />
-                                                    </div>
-                                                    <div>
-                                                        <span class="text-xl font-bold">{{ ranking.current }}</span>
-                                                        <span class="text-sm text-muted-foreground">
-                                                            / {{ statisticsBoard.total }}</span>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                            <div class="space-y-2">
-                                                <div class="flex justify-between" v-for="ranking in statisticsBoard.fs"
-                                                    :key="ranking.alt">
-                                                    <div class="flex items-center gap-2">
-                                                        <img :src="ranking.icon" :alt="ranking.alt" class="h-8"
-                                                            loading="lazy" />
-                                                    </div>
-                                                    <div>
-                                                        <span class="text-xl font-bold">{{ ranking.current }}</span>
-                                                        <span class="text-sm text-muted-foreground">
-                                                            / {{ statisticsBoard.total }}</span>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        </div>
-                                        <p class="font-bold my-2">dx分统计:</p>
-                                        <div class="flex flex-col gap-2 mt-2">
-                                            <div class="flex justify-between" v-for="dxScore in statisticsBoard.dxScore"
-                                                :key="dxScore.alt">
-                                                <div class="flex items-center gap-2">
-                                                    <div v-if="dxScore.icon" class="flex">
-                                                        <img :src="dxScore.icon" :alt="dxScore.alt" class="w-auto h-4"
-                                                            :title="dxScore.alt" loading="lazy" />
-                                                        <span class="ml-1 text-sm font-semibold">
-                                                            ({{ `${(dxScore.require as number) * 100}%` }})</span>
-                                                    </div>
-                                                    <span v-else>
-                                                        0星
-                                                        <span class="ml-1 text-sm font-semibold">
-                                                            {{ '(<85%)' }}</span>
-                                                        </span>
-                                                </div>
-                                                <div>
-                                                    <span class="text-xl font-bold">{{ dxScore.current }}</span>
-                                                    <span class="text-sm text-muted-foreground">
-                                                        / {{ statisticsBoard.total }}</span>
-                                                </div>
-                                            </div>
-                                        </div>
-                                        <p class="font-bold">谱师统计:</p>
-                                        <div class="flex flex-col gap-2 mt-2">
-                                            <div class="flex justify-between" v-for="arr in getOrderedNoteDesigner"
-                                                :key="String(arr[0])">
-                                                <div class="flex items-center gap-2">
-                                                    <span class="text-sm truncate">{{ arr[0] }}</span>
-                                                </div>
-                                                <div>
-                                                    <span class="text-xl font-bold">{{ arr[1] }}</span>
-                                                    <span class="text-sm text-muted-foreground">
-                                                        / {{ statisticsBoard.total }}</span>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </template>
+                                        </li>
+                                    </ul>
+                                </section>
                             </div>
                         </ScrollArea>
                     </SheetContent>
@@ -264,7 +111,7 @@
 </template>
 <script setup lang="ts">
 import { Card, CardContent, CardTitle } from '@/components/shadcn/ui/card'
-import { Sheet, SheetContent, SheetTrigger, SheetTitle, SheetHeader } from '@/components/shadcn/ui/sheet';
+import { Sheet, SheetContent, SheetTrigger, SheetTitle, SheetHeader, SheetDescription } from '@/components/shadcn/ui/sheet';
 import { Button } from '@/components/shadcn/ui/button';
 import { ScrollArea } from '@/components/shadcn/ui/scroll-area';
 import { computed, reactive } from 'vue';
@@ -411,6 +258,34 @@ const getOrderedNoteDesigner = computed(() => {
     const sorted = list.sort((s1, s2) => (s2[1] as number) - (s1[1] as number));
     if (other[1] > 0) sorted.push(other)
     return sorted;
+})
+const percent = (current: number) =>
+    statisticsBoard.total === 0 ? '0%' : `${(current / statisticsBoard.total) * 100}%`
+
+// 详情面板统一的数据源，避免桌面/移动端重复模板
+const statGroups = computed(() => {
+    const toItems = (list: StatisticsValue[]) =>
+        list.map(s => ({ key: s.alt, icon: s.icon, text: s.icon ? '' : s.alt, current: s.current }))
+    return [
+        { title: '达成率分布', iconClass: 'h-7 w-auto', items: toItems([...statisticsBoard.rank_first, ...statisticsBoard.rank_second]) },
+        { title: 'AP / FC', iconClass: 'h-7 w-auto', items: toItems(statisticsBoard.apfc) },
+        { title: 'FS / SYNC', iconClass: 'h-7 w-auto', items: toItems(statisticsBoard.fs) },
+        {
+            title: 'DX 分统计', iconClass: 'h-4 w-auto',
+            items: statisticsBoard.dxScore.map(s => ({
+                key: s.alt,
+                icon: s.icon,
+                text: s.icon ? `(${(s.require as number) * 100}%)` : '0星 (<85%)',
+                current: s.current
+            }))
+        },
+        {
+            title: '谱师统计', iconClass: 'h-4 w-auto',
+            items: getOrderedNoteDesigner.value.map(arr => ({
+                key: String(arr[0]), icon: '', text: String(arr[0]), current: arr[1] as number
+            }))
+        }
+    ]
 })
 const getAvgAchievement = computed(() => {
     if (statisticsBoard.total === 0) return 0;
