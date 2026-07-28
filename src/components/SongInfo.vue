@@ -160,6 +160,12 @@
                             <div class="flex items-center gap-4 text-sm text-muted-foreground mb-2">
                                 <span>Rating: <span class="font-bold text-foreground text-base">{{
                                     formatDxRating(currentDiff.score.dx_rating) }}</span></span>
+                                <span class="flex items-center gap-1.5">DX分: <span
+                                        class="font-bold text-foreground text-base">{{ currentDiff.dxScore.current }}/{{
+                                            currentDiff.dxScore.total }}</span>
+                                    <img v-if="currentDiff.dxScore.available" class="w-auto h-4"
+                                        :src="currentDiff.dxScore.icon" loading="lazy" />
+                                </span>
                                 <span v-if="ScoreStore.isSupportPlayCount">PC: <span
                                         class="font-bold text-foreground text-base">{{ currentDiff.playcount
                                         }}</span></span>
@@ -235,7 +241,7 @@ import CoverImage from '@/components/CoverImage.vue'
 import { SelectItem, SelectLabel, SelectTrigger, Select, SelectValue, SelectContent } from './shadcn/ui/select'
 import { DropdownMenu, DropdownMenuTrigger, DropdownMenuItem, DropdownMenuContent, DropdownMenuSub, DropdownMenuSubTrigger, DropdownMenuSubContent } from './shadcn/ui/dropdown-menu'
 import DiffTagInfo from '@/components/DiffTagInfo.vue';
-import type { MaiMaiSong, SongDifficulty, SongDifficultyAny, SongDifficultyUtage, SongType } from '@/types/songs'
+import type { MaiMaiSong, SongDifficulty, SongDifficultyUtage, SongType } from '@/types/songs'
 import { computed, onMounted, reactive, ref, watch, type Directive } from 'vue'
 import { useCopyHelper } from '@/utils/functionUtil'
 import type { AcceptableValue } from 'reka-ui'
