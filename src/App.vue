@@ -10,6 +10,7 @@ import { useAppStore } from './store/appStore';
 import { useScores } from './store/datasources/scores';
 import { useSongStore } from './store/datasources/song';
 import GlobalTooltip from './components/GlobalTooltip.vue';
+import { useChartData } from './store/chartStats.ts';
 onMounted(async () => {
   checkUpdate();
   const userAgent = navigator.userAgent;
@@ -18,6 +19,7 @@ onMounted(async () => {
 const ScoreStore = useScores()
 const SongStore = useSongStore()
 const appStore = useAppStore()
+const ChartStore = useChartData()
 const checkUpdate = async () => {
   if (SongStore.checkSongUpdate()) {
     console.log("正在尝试更新歌曲源");
@@ -26,6 +28,9 @@ const checkUpdate = async () => {
   let needReSync = ScoreStore.checkScoreVersion()
   if (needReSync) {
     toast.warning("本地数据源结构与当前版本不一致,为了避免错误，我们对本地的数据源进行了重置，请根据需要重新进行获取。")
+  }
+  if (ChartStore.checkNeedUpdate()) {
+    ChartStore.updateData();
   }
 }
 

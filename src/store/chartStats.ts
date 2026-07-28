@@ -42,11 +42,12 @@ export const useChartData = defineStore("chart_stats", () => {
         try {
             const response = await DivingFishService.queryFishChartData();
             if (Object.keys(response.charts).length === 0) {
-                toast.error("水鱼api错误:返回为空")
+                toast.error("更新拟合数据失败,水鱼api错误:返回为空")
             }
             handelChartDataUpdate(response)
         } catch (error) {
-            toast.error("水鱼api错误")
+            toast.error("更新拟合数据失败,水鱼api错误")
+            console.error(error)
         }
     }
     const handelChartDataUpdate = (resp: FishChartStatsResponse) => {
@@ -65,12 +66,17 @@ export const useChartData = defineStore("chart_stats", () => {
             return void 0
         }
     }
+    const checkNeedUpdate = () => {
+        if (ChartStats.value.update_time === '从未获取') return true;
+        return new Date().getTime() - new Date(ChartStats.value.update_time).getTime() >= 24 * 3600 * 1000 // 1 day
+    }
     return {
         hasChartData,
         hasDiffData,
         updateData,
         ChartStats,
         DiffData,
-        getDiffChartData
+        getDiffChartData,
+        checkNeedUpdate
     }
 })
