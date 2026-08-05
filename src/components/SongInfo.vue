@@ -215,6 +215,9 @@
                             </Button>
                         </DropdownMenuTrigger>
                         <DropdownMenuContent align="center" class="w-48">
+                            <DropdownMenuItem @click="isAchievementCalculatorOpen = true">
+                                达成率计算
+                            </DropdownMenuItem>
                             <DropdownMenuSub>
                                 <DropdownMenuSubTrigger>添加进合集</DropdownMenuSubTrigger>
                                 <DropdownMenuSubContent>
@@ -226,6 +229,7 @@
                             </DropdownMenuSub>
                         </DropdownMenuContent>
                     </DropdownMenu>
+                    <ChartAchievementCalculator v-model:open="isAchievementCalculatorOpen" :difficulty="currentDiff.raw" />
                 </div>
             </div>
 
@@ -241,6 +245,7 @@ import CoverImage from '@/components/CoverImage.vue'
 import { SelectItem, SelectLabel, SelectTrigger, Select, SelectValue, SelectContent } from './shadcn/ui/select'
 import { DropdownMenu, DropdownMenuTrigger, DropdownMenuItem, DropdownMenuContent, DropdownMenuSub, DropdownMenuSubTrigger, DropdownMenuSubContent } from './shadcn/ui/dropdown-menu'
 import DiffTagInfo from '@/components/DiffTagInfo.vue';
+import ChartAchievementCalculator from '@/components/ChartAchievementCalculator.vue'
 import type { MaiMaiSong, SongDifficulty, SongDifficultyUtage, SongType } from '@/types/songs'
 import { computed, reactive, ref, watch, type Directive } from 'vue'
 import { useCopyHelper } from '@/utils/functionUtil'
@@ -271,6 +276,7 @@ const { song, infoOnly, initialDiffIndex = 3 } = defineProps<{
 }>()
 const SelectedType = defineModel<SongType>('selectedType', { default: 'standard' })
 const selectedDiffIndex = defineModel<number>('selectedDiffIndex', { default: 3 })
+const isAchievementCalculatorOpen = ref(false)
 
 const hasType = reactive({ standard: false, dx: false, utage: false })
 const typeList = [
