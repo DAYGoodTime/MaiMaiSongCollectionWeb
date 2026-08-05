@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { X } from "lucide-vue-next";
+import { X } from "@lucide/vue";
 import { useFilter, type AcceptableValue, type ListboxItemSelectEvent } from "reka-ui";
 import { computed, ref } from "vue";
 import {

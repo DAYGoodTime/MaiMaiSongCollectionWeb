@@ -1,21 +1,10 @@
 <template>
     <div>
-        <DataSourceCard
-            title="落雪数据源"
-            description="管理落雪成绩的同步和更新"
-            source-key="lxns"
-            :update-time="ScoreStore.LXNSScores.update_time"
-            :is-updating="DataSourceUpdating"
-            dialog-title="落雪数据源认证"
-            credential-label="API密钥"
-            credential-placeholder="个人 API 密钥"
-            ref="cardRef"
-            @request-update="handelLXNSDialog"
-            @update="handleDialogSubmit"
-            @export="ScoreStore.exportScores('lxns')"
-            @delete="ScoreStore.ClearDataSource('lxns')"
-            @set-default="ScoreStore.switchDataSource('lxns')"
-        >
+        <DataSourceCard title="落雪数据源" description="管理落雪成绩的同步和更新" source-key="lxns"
+            :update-time="ScoreStore.LXNSScores.update_time" :is-updating="DataSourceUpdating" dialog-title="落雪数据源认证"
+            credential-label="API密钥" credential-placeholder="个人 API 密钥" ref="cardRef" @request-update="handelLXNSDialog"
+            @update="handleDialogSubmit" @export="ScoreStore.exportScores('lxns')"
+            @delete="ScoreStore.ClearDataSource('lxns')" @set-default="ScoreStore.switchDataSource('lxns')">
             <template #icon>
                 <Snowflake class="h-5 w-5" />
             </template>
@@ -63,7 +52,7 @@
 
 <script setup lang="ts">
 import { ref } from 'vue';
-import { Snowflake } from 'lucide-vue-next'
+import { Snowflake } from '@lucide/vue'
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/shadcn/ui/dialog'
 import { Input } from '@/components/shadcn/ui/input'
 import { Label } from '@/components/shadcn/ui/label'

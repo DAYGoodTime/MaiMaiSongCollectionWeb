@@ -59,7 +59,7 @@ export default defineConfig({
           // 将 UI 库和图标库打包到一起
           if (
             id.includes("node_modules") &&
-            (id.includes("lucide-vue-next") ||
+            (id.includes("lucide") ||
               id.includes("radix-vue") ||
               id.includes("tailwind-variants"))
           ) {

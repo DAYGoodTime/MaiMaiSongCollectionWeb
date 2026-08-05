@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { computed, ref } from 'vue'
-import { X, Search, ChevronDown } from 'lucide-vue-next'
+import { X, Search, ChevronDown } from '@lucide/vue'
 import { Combobox, ComboboxAnchor, ComboboxEmpty, ComboboxGroup, ComboboxInput, ComboboxItem, ComboboxList, ComboboxTrigger } from '@/components/shadcn/ui/combobox'
 import { Badge } from '@/components/shadcn/ui/badge'
 import type { FilterProps } from '@/types/component';

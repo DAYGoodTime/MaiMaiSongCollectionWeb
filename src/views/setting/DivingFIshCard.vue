@@ -1,34 +1,23 @@
 <template>
-    <DataSourceCard
-        title="水鱼数据源"
-        description="管理水鱼成绩的同步和更新"
-        source-key="divingfish"
-        :update-time="ScoreStore.DivingFishScores.update_time"
-        :is-updating="DataSourceUpdating"
-        dialog-title="水鱼数据源认证"
-        credential-label="成绩导入Token"
-        credential-placeholder="请输入成绩导入Token"
-        ref="cardRef"
-        @request-update="handelUpdate"
-        @update="handleDialogSubmit"
-        @export="ScoreStore.exportScores('divingfish')"
-        @delete="ScoreStore.ClearDataSource('divingfish')"
-        @set-default="ScoreStore.switchDataSource('divingfish')"
-    >
+    <DataSourceCard title="水鱼数据源" description="管理水鱼成绩的同步和更新" source-key="divingfish"
+        :update-time="ScoreStore.DivingFishScores.update_time" :is-updating="DataSourceUpdating" dialog-title="水鱼数据源认证"
+        credential-label="成绩导入Token" credential-placeholder="请输入成绩导入Token" ref="cardRef" @request-update="handelUpdate"
+        @update="handleDialogSubmit" @export="ScoreStore.exportScores('divingfish')"
+        @delete="ScoreStore.ClearDataSource('divingfish')" @set-default="ScoreStore.switchDataSource('divingfish')">
         <template #icon>
             <Fish class="h-5 w-5" />
         </template>
         <template #dialog-description>
             请输入您的水鱼账号中的成绩导入Token以更新数据源。
-            可前往<a class="text-blue-600 hover:underline"
-                href="https://www.diving-fish.com/maimaidx/prober/#Profile" target="_blank">账号详情</a>获取。
+            可前往<a class="text-blue-600 hover:underline" href="https://www.diving-fish.com/maimaidx/prober/#Profile"
+                target="_blank">账号详情</a>获取。
         </template>
     </DataSourceCard>
 </template>
 
 <script setup lang="ts">
 import { ref } from 'vue'
-import { Fish } from 'lucide-vue-next'
+import { Fish } from '@lucide/vue'
 import { toast } from 'vue-sonner'
 import DivingFishService from '@/api/fish'
 import { HttpError } from '@/api/base'

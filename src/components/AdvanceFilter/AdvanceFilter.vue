@@ -128,7 +128,7 @@
 
 <script setup lang="tsx">
 import { reactive, useTemplateRef, watch } from 'vue'
-import { ChevronUp, ChevronDown, RotateCcw } from 'lucide-vue-next'
+import { ChevronUp, ChevronDown, RotateCcw } from '@lucide/vue'
 import { Label } from '@/components/shadcn/ui/label'
 import { Button } from '@/components/shadcn/ui/button'
 import { Checkbox } from '@/components/shadcn/ui/checkbox'

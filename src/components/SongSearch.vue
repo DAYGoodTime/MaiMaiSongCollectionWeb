@@ -54,7 +54,7 @@
   </Combobox>
 </template>
 <script setup lang="ts">
-import { Check, X, Search } from "lucide-vue-next";
+import { Check, X, Search } from "@lucide/vue";
 import { ref } from "vue";
 import {
   Combobox,

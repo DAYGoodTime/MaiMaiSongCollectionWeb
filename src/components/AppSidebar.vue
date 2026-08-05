@@ -7,7 +7,7 @@ import {
   MoreHorizontal,
   Sun,
   Moon,
-} from "lucide-vue-next";
+} from "@lucide/vue";
 import {
   Sidebar,
   SidebarContent,

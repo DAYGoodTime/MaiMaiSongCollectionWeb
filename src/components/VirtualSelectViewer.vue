@@ -7,7 +7,7 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from '@/components/shadcn/ui/popover'
-import { ChevronsUpDown } from 'lucide-vue-next'
+import { ChevronsUpDown } from '@lucide/vue'
 
 const props = withDefaults(defineProps<{
   items: T[]

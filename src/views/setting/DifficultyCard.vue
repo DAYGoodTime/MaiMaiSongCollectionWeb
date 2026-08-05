@@ -68,7 +68,7 @@
 <script setup lang="ts">
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/shadcn/ui/card'
 import { Button } from '@/components/shadcn/ui/button'
-import { RefreshCw, Tag } from 'lucide-vue-next'
+import { RefreshCw, Tag } from '@lucide/vue'
 import { analysisTag, type AdvanceFilterFiltersForTag } from '@/utils/tagUtils'
 import AdvanceFilter from '@/components/AdvanceFilter/AdvanceFilter.vue'
 import { useScores } from '@/store/datasources/scores'

@@ -26,7 +26,7 @@ import {
     navigationMenuTriggerStyle,
 } from "@/components/shadcn/ui/navigation-menu"
 import { useSidebar } from "@/components/shadcn/ui/sidebar";
-import { PanelLeft } from "lucide-vue-next";
+import { PanelLeft } from "@lucide/vue";
 import { cn } from "@/lib/utils";
 const { toggleSidebar } = useSidebar()
 </script>

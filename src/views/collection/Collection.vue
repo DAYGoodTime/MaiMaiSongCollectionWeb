@@ -196,7 +196,7 @@ import SongInfo from '@/components/SongInfo.vue';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/shadcn/ui/card'
 import { Popover, PopoverTrigger, PopoverContent } from '@/components/shadcn/ui/popover';
 import { Badge } from '@/components/shadcn/ui/badge';
-import { Search, X, ChevronDown, ChevronUp, PanelLeft, CircleOff, RotateCcw } from 'lucide-vue-next'
+import { Search, X, ChevronDown, ChevronUp, PanelLeft, CircleOff, RotateCcw } from '@lucide/vue'
 import { Input } from '@/components/shadcn/ui/input'
 import { useCollectionStore } from '@/store/collections';
 import type { MaiMaiSong, ScoreExtend, SongType } from '@/types/songs';

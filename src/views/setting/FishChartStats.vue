@@ -46,8 +46,8 @@
 <script setup lang="ts">
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/shadcn/ui/card'
 import { Button } from '@/components/shadcn/ui/button'
-import { RefreshCw } from 'lucide-vue-next'
-import { Fish } from 'lucide-vue-next'
+import { RefreshCw } from '@lucide/vue'
+import { Fish } from '@lucide/vue'
 import { useChartData } from '@/store/chartStats';
 import { formatDate } from '@/utils/StrUtil';
 import { ref } from 'vue';

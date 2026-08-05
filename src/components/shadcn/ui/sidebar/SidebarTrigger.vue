@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { computed, nextTick, ref, useTemplateRef, watch, type HTMLAttributes } from 'vue'
 import { cn } from '@/lib/utils'
-import { PanelLeft } from 'lucide-vue-next'
+import { PanelLeft } from '@lucide/vue'
 import { useSidebar } from './utils'
 import { MdFab } from '@material/web/fab/fab.js'
 import { useAppStore } from '@/store/appStore';

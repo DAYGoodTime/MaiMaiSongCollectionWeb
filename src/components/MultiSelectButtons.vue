@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { Button } from '@/components/shadcn/ui/button'
 import type { FilterProps } from '@/types/component';
-import { Check } from 'lucide-vue-next';
+import { Check } from '@lucide/vue';
 
 const props = defineProps<{
   options: FilterProps<any>[]

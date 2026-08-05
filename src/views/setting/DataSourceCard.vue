@@ -9,7 +9,7 @@
                             <span>{{ title }} </span>
                             <span class="block md:inline">{{
                                 ScoreStore.selectedSource === sourceKey ? '(当前默认数据源)' : ''
-                            }}</span>
+                                }}</span>
                         </div>
                     </div>
                     <div v-if="hasData" class="flex gap-4">
@@ -92,7 +92,7 @@ import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, D
 import { Input } from '@/components/shadcn/ui/input'
 import { Label } from '@/components/shadcn/ui/label'
 import { Checkbox } from '@/components/shadcn/ui/checkbox'
-import { RefreshCw } from 'lucide-vue-next'
+import { RefreshCw } from '@lucide/vue'
 import { formatDate } from '@/utils/StrUtil'
 import { useScores } from '@/store/datasources/scores'
 import ActionConfirm from '@/components/ActionConfirm.vue'
