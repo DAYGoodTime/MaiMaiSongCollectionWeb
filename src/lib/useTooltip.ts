@@ -1,6 +1,6 @@
 import { reactive, nextTick, type VNode } from 'vue';
 
-let hideTimer: number | undefined;
+let hideTimer: NodeJS.Timeout | undefined;
 
 export const tooltipState = reactive({
   visible: false,
