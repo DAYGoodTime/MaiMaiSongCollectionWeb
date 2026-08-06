@@ -29,6 +29,6 @@ watch(() => tooltipState.target, (target) => {
 });
 
 const contentClass = computed(() => {
-  return tooltipState.onClick ? 'cursor-pointer hover:opacity-50 z-[99]' : '';
+  return tooltipState.onClick ? 'cursor-pointer hover:opacity-50 z-[99]' : 'z-[99]';
 });
 </script>
