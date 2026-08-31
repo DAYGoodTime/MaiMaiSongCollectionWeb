@@ -55,21 +55,24 @@ export const useCollectionStore = defineStore("collections", () => {
   const getCollectionByLabel = (label: string) => {
     return UserCollectionList.value.find(c => c.label === label)
   }
+  const collectionRouteName = () =>
+    typeof route.name === 'string' && route.name.startsWith('Desktop') ? 'DesktopCollection' : 'Collection'
+
   const EditCollectionName = (index: number, name: string): { success: boolean, message: string } => {
     if (index >= UserCollectionList.value.length) return { success: false, message: "合集不存在" };
-    if (hasCollection(name)) {
+    const oldLabel = UserCollectionList.value[index].label
+    if (name !== oldLabel && hasCollection(name)) {
       return { success: false, message: "该合集已存在" }
     }
     if (name.length >= MAX_LABEL_LENGTH) {
       return { success: false, message: "合集名字过长" }
     }
     UserCollectionList.value[index].label = name;
-    if (route.query.label == CurrentCollectionLabel.value) {
+    if (CurrentCollectionLabel.value === oldLabel) CurrentCollectionLabel.value = name
+    if (route.query.label === oldLabel) {
       routerHelper.JumpTo({
-        name: "Collection",
-        query: {
-          label: name
-        }
+        name: collectionRouteName(),
+        query: { label: name }
       })
     }
     toast.success("修改成功")
@@ -77,10 +80,21 @@ export const useCollectionStore = defineStore("collections", () => {
   }
   const DeleteCollection = (index: number): { success: boolean, message: string } => {
     if (index >= UserCollectionList.value.length) return { success: false, message: "合集不存在" };
+    const deletedLabel = UserCollectionList.value[index].label
     UserCollectionList.value.splice(index, 1)
-    if (route.query.label == CurrentCollectionLabel.value) {
-      routerHelper.backHome();
-      toast.info("当前合集被删除，已为你跳转回主页")
+    const viewingDeleted = route.query.label === deletedLabel || CurrentCollectionLabel.value === deletedLabel
+    if (viewingDeleted) {
+      const next = UserCollectionList.value[0]?.label ?? ''
+      CurrentCollectionLabel.value = next
+      if (collectionRouteName() === 'DesktopCollection') {
+        routerHelper.JumpTo(next
+          ? { name: 'DesktopCollection', query: { label: next } }
+          : { name: 'DesktopCollection' })
+        toast.info("当前合集被删除，已为你切换")
+      } else {
+        routerHelper.backHome();
+        toast.info("当前合集被删除，已为你跳转回主页")
+      }
     }
     toast.success("删除成功")
     return { success: true, message: "OK" };

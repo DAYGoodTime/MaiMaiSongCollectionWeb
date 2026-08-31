@@ -14,6 +14,7 @@ export const useAppStore = defineStore("app", () => {
   const showGlobalSideBarTrigger = ref(true)
   const showCustomSideBarTrigger = ref(true)
   const NFCData = ref("")
+  const showFitLevel = useLocalStorage("show_fit_level", false)
   const OrderBadges = ref<OrderBadge[]>([
     { label: "达成率", value: "achievement", status_index: 2, isSupport: () => true },
     { label: "Dx Rating", value: "dx_rating", status_index: 0, isSupport: () => true },
@@ -24,6 +25,12 @@ export const useAppStore = defineStore("app", () => {
     { label: "拟合定数差", value: "chart_level_diff", status_index: 0, isSupport: () => CharDataStore.hasChartData },
   ])
   const SelectedCollOrder = ref<OrderBadge>(OrderBadges.value[0])
+  const setShowFitLevel = (val: boolean) => {
+    showFitLevel.value = val
+  }
+  const toggleShowFitLevel = () => {
+    showFitLevel.value = !showFitLevel.value
+  }
   return {
     UserName,
     hasUserName,
@@ -32,6 +39,9 @@ export const useAppStore = defineStore("app", () => {
     showGlobalSideBarTrigger,
     showCustomSideBarTrigger,
     NFCData,
+    showFitLevel,
+    setShowFitLevel,
+    toggleShowFitLevel,
     SelectedCollOrder,
     OrderBadges
   };

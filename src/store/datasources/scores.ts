@@ -15,6 +15,14 @@ export const DEFAULT_DS: DataSource<Record<string, Score>> = {
     update_time: '从未获取',
     version: CURRENT_SCORE_VERSION
 }
+
+export const DataSourceName: Record<DataSourceType, String> = {
+    "divingfish": "水鱼查分器",
+    "empty": "无数据源",
+    "lxns": "落雪查分器",
+    "usagi": "UsagiCard 兔卡查分器"
+}
+
 export function flatMapById(list: AnyScore[], songMap: Record<number, MaiMaiSong>): Record<string, Score> {
     let skipCount = 0;
     const scoreMap: Record<string, Score> = {}
@@ -102,7 +110,7 @@ export const useScores = defineStore("scores", () => {
     }
     const switchDataSource = (type: DataSourceType) => {
         if (getSelectableSource.value.includes(type)) {
-            toast.success(`已将默认数据源设置为 ${type}`, { position: "top-center" })
+            toast.success(`已将默认数据源设置为 ${DataSourceName[type]}`, { position: "top-center" })
             selectedSource.value = type
         }
     }

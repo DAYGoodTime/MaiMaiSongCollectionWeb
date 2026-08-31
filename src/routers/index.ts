@@ -11,7 +11,9 @@ declare module 'vue-router' {
 }
 const routes = [
   { path: "/", name: "Home", component: () => import("@/views/home/Home.vue"), meta: { globalTrigger: true, customTrigger: false } },
-  { path: "/test", name: "Test", component: () => import("@/views/Test.vue"), meta: { globalTrigger: true, customTrigger: false } },
+  { path: "/desktop", name: "Test", component: () => import("@/desktop/views/SongSearch.vue"), meta: { globalTrigger: true, customTrigger: false } },
+  { path: "/desktop/collection", name: "DesktopCollection", component: () => import("@/desktop/views/Collection.vue"), meta: { globalTrigger: false, customTrigger: false } },
+  { path: "/desktop/settings", name: "DesktopSettings", component: () => import("@/desktop/views/Settings.vue"), meta: { globalTrigger: false, customTrigger: false } },
   { path: "/settings", name: "Settings", component: () => import("@/views/setting/Settings.vue"), meta: { globalTrigger: true, customTrigger: false } },
   { path: "/collection", name: "Collection", component: () => import("@/views/collection/Collection.vue"), meta: { globalTrigger: false, customTrigger: true } },
   { path: "/:pathMatch(.*)", component: () => import("@/views/NotFound.vue"), meta: { globalTrigger: true, customTrigger: false } },

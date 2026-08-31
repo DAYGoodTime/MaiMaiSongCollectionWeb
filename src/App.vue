@@ -1,6 +1,4 @@
 <script setup lang="ts">
-import { SidebarProvider, SidebarTrigger } from '@/components/shadcn/ui/sidebar'
-import AppSidebar from './components/AppSidebar.vue';
 import { Toaster } from '@/components/shadcn/ui/sonner'
 import 'vue-sonner/style.css'
 import { onMounted } from 'vue';
@@ -9,7 +7,6 @@ import { NFC } from '@day_time/capacitor-nfc-day';
 import { useAppStore } from './store/appStore';
 import { useScores } from './store/datasources/scores';
 import { useSongStore } from './store/datasources/song';
-import GlobalTooltip from './components/GlobalTooltip.vue';
 import { useChartData } from './store/chartStats.ts';
 onMounted(async () => {
   checkUpdate();
@@ -44,16 +41,7 @@ NFC.onRead((data) => {
 
 <template>
   <Toaster />
-  <GlobalTooltip />
-  <nav>
-    <SidebarProvider>
-      <AppSidebar />
-      <main class="w-full" style="padding-top: env(safe-area-inset-top);">
-        <SidebarTrigger class="m-2" />
-        <RouterView />
-      </main>
-    </SidebarProvider>
-  </nav>
+  <RouterView />
 </template>
 
 <style scoped></style>
