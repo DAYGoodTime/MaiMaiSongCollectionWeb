@@ -28,7 +28,7 @@ const scoreCount = computed(() => {
   const records = ScoreStore.DivingFishScores?.list
   if (!records) return '暂无本地缓存成绩'
   const count = Object.keys(records).length
-  return count > 0 ? `${count.toLocaleString()} 条` : '385 条'
+  return count > 0 ? `${count.toLocaleString()} 条` : '从未获取'
 })
 
 const updateTimeStr = computed(() => {
@@ -42,16 +42,7 @@ const stats = computed(() => [
 </script>
 
 <template>
-  <DataSourceCard
-    title="🐟 水鱼数据源 (DivingFish 查分器)"
-    :is-default="isDefault"
-    :show-default-option="true"
-    :stats="stats"
-    :is-syncing="props.isUpdating"
-    :has-data="hasData"
-    @sync="emit('sync')"
-    @export="emit('export')"
-    @delete="emit('delete')"
-    @set-default="emit('setDefault')"
-  />
+  <DataSourceCard title="🐟 水鱼数据源 (DivingFish 查分器)" :is-default="isDefault" :show-default-option="true" :stats="stats"
+    :is-syncing="props.isUpdating" :has-data="hasData" @sync="emit('sync')" @export="emit('export')"
+    @delete="emit('delete')" @set-default="emit('setDefault')" />
 </template>

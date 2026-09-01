@@ -1,14 +1,3 @@
-<!--
-================================================================================
-TODO (CollectionFilterBar 待对接高级筛选与排序联动逻辑):
---------------------------------------------------------------------------------
-1. [ ] 对接 FlexSearch 局部过滤以及防抖输入
-2. [ ] 接入多选难度 Chip 组合筛选联动
-3. [ ] 联动定数双向滑块过滤与预设区间
-4. [ ] 联动多级复合排序算法 (主次排序规则及未游玩置底逻辑)
-================================================================================
--->
-
 <script setup lang="ts">
 import { ref, computed } from 'vue'
 import {
@@ -66,12 +55,13 @@ const levelOptions = [
 ]
 
 const sortFieldLabels: Record<string, string> = {
-  level: '定数 (Level)',
-  achievement: '达成率 (Ach)',
+  level: '定数',
+  achievement: '达成率',
   rating: 'DX Rating',
-  fit: '拟合定数 (Fit)',
+  fit: '拟合定数',
   dxScore: 'DX 分数',
-  playCount: '游玩次数'
+  playCount: '游玩次数',
+  fitDelta: '拟合定数差'
 }
 
 const isLevelMenuOpen = ref(false)

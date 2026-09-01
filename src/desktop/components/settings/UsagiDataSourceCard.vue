@@ -29,23 +29,22 @@ const updateTimeStr = computed(() => {
   return formatDate(ScoreStore.UsagiScores?.update_time) || '暂无更新记录'
 })
 
+const scoreCount = computed(() => {
+  const records = ScoreStore.UsagiScores?.list
+  if (!records) return '暂无本地缓存战绩'
+  const count = Object.keys(records).length
+  return count > 0 ? `${count.toLocaleString()} 条成绩` : '从未获取'
+})
+
 const stats = computed(() => [
-  { label: '支持游玩次数 (PC)', value: '支持全量 PC 游玩次数统计' },
+  { label: '支持展示游玩次数 (PlayCount)', value: '√' },
+  { label: '已同步有效成绩', value: scoreCount.value },
   { label: '最后同步时间', value: updateTimeStr.value }
 ])
 </script>
 
 <template>
-  <DataSourceCard
-    title="🐰 UsagiCard 兔卡成绩源"
-    :is-default="isDefault"
-    :show-default-option="true"
-    :stats="stats"
-    :is-syncing="props.isUpdating"
-    :has-data="hasData"
-    @sync="emit('sync')"
-    @export="emit('export')"
-    @delete="emit('delete')"
-    @set-default="emit('setDefault')"
-  />
+  <DataSourceCard title="🐰 UsagiCard 兔卡成绩源" :is-default="isDefault" :show-default-option="true" :stats="stats"
+    :is-syncing="props.isUpdating" :has-data="hasData" @sync="emit('sync')" @export="emit('export')"
+    @delete="emit('delete')" @set-default="emit('setDefault')" />
 </template>

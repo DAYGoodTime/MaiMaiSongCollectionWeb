@@ -28,7 +28,7 @@ const scoreCount = computed(() => {
   const records = ScoreStore.LXNSScores?.list
   if (!records) return '暂无本地缓存战绩'
   const count = Object.keys(records).length
-  return count > 0 ? `${count.toLocaleString()} 条真实个人战绩` : '420 条真实个人战绩'
+  return count > 0 ? `${count.toLocaleString()} 条成绩` : '从未获取'
 })
 
 const updateTimeStr = computed(() => {
@@ -42,16 +42,7 @@ const stats = computed(() => [
 </script>
 
 <template>
-  <DataSourceCard
-    title="❄️ 落雪查分数据源 (LXNS API)"
-    :is-default="isDefault"
-    :show-default-option="true"
-    :stats="stats"
-    :is-syncing="props.isUpdating"
-    :has-data="hasData"
-    @sync="emit('sync')"
-    @export="emit('export')"
-    @delete="emit('delete')"
-    @set-default="emit('setDefault')"
-  />
+  <DataSourceCard title="❄️ 落雪查分数据源 (LXNS API)" :is-default="isDefault" :show-default-option="true" :stats="stats"
+    :is-syncing="props.isUpdating" :has-data="hasData" @sync="emit('sync')" @export="emit('export')"
+    @delete="emit('delete')" @set-default="emit('setDefault')" />
 </template>
