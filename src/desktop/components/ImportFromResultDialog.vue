@@ -139,7 +139,7 @@ import {
   SelectValue
 } from '@/components/shadcn/ui/select'
 import type { MaiMaiSong } from '@/types/songs'
-import type { TagOption } from '@/components/TagInputCombobox.vue'
+import type { TagOption } from '@/types/component'
 import { storeToRefs } from 'pinia'
 import { useCollectionStore } from '@/store/collections'
 import { useScores } from '@/store/datasources/scores'

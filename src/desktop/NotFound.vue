@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, computed, onMounted, onUnmounted } from 'vue'
+import { ref, onMounted, onUnmounted } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import {
   Search,
@@ -27,26 +27,24 @@ onUnmounted(() => {
   window.removeEventListener('resize', onResize)
 })
 
-const isDesktop = computed(() => {
-  return windowWidth.value >= 1024 || route.path.startsWith('/desktop')
-})
-
-const searchRoute = computed(() => (isDesktop.value ? '/desktop' : '/'))
-const collectionRoute = computed(() => (isDesktop.value ? '/desktop/collection' : '/collection'))
-const settingsRoute = computed(() => (isDesktop.value ? '/desktop/settings' : '/settings'))
+const searchRoute = '/'
+const collectionRoute = '/collection'
+const settingsRoute = '/settings'
 
 const goBack = () => {
   if (window.history.length > 1) {
     router.back()
   } else {
-    router.push(searchRoute.value)
+    router.push({
+      name: "SongSearch"
+    })
   }
 }
 </script>
 
 <template>
   <!-- 桌面端布局：集成通用 DesktopAppShell -->
-  <DesktopAppShell v-if="isDesktop">
+  <DesktopAppShell>
     <main class="flex-1 flex flex-col h-full overflow-y-auto bg-[#F8FAFC] dark:bg-[#0B0F19] p-4 lg:p-6 select-none">
       <!-- 顶部操作栏 / 面包屑 -->
       <div class="flex items-center justify-between pb-4 border-b border-[#E2E8F0] dark:border-[#1E293B] shrink-0">
@@ -130,63 +128,4 @@ const goBack = () => {
       </div>
     </main>
   </DesktopAppShell>
-
-  <!-- 移动端简洁全屏布局 -->
-  <div v-else
-    class="min-h-screen w-full flex flex-col items-center justify-center bg-[#F8FAFC] dark:bg-[#0B0F19] text-[#0F172A] dark:text-[#F8FAFC] p-4 select-none">
-    <div
-      class="w-full max-w-md bg-white dark:bg-[#131B2E] border border-[#E2E8F0] dark:border-[#1E293B] rounded-2xl p-6 shadow-sm flex flex-col items-center gap-5">
-      <!-- 唱盘视觉与 404 -->
-      <div class="flex flex-col items-center gap-2">
-        <div
-          class="w-20 h-20 rounded-full bg-[#0F172A] dark:bg-[#030712] border-4 border-blue-500 flex items-center justify-center shadow-md">
-          <div class="w-14 h-14 rounded-full bg-[#1E293B] flex items-center justify-center">
-            <div class="w-7 h-7 rounded-full bg-blue-600 flex items-center justify-center text-white">
-              <Music class="w-4 h-4 animate-pulse" />
-            </div>
-          </div>
-        </div>
-        <div class="text-4xl font-black tracking-wider text-[#0F172A] dark:text-[#F8FAFC]">
-          4 0 4
-        </div>
-      </div>
-
-      <!-- 描述文案 -->
-      <div class="text-center space-y-1.5">
-        <h2 class="text-base font-bold text-[#0F172A] dark:text-[#F8FAFC]">
-          谱面迷路啦～
-        </h2>
-        <p class="text-xs text-[#64748B] dark:text-[#94A3B8]">
-          找不到对应页面或曲目，回主舞台看看吧！
-        </p>
-      </div>
-
-      <!-- 按钮组 -->
-      <div class="flex flex-col gap-2 w-full">
-        <router-link :to="searchRoute"
-          class="w-full flex items-center justify-center gap-2 py-2.5 rounded-xl bg-blue-600 text-white font-semibold text-xs shadow-sm">
-          <Search class="w-3.5 h-3.5" />
-          返回曲目检索
-        </router-link>
-        <div class="flex gap-2 w-full">
-          <router-link :to="collectionRoute"
-            class="flex-1 flex items-center justify-center gap-1.5 py-2 rounded-xl bg-blue-50 dark:bg-blue-950/40 border border-blue-200 dark:border-blue-800 text-blue-600 dark:text-blue-400 font-semibold text-xs">
-            <Folder class="w-3.5 h-3.5" />
-            个人合集
-          </router-link>
-          <router-link :to="settingsRoute"
-            class="flex-1 flex items-center justify-center gap-1.5 py-2 rounded-xl bg-slate-50 dark:bg-slate-800/60 border border-[#E2E8F0] dark:border-[#1E293B] text-[#475569] dark:text-[#94A3B8] font-medium text-xs">
-            <Settings class="w-3.5 h-3.5" />
-            系统设置
-          </router-link>
-        </div>
-      </div>
-
-      <!-- 底部诊断 -->
-      <div
-        class="text-[10px] text-[#94A3B8] dark:text-[#64748B] text-center truncate max-w-full pt-1 border-t border-[#F1F5F9] dark:border-[#1E293B] w-full">
-        REQUEST: {{ route.fullPath }} • STATUS: 404
-      </div>
-    </div>
-  </div>
 </template>

@@ -1,18 +1,16 @@
-import type { AdvanceFilterFilters, OrderField } from '@/types/component';
+import type { AdvanceFilterFilters, OrderBadge, OrderField, SearchOptions, TagOption } from '@/types/component';
 import type { LevelFields, MaiMaiSong, ScoreExtend } from '@/types/songs';
 import ScoreSearchWorker from '@/utils/scoreSearchWorker?worker'
 import SongSearchWorker from '@/utils/songSearchWorker?worker'
 import { onUnmounted, ref, toRaw, toValue, watch, type MaybeRefOrGetter } from 'vue';
-import type { OrderBadge } from '@/types/component';
 import { BASE_NUMBER_RANGE_PATTEN, conventLevelPrefix, conventLevelTag, getChartLevel, getDxScoreRadio, getLevelValue, isAllFinal, isValidAchievementRange, LEVEL_MATCH_PATTEN, LEVEL_RANGE_MATCH_PATTEN, RANKING_MATCH_PATTEN } from '@/utils/StrUtil';
-import type { SearchOptions } from '@/components/SongSearch.vue';
 import { rankingList } from './urlUtils';
 import versionList from '@/assets/data/versions.json' with { type: 'json' };
 import { useScores } from '@/store/datasources/scores';
 import { useSongStore } from '@/store/datasources/song';
 import { MAX_SEARCH_NUMBER } from './consts';
 import { getSongDiffValueIndex } from './functionUtil';
-import type { TagOption } from '@/components/TagInputCombobox.vue';
+
 
 //Score Worker
 export const useScoreSearchWorker = (searchKeyWord: MaybeRefOrGetter<string>, filter: MaybeRefOrGetter<AdvanceFilterFilters>, order: MaybeRefOrGetter<OrderBadge>) => {

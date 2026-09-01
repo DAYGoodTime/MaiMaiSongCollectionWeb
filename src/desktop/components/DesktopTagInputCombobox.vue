@@ -6,18 +6,7 @@ import { toast } from 'vue-sonner'
 import versionList from '@/assets/data/versions.json' with { type: 'json' }
 import { isValidAchievementRange, LEVEL_MATCH_PATTEN, LEVEL_RANGE_MATCH_PATTEN } from '@/utils/StrUtil'
 import { useScores } from '@/store/datasources/scores'
-
-export interface Tag {
-  label: string
-  value: string
-  alias: string | null
-  needDs?: boolean
-}
-
-export interface TagOption {
-  matchEvery: boolean
-  tags: Tag[]
-}
+import type { Tag } from '@/types/component'
 
 const modelValue = defineModel<Tag[]>('tags', { default: () => [] })
 

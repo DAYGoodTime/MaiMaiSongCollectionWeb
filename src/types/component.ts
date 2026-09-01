@@ -38,3 +38,23 @@ export interface OrderBadge {
     status_index: number,
     isSupport: () => boolean
 }
+
+export interface Tag {
+    label: string
+    value: string
+    alias: string | null
+    needDs?: boolean
+}
+
+export interface TagOption {
+    matchEvery: boolean
+    tags: Tag[]
+}
+
+export interface SearchOptions {
+    tagOption: TagOption
+    bpm: {
+        enable: boolean
+        range: number[]
+    }
+}

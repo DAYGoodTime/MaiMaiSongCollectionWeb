@@ -155,15 +155,15 @@ const getItemCount = (coll: any) => {
 
 // 路由激活态匹配
 const isSearchActive = computed(() => {
-  return route.path === '/desktop' || route.path === '/test' || route.name === 'Test'
+  return route.path === '' || route.name === 'SongSearch'
 })
 
 const isCollectionActive = computed(() => {
-  return route.path.startsWith('/desktop/collection') || route.path.startsWith('/collection') || route.name === 'Collection' || route.name === 'DesktopCollection'
+  return route.path.startsWith('/collection') || route.name === 'Collection' || route.name === 'DesktopCollection'
 })
 
 const isSettingsActive = computed(() => {
-  return route.path.startsWith('/desktop/settings') || route.name === 'DesktopSettings'
+  return route.path.startsWith('/settings') || route.name === 'DesktopSettings'
 })
 
 const currentDataSourceName = computed(() => {
@@ -182,12 +182,15 @@ const toggleCollapse = () => {
 const navigateTo = (path: string) => {
   router.push(path).catch(() => { })
 }
+const navigateToHome = () => {
+  router.push({ name: "SongSearch" }).catch(() => { })
+}
 
 const navigateToCollection = (label?: string) => {
   if (label) {
     router.push({ name: 'DesktopCollection', query: { label } }).catch(() => { })
   } else {
-    router.push('/desktop/collection').catch(() => { })
+    router.push('/collection').catch(() => { })
   }
 }
 </script>
@@ -224,7 +227,7 @@ const navigateToCollection = (label?: string) => {
         </div>
 
         <!-- 歌曲检索与分析 -->
-        <button @click="navigateTo('/desktop')"
+        <button @click="navigateToHome"
           class="w-full flex items-center gap-2.5 rounded-lg text-[13px] transition-colors cursor-pointer" :class="[
             props.collapsed ? 'justify-center p-2' : 'px-2.5 py-2',
             isSearchActive
@@ -237,7 +240,7 @@ const navigateToCollection = (label?: string) => {
         </button>
 
         <!-- 个人合集管理 -->
-        <button @click="navigateTo('/desktop/collection')"
+        <button @click="navigateTo('/collection')"
           class="w-full flex items-center gap-2.5 rounded-lg text-[13px] transition-colors cursor-pointer" :class="[
             props.collapsed ? 'justify-center p-2' : 'px-2.5 py-2',
             isCollectionActive
@@ -250,7 +253,7 @@ const navigateToCollection = (label?: string) => {
         </button>
 
         <!-- 系统与数据源设置 -->
-        <button @click="navigateTo('/desktop/settings')"
+        <button @click="navigateTo('/settings')"
           class="w-full flex items-center gap-2.5 rounded-lg text-[13px] transition-colors cursor-pointer" :class="[
             props.collapsed ? 'justify-center p-2' : 'px-2.5 py-2',
             isSettingsActive
@@ -277,10 +280,8 @@ const navigateToCollection = (label?: string) => {
               <div v-if="displayCollections.length === 0" class="px-2.5 py-2 text-[11px] text-slate-400 italic">
                 暂无合集 (右键可新建)
               </div>
-              <div v-for="(coll, index) in displayCollections" :key="coll.label || index"
-                data-collection-item
-                @click="navigateToCollection(coll.label)"
-                @contextmenu="onCollectionContextMenu(coll, index)"
+              <div v-for="(coll, index) in displayCollections" :key="coll.label || index" data-collection-item
+                @click="navigateToCollection(coll.label)" @contextmenu="onCollectionContextMenu(coll, index)"
                 class="w-full flex items-center justify-between px-2.5 py-1.5 rounded-md text-xs transition-colors hover:bg-slate-100 dark:hover:bg-slate-800/60 text-[#475569] dark:text-slate-300 cursor-pointer">
                 <div class="flex items-center gap-1.5 min-w-0 pr-1">
                   <span class="text-xs text-slate-500 shrink-0">📁</span>
@@ -350,7 +351,8 @@ const navigateToCollection = (label?: string) => {
 
     <!-- 合集操作弹窗 (新建 / 重命名 / 删除) -->
     <Dialog v-model:open="actionDialog.open">
-      <DialogContent class="sm:max-w-[420px] bg-white dark:bg-[#131B2E] border border-[#CBD5E1] dark:border-[#26354D] rounded-xl shadow-xl">
+      <DialogContent
+        class="sm:max-w-[420px] bg-white dark:bg-[#131B2E] border border-[#CBD5E1] dark:border-[#26354D] rounded-xl shadow-xl">
         <DialogHeader>
           <DialogTitle class="text-base font-bold text-[#0F172A] dark:text-white">
             {{ actionDialogInfo.title }}
@@ -365,29 +367,16 @@ const navigateToCollection = (label?: string) => {
             <Label for="sidebar-collection-name" class="text-xs font-bold text-[#475569] dark:text-slate-300">
               合集名称
             </Label>
-            <Input
-              id="sidebar-collection-name"
-              v-model="actionDialog.inputValue"
-              :placeholder="actionDialog.type === 'add' ? '请输入新合集名称' : '请输入合集名称'"
-              maxlength="30"
-              autofocus
-              class="text-xs sm:text-sm"
-            />
+            <Input id="sidebar-collection-name" v-model="actionDialog.inputValue"
+              :placeholder="actionDialog.type === 'add' ? '请输入新合集名称' : '请输入合集名称'" maxlength="30" autofocus
+              class="text-xs sm:text-sm" />
           </div>
 
           <DialogFooter class="gap-2 sm:gap-0 pt-2 border-t border-slate-100 dark:border-slate-800">
-            <Button
-              type="button"
-              variant="outline"
-              size="sm"
-              @click="actionDialog.open = false"
-              class="text-xs">
+            <Button type="button" variant="outline" size="sm" @click="actionDialog.open = false" class="text-xs">
               取消
             </Button>
-            <Button
-              type="submit"
-              size="sm"
-              :variant="actionDialog.type === 'delete' ? 'destructive' : 'default'"
+            <Button type="submit" size="sm" :variant="actionDialog.type === 'delete' ? 'destructive' : 'default'"
               :class="actionDialog.type !== 'delete' ? 'bg-[#2563EB] hover:bg-blue-700 text-white' : ''"
               class="text-xs">
               {{ actionDialogInfo.confirmText }}

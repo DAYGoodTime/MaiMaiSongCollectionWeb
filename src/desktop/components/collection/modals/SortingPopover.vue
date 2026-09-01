@@ -66,32 +66,32 @@ const secondaryOptions = [
   { id: 'title', label: '曲名拼音/首字母' }
 ]
 
-const applyPreset = (preset: string) => {
-  sortConfig.value.pushSss = preset === 'push-sss'
-  if (preset === 'level-desc') {
-    sortConfig.value.primaryField = 'level'
-    sortConfig.value.primaryDirection = 'desc'
-    sortConfig.value.secondaryField = 'achievement'
-    sortConfig.value.secondaryDirection = 'desc'
-    sortConfig.value.unplayedToBottom = true
-  } else if (preset === 'push-sss') {
-    sortConfig.value.primaryField = 'achievement'
-    sortConfig.value.primaryDirection = 'desc'
-    sortConfig.value.secondaryField = 'level'
-    sortConfig.value.secondaryDirection = 'desc'
-    sortConfig.value.unplayedToBottom = true
-  } else if (preset === 'rating-desc') {
-    sortConfig.value.primaryField = 'rating'
-    sortConfig.value.primaryDirection = 'desc'
-    sortConfig.value.secondaryField = 'level'
-    sortConfig.value.secondaryDirection = 'desc'
-  } else if (preset === 'fit-delta') {
-    sortConfig.value.primaryField = 'fitDelta'
-    sortConfig.value.primaryDirection = 'desc'
-    sortConfig.value.secondaryField = 'level'
-    sortConfig.value.secondaryDirection = 'desc'
-  }
-}
+// const applyPreset = (preset: string) => {
+//   sortConfig.value.pushSss = preset === 'push-sss'
+//   if (preset === 'level-desc') {
+//     sortConfig.value.primaryField = 'level'
+//     sortConfig.value.primaryDirection = 'desc'
+//     sortConfig.value.secondaryField = 'achievement'
+//     sortConfig.value.secondaryDirection = 'desc'
+//     sortConfig.value.unplayedToBottom = true
+//   } else if (preset === 'push-sss') {
+//     sortConfig.value.primaryField = 'achievement'
+//     sortConfig.value.primaryDirection = 'desc'
+//     sortConfig.value.secondaryField = 'level'
+//     sortConfig.value.secondaryDirection = 'desc'
+//     sortConfig.value.unplayedToBottom = true
+//   } else if (preset === 'rating-desc') {
+//     sortConfig.value.primaryField = 'rating'
+//     sortConfig.value.primaryDirection = 'desc'
+//     sortConfig.value.secondaryField = 'level'
+//     sortConfig.value.secondaryDirection = 'desc'
+//   } else if (preset === 'fit-delta') {
+//     sortConfig.value.primaryField = 'fitDelta'
+//     sortConfig.value.primaryDirection = 'desc'
+//     sortConfig.value.secondaryField = 'level'
+//     sortConfig.value.secondaryDirection = 'desc'
+//   }
+// }
 
 const handleReset = () => {
   sortConfig.value = { ...defaultConfig }

@@ -9,16 +9,21 @@
                         {{ group.group.localized_name['zh-Hans'] }}
                     </span>
                 </div>
-                <div class="flex flex-wrap items-center gap-2 max-h-32 overflow-y-auto">
-                    <Badge v-for="(tag, index) in group.tags" :key="index" variant="outline" class="text-xs cursor-pointer hover:opacity-70 transition-opacity duration-200
-                           border-gray-300 dark:border-gray-600 hover:shadow-sm" :style="{
-                            backgroundColor: group.group.color + '20',
-                            borderColor: group.group.color + '40',
-                            color: 'inherit'
-                        }" @mouseenter="handelTagDescription(tag.localized_description['zh-Hans'], $event)"
-                        @mouseleave="hideTooltip()">
-                        {{ tag.localized_name['zh-Hans'] }}
-                    </Badge>
+                <div class="flex flex-wrap items-center gap-2">
+                    <span v-for="(tag, index) in group.tags" :key="index" class="group relative inline-flex">
+                        <Badge variant="outline" class="text-xs border-gray-300 dark:border-gray-600"
+                            :style="{
+                                backgroundColor: group.group.color + '20',
+                                borderColor: group.group.color + '40',
+                                color: 'inherit'
+                            }">
+                            {{ tag.localized_name['zh-Hans'] }}
+                        </Badge>
+                        <span v-if="tag.localized_description['zh-Hans']"
+                            class="pointer-events-none absolute bottom-full left-1/2 z-50 mb-1 hidden w-max max-w-48 -translate-x-1/2 rounded-md bg-foreground px-2 py-1 text-center text-xs text-background shadow-md group-hover:block">
+                            {{ tag.localized_description['zh-Hans'] }}
+                        </span>
+                    </span>
                 </div>
             </div>
         </template>
@@ -29,7 +34,6 @@
     </div>
 </template>
 <script setup lang="ts">
-import { hideTooltip, showTooltip } from '@/lib/useTooltip';
 import type { GroupInfo } from '@/types/tag';
 import { Badge } from '@/components/shadcn/ui/badge';
 import { computed } from 'vue';
@@ -41,7 +45,4 @@ const props = defineProps<{
 const isEmpty = computed(() => {
     return props.tagInfo != null && props.tagInfo.every(g => g.tags.length === 0)
 })
-const handelTagDescription = (text: string, event: MouseEvent) => {
-    showTooltip(event.target as HTMLElement, text);
-};
 </script>
