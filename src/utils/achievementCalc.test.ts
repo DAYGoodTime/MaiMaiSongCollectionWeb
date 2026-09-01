@@ -8,6 +8,8 @@ import {
   calcAchievement,
   enumerateBreakSplits,
   sortByTarget,
+  calcTapGreatTolerance,
+  calcBreakScenarioTolerance,
   type JudgmentMatrix,
   type BreakSplit,
 } from './achievementCalc'
@@ -106,6 +108,46 @@ console.log('\n[3] 按目标达成率排序')
   assert('最近目标 100.8 的结果排首位 (100.75)', approx(sorted[0].achievement, 100.75))
   assert('第二近为 101.0', approx(sorted[1].achievement, 101.0))
   assert('最远为 100.5', approx(sorted[2].achievement, 100.5))
+}
+
+// ── 4. 鸟加容错（>100.5000%）计算 ───────────────────────────────────────────
+console.log('\n[4] 鸟加容错（>100.5000%）计算')
+{
+  // 假设总权重 1000，起始达成率 101.0000%
+  // 每一个 TAP Great 扣 20 / 1000 = 0.0200%
+  // 24 个粉: 101.0 - 0.48 = 100.5200% > 100.5 (PASS)
+  // 25 个粉: 101.0 - 0.50 = 100.5000% <= 100.5 (严格大于，故 25 个粉不可行)
+  const tol1000 = calcTapGreatTolerance(101.0, 1000)
+  assert('总权重1000，101%下容错为 24 个粉', tol1000.tolerance === 24 && tol1000.achievable)
+
+  // 100.5000% 起始分不能再扣任何粉
+  const tolExact = calcTapGreatTolerance(100.5, 1000)
+  assert('100.5000% 起始分不可达成容错', !tolExact.achievable)
+
+  // 场景容错测试：TAP: 500, HOLD: 50, SLIDE: 50, TOUCH: 20, BREAK: 20 -> 总权重 870
+  const counts = { tap: 500, hold: 50, slide: 50, touch: 20, break: 20 }
+  // 100% 绝赞全大: 20 CP, bonus 1.0% -> startingAch 101.0000%
+  // 21 个粉: 101.0 - 21 * 20/870 = 100.5172% > 100.5
+  // 22 个粉: 101.0 - 22 * 20/870 = 100.4943% <= 100.5
+  const sc100 = calcBreakScenarioTolerance(counts, 1.0, '绝赞全大', '100% CP')
+  assert('870权重 绝赞全大 (100% CP) 容错为 21 个粉', sc100.tolerance === 21 && sc100.achievable)
+
+  // 80% 绝赞大: 16 CP, 4 PF -> bonus (16+3)/20 = 0.95% -> startingAch 100.9500%
+  // 19 个粉: 100.95 - 19 * 20/870 = 100.5132% > 100.5
+  // 20 个粉: 100.95 - 20 * 20/870 = 100.4902% <= 100.5
+  const sc80 = calcBreakScenarioTolerance(counts, 0.8, '绝赞 80% 大', '80% CP')
+  assert('870权重 绝赞 80% 大 容错为 19 个粉', sc80.tolerance === 19 && sc80.achievable)
+
+  // 50% 绝赞大: 10 CP, 10 PF -> bonus (10+7.5)/20 = 0.875% -> startingAch 100.8750%
+  // 16 个粉: 100.875 - 16 * 20/870 = 100.5072% > 100.5
+  // 17 个粉: 100.875 - 17 * 20/870 = 100.4842% <= 100.5
+  const sc50 = calcBreakScenarioTolerance(counts, 0.5, '绝赞 50% 大', '50% CP')
+  assert('870权重 绝赞 50% 大 容错为 16 个粉', sc50.tolerance === 16 && sc50.achievable)
+
+  // 无绝赞场景
+  const noBreakCounts = { tap: 500, hold: 50, slide: 50, touch: 20, break: 0 }
+  const scNoBreak = calcBreakScenarioTolerance(noBreakCounts, 1.0, '绝赞全大', '100% CP')
+  assert('无绝赞场景不可达成鸟加', !scNoBreak.achievable)
 }
 
 // ── 结果 ─────────────────────────────────────────────────────────────────────

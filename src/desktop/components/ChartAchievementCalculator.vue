@@ -281,6 +281,23 @@
                   <span>每行判定的数量之和必须精确等于该 Note 的谱面总物量。</span>
                 </p>
 
+                <!-- 绝赞判定下的鸟加容错提示卡片 -->
+                <div v-if="!hasMatrixError" class="rounded-lg p-2.5 text-xs flex flex-wrap items-center justify-between gap-2 border bg-pink-50/60 dark:bg-pink-950/30 border-pink-200/70 dark:border-pink-800/50">
+                  <div class="flex items-center gap-1.5 text-slate-700 dark:text-slate-200 font-medium">
+                    <span class="text-sm">🛡️</span>
+                    <span>根据当前绝赞判定的鸟加 (100.5000%) 容错:</span>
+                  </div>
+                  <div class="font-mono text-xs">
+                    <template v-if="breakMatrixTolerance.achievable">
+                      <span class="font-bold text-pink-600 dark:text-pink-400">{{ breakMatrixTolerance.text }}</span>
+                      <span class="text-[10px] text-slate-400 dark:text-slate-500 font-sans ml-1">(严格 > 100.5%)</span>
+                    </template>
+                    <template v-else>
+                      <span class="text-rose-500 dark:text-rose-400 font-semibold">{{ breakMatrixTolerance.text }}</span>
+                    </template>
+                  </div>
+                </div>
+
                 <!-- 目标达成率输入与开始计算 -->
                 <div class="flex items-center gap-2 pt-1">
                   <span class="text-xs font-bold text-slate-700 dark:text-slate-300 shrink-0">目标达成率:</span>
@@ -312,6 +329,7 @@
                       <thead>
                         <tr class="bg-slate-50/80 dark:bg-slate-900/90 border-b border-slate-200 dark:border-slate-800 text-[10px] font-bold text-slate-600 dark:text-slate-400">
                           <th class="py-2 px-3 tabular-nums text-left">达成率</th>
+                          <th class="py-2 px-2 text-pink-500 font-bold">鸟加容错<br/><span class="font-normal text-[9px] text-slate-400">粉 Tap</span></th>
                           <th class="py-2 px-1 text-orange-500">PF<br/><span class="font-normal text-[9px] text-slate-400">0.75</span></th>
                           <th class="py-2 px-1 text-orange-500">PF<br/><span class="font-normal text-[9px] text-slate-400">0.5</span></th>
                           <th class="py-2 px-1 text-pink-500">GR<br/><span class="font-normal text-[9px] text-slate-400">2000</span></th>
@@ -326,6 +344,14 @@
                           <td class="py-2 px-3 text-left tabular-nums font-mono font-bold text-slate-900 dark:text-white">
                             {{ r.achievement.toFixed(4) }}%
                             <span v-if="i === 0 && currentPage === 1" class="ml-1 text-[9px] px-1 py-0.2 rounded bg-amber-200/70 dark:bg-amber-800 text-amber-800 dark:text-amber-200 font-sans font-bold">推荐解</span>
+                          </td>
+                          <td class="py-2 px-2 tabular-nums font-mono text-center">
+                            <span v-if="calcRowTolerance(r.achievement).achievable" class="font-bold text-pink-600 dark:text-pink-400 text-xs">
+                              +{{ calcRowTolerance(r.achievement).tolerance }} 粉
+                            </span>
+                            <span v-else class="text-slate-400 dark:text-slate-500 text-[10px]">
+                              不可达成
+                            </span>
                           </td>
                           <td class="py-2 px-1 tabular-nums font-mono text-slate-700 dark:text-slate-300">{{ r.split.pf075 }}</td>
                           <td class="py-2 px-1 tabular-nums font-mono text-slate-700 dark:text-slate-300">{{ r.split.pf050 }}</td>
@@ -395,6 +421,7 @@ import {
   calcTotal,
   enumerateBreakSplits,
   sortByTarget,
+  calcTapGreatTolerance,
   type JudgmentMatrix,
   type CalcResult,
   type NoteKey,
@@ -659,6 +686,58 @@ function doCalc() {
   calcResults.value = sortByTarget(raw, targetAchievement.value)
   calcDone.value = true
   currentPage.value = 1
+}
+
+const breakMatrixTolerance = computed(() => {
+  const t = total.value
+  const bNum = props.difficulty.break_num
+  if (!t || !bNum) {
+    return { achievable: false, text: '不可达成 (无 BREAK 物量)' }
+  }
+
+  // 计算非 BREAK 的基础得分
+  let nonBreakScore = 0
+  const nonBreak = ['tap', 'hold', 'slide', 'touch'] as const
+  for (const key of nonBreak) {
+    const row = matrix[key]
+    nonBreakScore +=
+      (row.cp + row.pf) * BASIC_WEIGHT.perfect[key] +
+      row.gr * BASIC_WEIGHT.great[key] +
+      row.gd * BASIC_WEIGHT.good[key]
+  }
+
+  const bRow = matrix.break
+  // BREAK 最佳情况 (PF 细分为 0.75, GR 细分为 2000 即 loss=1)
+  const breakBaseBest = bRow.cp * 5 + bRow.pf * 5 + bRow.gr * 4 + bRow.gd * 2 + bRow.ms * 0
+  const bonusBest = (bRow.cp * 1.0 + bRow.pf * 0.75 + bRow.gr * 0.4 + bRow.gd * 0.3) / bNum
+  const achBest = Math.round(((nonBreakScore + breakBaseBest) / t * 100 + bonusBest) * 10000) / 10000
+  const tolBest = calcTapGreatTolerance(achBest, t)
+
+  // BREAK 最差情况 (PF 细分为 0.50, GR 细分为 1250 即 loss=2.5)
+  const breakBaseWorst = bRow.cp * 5 + bRow.pf * 5 + bRow.gr * 2.5 + bRow.gd * 2 + bRow.ms * 0
+  const bonusWorst = (bRow.cp * 1.0 + bRow.pf * 0.50 + bRow.gr * 0.4 + bRow.gd * 0.3) / bNum
+  const achWorst = Math.round(((nonBreakScore + breakBaseWorst) / t * 100 + bonusWorst) * 10000) / 10000
+  const tolWorst = calcTapGreatTolerance(achWorst, t)
+
+  if (!tolBest.achievable && !tolWorst.achievable) {
+    return { achievable: false, text: '不可达成 (达成率 ≤ 100.5000%)' }
+  }
+
+  if (tolBest.tolerance === tolWorst.tolerance) {
+    return {
+      achievable: true,
+      text: `允许 ${tolBest.tolerance} 个粉 Tap`
+    }
+  }
+
+  return {
+    achievable: true,
+    text: `允许 ${tolWorst.tolerance} ~ ${tolBest.tolerance} 个粉 Tap`
+  }
+})
+
+function calcRowTolerance(ach: number) {
+  return calcTapGreatTolerance(ach, total.value)
 }
 
 const totalPages = computed(() => Math.max(1, Math.ceil(calcResults.value.length / PAGE_SIZE)))

@@ -319,7 +319,7 @@
 
         <!-- 右侧卡片：物量分布与绝赞容错 (Notes Structure Panel) -->
         <div
-          class="bg-white dark:bg-[#131B2E] border border-[#E2E8F0] dark:border-[#26354D] rounded-lg p-3 shadow-sm space-y-2 flex flex-col justify-between transition-colors">
+          class="bg-white dark:bg-[#131B2E] border border-[#E2E8F0] dark:border-[#26354D] rounded-lg p-3 shadow-sm space-y-2.5 flex flex-col justify-between transition-colors">
           <div class="space-y-2">
             <!-- 物量标题 -->
             <div class="flex items-center justify-between text-xs font-bold text-[#0F172A] dark:text-white">
@@ -340,6 +340,38 @@
                   <span class="text-[11px] font-normal text-[#334155] dark:text-slate-300">
                     {{ note.count }} 个 ({{ note.percent }})
                   </span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- 绝赞容错与鸟加达成 (SSS+ >100.5000%) -->
+          <div class="pt-2 border-t border-slate-100 dark:border-slate-800/60 space-y-1.5">
+            <div class="flex items-center justify-between text-[11px] font-bold text-slate-700 dark:text-slate-300">
+              <div class="flex items-center gap-1.5">
+                <span>🛡️</span>
+                <span>绝赞鸟加容错 (达成率 > 100.5000%)</span>
+              </div>
+              <span class="text-[10px] text-slate-400 font-normal">单位: TAP Great (粉)</span>
+            </div>
+
+            <div class="space-y-1.5">
+              <div v-for="item in currentDiff.breakTolerances" :key="item.label"
+                class="flex items-center justify-between bg-[#F8FAFC] dark:bg-slate-900/50 rounded px-2.5 py-1 text-xs border border-slate-100 dark:border-slate-800/40">
+                <div class="flex items-center gap-1.5">
+                  <span class="px-1.5 py-0.5 rounded text-[9px] font-bold bg-pink-100 text-pink-700 dark:bg-pink-950/50 dark:text-pink-300">
+                    {{ item.label }}
+                  </span>
+                  <span class="text-[10px] text-slate-400 font-mono">({{ item.ratioLabel }})</span>
+                </div>
+                <div class="flex items-center gap-1 text-xs font-mono">
+                  <template v-if="item.achievable">
+                    <span class="font-bold text-pink-600 dark:text-pink-400 text-[12px]">{{ item.tolerance }}</span>
+                    <span class="text-[11px] text-slate-500 dark:text-slate-400 font-sans">个粉</span>
+                  </template>
+                  <template v-else>
+                    <span class="text-slate-400 dark:text-slate-500 text-[11px] font-sans">不可达成</span>
+                  </template>
                 </div>
               </div>
             </div>
@@ -413,7 +445,7 @@ import {
 } from '@/utils/StrUtil'
 import { getFCFSIcon, getAchievementIcon, getDxScoreIcon } from '@/utils/urlUtils'
 import { getDiffTag } from '@/utils/tagUtils'
-import { calcTotal } from '@/utils/achievementCalc'
+import { calcTotal, calcBreakScenarioTolerance } from '@/utils/achievementCalc'
 
 import CoverImage from '@/components/CoverImage.vue'
 import ChartAchievementCalculator from '@/desktop/components/ChartAchievementCalculator.vue'
@@ -694,6 +726,12 @@ const currentDiff = computed(() => {
   }
   const totalWeight = calcTotal(calcCounts)
 
+  const breakTolerances = [
+    calcBreakScenarioTolerance(calcCounts, 1.0, '绝赞全大', '100% CP'),
+    calcBreakScenarioTolerance(calcCounts, 0.8, '绝赞 80% 大', '80% CP'),
+    calcBreakScenarioTolerance(calcCounts, 0.5, '绝赞 50% 大', '50% CP')
+  ]
+
   const notesBreakdown = [
     {
       label: 'TAP',
@@ -741,6 +779,7 @@ const currentDiff = computed(() => {
     totalNotes,
     totalWeight,
     notesBreakdown,
+    breakTolerances,
     levelDisplay: isUtage ? difficulty.level : formatLevelValue(difficulty.level_value),
     dxScore: {
       total: totalDxScore,

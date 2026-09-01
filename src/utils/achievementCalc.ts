@@ -154,3 +154,101 @@ export function enumerateBreakSplits(
 export function sortByTarget(results: CalcResult[], target: number): CalcResult[] {
   return [...results].sort((a, b) => Math.abs(a.achievement - target) - Math.abs(b.achievement - target))
 }
+
+/**
+ * 计算给定起始达成率与谱面总权重下，允许扣除的 TAP Great（粉）容错数
+ * 最终达成率必须严格大于 100.5000%
+ */
+export function calcTapGreatTolerance(
+  startingAch: number,
+  totalWeight: number
+): { tolerance: number; achievable: boolean } {
+  if (totalWeight <= 0 || startingAch <= 100.5) {
+    return { tolerance: 0, achievable: false }
+  }
+
+  // 初始估算
+  let k = Math.max(0, Math.floor(((startingAch - 100.5) * totalWeight) / 20))
+
+  // 向前步进（如果下一个 k 仍严格 > 100.5000%）
+  while (true) {
+    const nextK = k + 1
+    const nextAch = Math.round((startingAch - (nextK * 0.2 / totalWeight) * 100) * 10000) / 10000
+    if (nextAch > 100.5) {
+      k = nextK
+    } else {
+      break
+    }
+  }
+
+  // 向后步退（如果当前 k 导致达成率 <= 100.5000%）
+  while (k > 0) {
+    const currentAch = Math.round((startingAch - (k * 0.2 / totalWeight) * 100) * 10000) / 10000
+    if (currentAch > 100.5) {
+      break
+    }
+    k--
+  }
+
+  const finalAch = Math.round((startingAch - (k * 0.2 / totalWeight) * 100) * 10000) / 10000
+  if (finalAch > 100.5) {
+    return { tolerance: k, achievable: true }
+  }
+  return { tolerance: 0, achievable: false }
+}
+
+export interface BreakToleranceScenario {
+  label: string
+  ratioLabel: string
+  tolerance: number
+  achievable: boolean
+  startingAch: number
+  cpCount: number
+  pfCount: number
+}
+
+/**
+ * 计算指定 BREAK 预设比例下的鸟加（严格 > 100.5000%）容错
+ * @param counts Note 物量
+ * @param cpRatio BREAK 为 CP 的比例 (1.0, 0.8, 0.5)
+ * @param label 场景标签描述
+ * @param ratioLabel 比例标签描述
+ */
+export function calcBreakScenarioTolerance(
+  counts: Record<NoteKey, number>,
+  cpRatio: number,
+  label: string,
+  ratioLabel: string
+): BreakToleranceScenario {
+  const total = calcTotal(counts)
+  const breakNum = counts.break || 0
+
+  if (total <= 0 || breakNum <= 0) {
+    return {
+      label,
+      ratioLabel,
+      tolerance: 0,
+      achievable: false,
+      startingAch: 100,
+      cpCount: 0,
+      pfCount: 0,
+    }
+  }
+
+  const cpCount = Math.round(breakNum * cpRatio)
+  const pfCount = breakNum - cpCount
+  const bonusAch = (cpCount * BREAK_BONUS.criticalPerfect + pfCount * BREAK_BONUS.perfect[0]) / breakNum
+  const startingAch = Math.round((100 + bonusAch) * 10000) / 10000
+
+  const { tolerance, achievable } = calcTapGreatTolerance(startingAch, total)
+  return {
+    label,
+    ratioLabel,
+    tolerance,
+    achievable,
+    startingAch,
+    cpCount,
+    pfCount,
+  }
+}
+
