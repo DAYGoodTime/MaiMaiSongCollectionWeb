@@ -144,8 +144,11 @@ const advanceFilter = (filter: AdvanceFilterFilters, list: ScoreExtend[]): Score
         }
 
         // Version Filter
-        if (versionFilter.size > 0 && !versionFilter.has(s.song.version)) {
-            return false;
+        if (versionFilter.size > 0) {
+            const hasAllFinale = versionFilter.has('ALL FiNALE');
+            if (!versionFilter.has(s.song.version) && !(hasAllFinale && isAllFinal(s.song.version))) {
+                return false;
+            }
         }
 
         // Map Filter

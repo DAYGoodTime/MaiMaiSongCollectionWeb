@@ -2,7 +2,7 @@ import TAG_JSON from "@/assets/data/tag_data.json" with { type: 'json' }
 import type { AdvanceFilterFilters } from "@/types/component"
 import type { ScoreExtend, SongType } from "@/types/songs"
 import type { DiffTAG, DiffTagCounter, GroupInfo, GroupInfoForCounter } from "@/types/tag"
-import { getDxScoreRadio } from "./StrUtil"
+import { getDxScoreRadio, isAllFinal } from "./StrUtil"
 
 
 const LEVELS = ["basic", "advance", "expert", "master", "remaster"]
@@ -61,8 +61,11 @@ const advanceFilter = (filter: AdvanceFilterFiltersForTag, list: ScoreExtend[]):
         }
 
         // Version Filter
-        if (versionFilter.size > 0 && !versionFilter.has(s.song.version)) {
-            return false;
+        if (versionFilter.size > 0) {
+            const hasAllFinale = versionFilter.has('ALL FiNALE');
+            if (!versionFilter.has(s.song.version) && !(hasAllFinale && isAllFinal(s.song.version))) {
+                return false;
+            }
         }
 
         // Map Filter

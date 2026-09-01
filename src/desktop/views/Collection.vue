@@ -73,14 +73,14 @@ const filterState = ref<FilterState>({
   selectedDiff: 'ALL',
   levelRange: 'all',
   activeFilterCount: 0,
-  sortField: 'level',
+  sortField: 'achievement',
   sortOrder: 'desc'
 })
 
 const sortConfig = ref<SortConfiguration>({
-  primaryField: 'level',
+  primaryField: 'achievement',
   primaryDirection: 'desc',
-  secondaryField: 'achievement',
+  secondaryField: 'level',
   secondaryDirection: 'desc',
   unplayedToBottom: true,
   preferFitConstant: false,
@@ -522,18 +522,14 @@ onMounted(initScoreList)
     <SortingPopover v-model:open="isSortingOpen" :current-config="sortConfig" @apply="handleApplySort" />
 
     <Dialog v-model:open="isDetailOpen">
-      <DialogContent class="sm:max-w-4xl lg:max-w-5xl max-h-[90vh] overflow-y-auto p-3 sm:p-5 bg-white dark:bg-[#131B2E] border border-[#CBD5E1] dark:border-[#26354D] rounded-xl shadow-xl flex flex-col">
+      <DialogContent
+        class="sm:max-w-4xl lg:max-w-5xl max-h-[90vh] overflow-y-auto p-3 sm:p-5 bg-white dark:bg-[#131B2E] border border-[#CBD5E1] dark:border-[#26354D] rounded-xl shadow-xl flex flex-col">
         <DialogHeader class="sr-only">
           <DialogTitle>歌曲详情</DialogTitle>
           <DialogDescription>{{ detailSong?.title }}</DialogDescription>
         </DialogHeader>
-        <SongDetail
-          v-if="detailSong"
-          :song="detailSong"
-          :initial-diff-index="detailDiffIndex"
-          v-model:selected-type="detailChartType"
-          v-model:selected-diff-index="detailDiffIndex"
-        />
+        <SongDetail v-if="detailSong" :song="detailSong" :initial-diff-index="detailDiffIndex"
+          v-model:selected-type="detailChartType" v-model:selected-diff-index="detailDiffIndex" />
       </DialogContent>
     </Dialog>
   </DesktopAppShell>

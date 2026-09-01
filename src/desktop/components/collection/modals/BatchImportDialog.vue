@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, computed, watch } from 'vue'
+import { ref, computed, watch, type Directive } from 'vue'
 import {
   Dialog,
   DialogContent,
@@ -157,11 +157,37 @@ const handleConfirm = () => {
   if (label === CurrentCollectionLabel.value) emit('imported')
   emit('update:open', false)
 }
+
+// 溢出滚动动画指令
+const applyOverflow = (el: HTMLElement) => {
+  const overflow = el.scrollWidth - (el.parentElement?.clientWidth ?? 0)
+  if (overflow > 0) {
+    el.style.setProperty('--scroll-dist', `-${overflow}px`)
+    el.classList.add('is-overflowing')
+  } else {
+    el.style.removeProperty('--scroll-dist')
+    el.classList.remove('is-overflowing')
+  }
+}
+
+const vOverflowScroll: Directive<HTMLElement> = {
+  mounted(el) {
+    applyOverflow(el)
+    const ro = new ResizeObserver(() => applyOverflow(el))
+    ro.observe(el)
+    if (el.parentElement) ro.observe(el.parentElement)
+    ;(el as any).__ro = ro
+  },
+  updated: applyOverflow,
+  unmounted(el) {
+    ;(el as any).__ro?.disconnect()
+  }
+}
 </script>
 
 <template>
   <Dialog :open="props.open" @update:open="emit('update:open', $event)">
-    <DialogContent class="sm:max-w-[580px] max-h-[85vh] overflow-y-auto p-4 sm:p-5 select-none bg-white dark:bg-[#131B2E] border border-[#E2E8F0] dark:border-[#26354D] rounded-xl shadow-xl">
+    <DialogContent class="w-[94vw] sm:w-[580px] max-w-[580px] max-h-[85vh] overflow-y-auto p-4 sm:p-5 select-none bg-white dark:bg-[#131B2E] border border-[#E2E8F0] dark:border-[#26354D] rounded-xl shadow-xl">
       <DialogHeader class="pb-2 border-b border-slate-100 dark:border-slate-800">
         <div class="flex items-center gap-2">
           <div class="w-8 h-8 rounded-lg bg-[#EFF6FF] dark:bg-blue-950/60 flex items-center justify-center text-[#2563EB] dark:text-blue-400">
@@ -181,7 +207,7 @@ const handleConfirm = () => {
         </p>
       </DialogHeader>
 
-      <div class="space-y-3 py-2 text-xs">
+      <div class="space-y-3 py-2 text-xs min-w-0">
         <div class="space-y-1.5">
           <div class="font-bold text-[#475569] dark:text-slate-200">选择导入难度:</div>
           <div class="flex flex-wrap items-center gap-1.5">
@@ -222,35 +248,45 @@ const handleConfirm = () => {
           <LevelRangeSelector v-model="levelRange" />
         </div>
 
-        <div class="space-y-1.5">
+        <div class="space-y-1.5 min-w-0">
           <div class="font-bold text-[#475569] dark:text-slate-200">目标合集:</div>
           <Select v-model="targetCollection" :disabled="UserCollectionList.length === 0">
-            <SelectTrigger class="w-full h-8 text-xs bg-[#F8FAFC] dark:bg-slate-900/60 border border-[#CBD5E1] dark:border-slate-700 rounded-md px-3 font-medium">
-              <SelectValue placeholder="请选择目标合集" />
+            <SelectTrigger class="w-full h-8 text-xs bg-[#F8FAFC] dark:bg-slate-900/60 border border-[#CBD5E1] dark:border-slate-700 rounded-md px-3 font-medium min-w-0 max-w-full">
+              <SelectValue placeholder="请选择目标合集" class="truncate min-w-0 block" />
             </SelectTrigger>
             <SelectContent>
               <SelectLabel>我的合集列表</SelectLabel>
-              <SelectItem v-for="coll in UserCollectionList" :key="coll.label" :value="coll.label">
+              <SelectItem v-for="coll in UserCollectionList" :key="coll.label" :value="coll.label" class="truncate max-w-full">
                 📁 {{ coll.label }} ({{ coll.list.size }})
               </SelectItem>
             </SelectContent>
           </Select>
         </div>
 
-        <div class="bg-[#F8FAFC] dark:bg-slate-900/50 border border-slate-200 dark:border-slate-800 rounded-lg p-3 space-y-1.5">
-          <div class="font-bold text-[11px] text-[#64748B] dark:text-slate-400">
+        <div class="bg-[#F8FAFC] dark:bg-slate-900/50 border border-slate-200 dark:border-slate-800 rounded-lg p-2.5 space-y-1.5 min-w-0 overflow-hidden">
+          <div class="font-bold text-[10px] text-[#64748B] dark:text-slate-400">
             导入清单预览 (共 {{ matches.count }} 首谱面):
           </div>
-          <div class="max-h-36 overflow-y-auto space-y-1 pr-1 custom-scrollbar text-[11px] text-[#334155] dark:text-slate-300">
-            <div v-for="row in matches.rows" :key="row.key" class="truncate">
-              <span class="font-bold">{{ row.title }}</span>
-              <span class="text-slate-400"> ({{ row.artist }})</span>
-              <span class="ml-1 font-mono text-slate-500">{{ row.diff }} {{ row.level }}</span>
+          <div class="max-h-36 overflow-y-auto space-y-1 pr-1 custom-scrollbar text-[11px]">
+            <div
+              v-for="(row, idx) in matches.rows"
+              :key="row.key"
+              class="flex items-center justify-between py-0.5 text-slate-700 dark:text-slate-300 gap-2 min-w-0">
+              <div class="flex items-center min-w-0 flex-1 overflow-hidden">
+                <span class="text-slate-400 font-mono text-[10px] mr-1 shrink-0">{{ idx + 1 }}.</span>
+                <div class="overflow-hidden min-w-0 flex-1">
+                  <div v-overflow-scroll class="scroll-text">
+                    <span class="font-medium text-[#0F172A] dark:text-slate-200">{{ row.title }}</span>
+                    <span class="text-slate-400 dark:text-slate-500 text-[10px] ml-1">({{ row.artist }})</span>
+                  </div>
+                </div>
+              </div>
+              <span class="text-[10px] text-slate-400 shrink-0 font-mono">{{ row.diff }} {{ row.level }}</span>
             </div>
-            <div v-if="matches.count > matches.rows.length" class="text-slate-400">
+            <div v-if="matches.count > matches.rows.length" class="text-slate-400 text-center py-1 text-[10px]">
               … 还有 {{ matches.count - matches.rows.length }} 首
             </div>
-            <div v-if="matches.count === 0" class="text-center py-2 text-slate-400">
+            <div v-if="matches.count === 0" class="text-center py-2 text-slate-400 text-xs">
               没有符合条件的谱面
             </div>
           </div>
@@ -275,6 +311,36 @@ const handleConfirm = () => {
 </template>
 
 <style scoped>
+@keyframes marquee {
+  0% {
+    transform: translateX(0);
+  }
+  20% {
+    transform: translateX(0);
+  }
+  70% {
+    transform: translateX(var(--scroll-dist, 0px));
+  }
+  90% {
+    transform: translateX(var(--scroll-dist, 0px));
+  }
+  90.001% {
+    transform: translateX(0);
+  }
+  100% {
+    transform: translateX(0);
+  }
+}
+
+.scroll-text {
+  display: inline-block;
+  white-space: nowrap;
+}
+
+.scroll-text.is-overflowing {
+  animation: marquee 6s linear infinite;
+}
+
 .custom-scrollbar::-webkit-scrollbar {
   width: 5px;
   height: 5px;
@@ -285,5 +351,8 @@ const handleConfirm = () => {
 .custom-scrollbar::-webkit-scrollbar-thumb {
   background: rgba(148, 163, 184, 0.3);
   border-radius: 4px;
+}
+.custom-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: rgba(148, 163, 184, 0.5);
 }
 </style>
