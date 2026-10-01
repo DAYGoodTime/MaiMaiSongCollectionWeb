@@ -199,35 +199,34 @@ const toggleDiff = (id: string) => { ui.value.diffs = toggle(ui.value.diffs, id)
 const toggleGenre = (g: string) => { ui.value.genres = toggle(ui.value.genres, g) }
 const toggleVersion = (v: string) => { ui.value.versions = toggle(ui.value.versions, v) }
 
+const classicVersions = SongVersionList
+  .filter(v => v.version_id < 20000)
+  .sort((a, b) => (a.id === 'ALL FiNALE' ? -1 : b.id === 'ALL FiNALE' ? 1 : a.version_id - b.version_id))
+const dxVersions = SongVersionList.filter(v => v.version_id >= 20000)
+const classicIds = classicVersions.filter(v => v.id !== 'ALL FiNALE').map(v => v.id)
+const dxIds = dxVersions.map(v => v.id)
+
 const selectClassicVersions = () => {
-  const classicIds = SongVersionList.filter(v => v.version_id < 20000 && v.id !== 'ALL FiNALE').map(v => v.id)
   const allSelected = classicIds.every(id => ui.value.versions.includes(id))
-  if (allSelected) {
-    ui.value.versions = ui.value.versions.filter(id => !classicIds.includes(id))
-  } else {
-    ui.value.versions = Array.from(new Set([...ui.value.versions, ...classicIds]))
-  }
+  ui.value.versions = allSelected
+    ? ui.value.versions.filter(id => !classicIds.includes(id))
+    : Array.from(new Set([...ui.value.versions, ...classicIds]))
 }
 
 const selectDxVersions = () => {
-  const dxIds = SongVersionList.filter(v => v.version_id >= 20000).map(v => v.id)
   const allSelected = dxIds.every(id => ui.value.versions.includes(id))
-  if (allSelected) {
-    ui.value.versions = ui.value.versions.filter(id => !dxIds.includes(id))
-  } else {
-    ui.value.versions = Array.from(new Set([...ui.value.versions, ...dxIds]))
-  }
+  ui.value.versions = allSelected
+    ? ui.value.versions.filter(id => !dxIds.includes(id))
+    : Array.from(new Set([...ui.value.versions, ...dxIds]))
 }
 
-const isClassicSelected = computed(() => {
-  const classicIds = SongVersionList.filter(v => v.version_id < 20000 || v.id === 'ALL FiNALE').map(v => v.id)
-  return classicIds.length > 0 && classicIds.every(id => ui.value.versions.includes(id))
-})
+const isClassicSelected = computed(() =>
+  classicIds.length > 0 && classicIds.every(id => ui.value.versions.includes(id))
+)
 
-const isDxSelected = computed(() => {
-  const dxIds = SongVersionList.filter(v => v.version_id >= 20000).map(v => v.id)
-  return dxIds.length > 0 && dxIds.every(id => ui.value.versions.includes(id))
-})
+const isDxSelected = computed(() =>
+  dxIds.length > 0 && dxIds.every(id => ui.value.versions.includes(id))
+)
 
 const selectedMaps = computed(() => SongMapList.filter(m => ui.value.maps.includes(m.value)))
 const onMapChange = (selected: FilterProps<string>[]) => {
@@ -366,7 +365,23 @@ const handleApply = () => {
               </div>
             </div>
             <div class="flex flex-wrap gap-1">
-              <button v-for="v in SongVersionList" :key="v.id" type="button" @click="toggleVersion(v.id)"
+              <button type="button" @click="ui.versions = []"
+                class="px-2 py-0.5 rounded text-[10px] font-medium border transition-all cursor-pointer"
+                :class="!ui.versions.length
+                  ? 'bg-[#EFF6FF] dark:bg-blue-950/50 text-[#2563EB] dark:text-blue-400 border-[#BFDBFE] dark:border-blue-800/60 font-bold'
+                  : 'bg-white dark:bg-slate-800 text-slate-500 dark:text-slate-400 border-slate-200 dark:border-slate-700 hover:bg-slate-50'">
+                全部
+              </button>
+              <button v-for="v in classicVersions" :key="v.id" type="button" @click="toggleVersion(v.id)"
+                class="px-2 py-0.5 rounded text-[10px] font-medium border transition-all cursor-pointer"
+                :class="ui.versions.includes(v.id)
+                  ? 'bg-[#EFF6FF] dark:bg-blue-950/50 text-[#2563EB] dark:text-blue-400 border-[#BFDBFE] dark:border-blue-800/60 font-bold'
+                  : 'bg-white dark:bg-slate-800 text-slate-500 dark:text-slate-400 border-slate-200 dark:border-slate-700 hover:bg-slate-50'">
+                {{ v.label_full }}
+              </button>
+            </div>
+            <div class="flex flex-wrap gap-1">
+              <button v-for="v in dxVersions" :key="v.id" type="button" @click="toggleVersion(v.id)"
                 class="px-2 py-0.5 rounded text-[10px] font-medium border transition-all cursor-pointer"
                 :class="ui.versions.includes(v.id)
                   ? 'bg-[#EFF6FF] dark:bg-blue-950/50 text-[#2563EB] dark:text-blue-400 border-[#BFDBFE] dark:border-blue-800/60 font-bold'

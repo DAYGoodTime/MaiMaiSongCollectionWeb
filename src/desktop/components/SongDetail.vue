@@ -1,6 +1,6 @@
 <template>
   <div
-    class="song-detail-container flex-1 h-full flex flex-col gap-2.5 sm:gap-3 min-w-0 overflow-y-auto pr-0.5 custom-scrollbar select-none">
+    class="song-detail-container flex-1 h-full flex flex-col gap-2.5 sm:gap-3 min-w-0 min-h-0 overflow-y-auto pr-0.5 custom-scrollbar select-none">
 
     <!-- 移动端返回按钮栏 (仅在小屏/移动端显式开启时展示) -->
     <div v-if="showMobileBack"
@@ -191,7 +191,7 @@
       <!-- ============================================================== -->
       <!-- 深度分析双列面板 (Analysis Grid - 响应式单双列自适应)             -->
       <!-- ============================================================== -->
-      <div v-if="currentDiff" class="grid grid-cols-1 2xl:grid-cols-2 gap-2.5 sm:gap-3 flex-1 min-h-0">
+      <div v-if="currentDiff" class="grid grid-cols-1 2xl:grid-cols-2 gap-2.5 sm:gap-3 grow shrink-0">
 
         <!-- 左侧卡片：个人战绩详情 (Score & Rating Panel) -->
         <div

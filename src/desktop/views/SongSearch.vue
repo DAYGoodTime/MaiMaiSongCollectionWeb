@@ -79,6 +79,11 @@ const toggleVersion = (value: string) => {
     : selectedVersions.value.filter(v => v !== value)
 }
 
+const classicVersions = versionList
+  .filter(v => v.version_id < 20000)
+  .sort((a, b) => (a.id === 'ALL FiNALE' ? -1 : b.id === 'ALL FiNALE' ? 1 : a.version_id - b.version_id))
+const dxVersions = versionList.filter(v => v.version_id >= 20000)
+
 // ponytail: genre/version stay local; lift into SearchOptions if mobile search needs them
 const displaySongList = computed<MaiMaiSong[]>(() => {
   let list = searchResults.value
@@ -334,7 +339,23 @@ watch(displaySongList, () => {
                   </button>
                 </div>
                 <div class="flex flex-wrap gap-1">
-                  <button v-for="v in versionList" :key="v.id" type="button" @click="toggleVersion(v.id)"
+                  <button type="button" @click="selectedVersions = []"
+                    class="px-1.5 py-0.5 rounded text-[10px] font-medium border transition-all cursor-pointer"
+                    :class="!selectedVersions.length
+                      ? 'bg-[#EFF6FF] dark:bg-blue-950/50 text-[#2563EB] dark:text-blue-400 border-[#BFDBFE] dark:border-blue-800/60'
+                      : 'bg-[#F8FAFC] dark:bg-slate-900/50 text-slate-500 dark:text-slate-400 border-slate-200 dark:border-slate-700 hover:border-slate-300'">
+                    全部
+                  </button>
+                  <button v-for="v in classicVersions" :key="v.id" type="button" @click="toggleVersion(v.id)"
+                    class="px-1.5 py-0.5 rounded text-[10px] font-medium border transition-all cursor-pointer"
+                    :class="selectedVersions.includes(v.id)
+                      ? 'bg-[#EFF6FF] dark:bg-blue-950/50 text-[#2563EB] dark:text-blue-400 border-[#BFDBFE] dark:border-blue-800/60'
+                      : 'bg-[#F8FAFC] dark:bg-slate-900/50 text-slate-500 dark:text-slate-400 border-slate-200 dark:border-slate-700 hover:border-slate-300'">
+                    {{ v.label_full }}
+                  </button>
+                </div>
+                <div class="flex flex-wrap gap-1">
+                  <button v-for="v in dxVersions" :key="v.id" type="button" @click="toggleVersion(v.id)"
                     class="px-1.5 py-0.5 rounded text-[10px] font-medium border transition-all cursor-pointer"
                     :class="selectedVersions.includes(v.id)
                       ? 'bg-[#EFF6FF] dark:bg-blue-950/50 text-[#2563EB] dark:text-blue-400 border-[#BFDBFE] dark:border-blue-800/60'
