@@ -33,6 +33,7 @@ export interface LXNSOAuth {
   access_token_expired: number,
   refresh_token: string,
   refresh_token_expired: number
+  pkce?: boolean
 }
 export interface LXNSOAuthResponse {
   //访问令牌，用于访问用户数据
@@ -54,21 +55,18 @@ export interface LXNSResponse<T> {
 export interface LXNSOAuthRequest {
   //应用 ID
   client_id: string,
-  //应用密钥
-  client_secret: string,
   //授权类型，固定为 authorization_code
-  grant_type: string,
+  grant_type: "authorization_code",
   //从回调地址获取的授权码
   code: string,
   //回调地址，必须与创建应用时一致
-  redirect_uri: string
+  redirect_uri: string,
+  code_verifier: string
 }
 export interface LXNSOAuthRefresh {
   //应用 ID
   client_id: string,
-  //应用密钥
-  client_secret: string,
-  //授权类型，固定为 authorization_code
-  grant_type: string,
+  //授权类型，固定为 refresh_token
+  grant_type: "refresh_token",
   refresh_token: string
 }

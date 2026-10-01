@@ -1,6 +1,5 @@
 import type { FishChartStatsResponse, FishRecordResponse } from "@/types/divingfish";
-import apiRouterClient from "./router";
-import { createApiClient, isWebEnv } from "./base";
+import { createApiClient } from "./base";
 
 
 export const FISH_HOST = "https://www.diving-fish.com/api/maimaidxprober";
@@ -20,9 +19,6 @@ const fishApiClient = (token: string) => createApiClient({
 });
 const DivingFishService = {
     queryFishUserScores: (token: string): Promise<FishRecordResponse> => {
-        if (isWebEnv()) {
-            return apiRouterClient(token).get<FishRecordResponse>("maimai/fish")
-        }
         return fishApiClient(token).get<FishRecordResponse>(`player/records`);
     },
     queryFishChartData: (): Promise<FishChartStatsResponse> => {

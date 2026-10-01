@@ -129,6 +129,7 @@ const openAuthDialog = (source: AvailableDataSourceType) => {
 }
 
 const handleAuthSubmit = async (credentials: string, remember: boolean) => {
+  if (updatingState[authDialogState.sourceKey as AvailableDataSourceType]) return
   if (!credentials) {
     toast.error('凭证不能为空')
     return
@@ -152,13 +153,31 @@ const handleClearAuthCredential = () => {
   toast.info('已清除该数据源的历史缓存凭证')
 }
 
-const handleStartOAuth = () => {
-  const oauthUri = import.meta.env.VITE_LXNS_OAUTH_URI
-  if (oauthUri) window.open(oauthUri, '_blank')
+const handleStartOAuth = async () => {
+  if (updatingState.lxns) return
+  // 先在点击事件中打开窗口，避免等待 PKCE 哈希后被浏览器拦截弹窗。
+  const authorizationWindow = window.open('about:blank', '_blank')
+  if (!authorizationWindow) {
+    toast.error('授权窗口被拦截，请允许本站弹窗后重试')
+    return
+  }
+  authorizationWindow.opener = null
+  updatingState.lxns = true
+  try {
+    const oauthUri = await LXNSService.createAuthorizationUrl()
+    authorizationWindow.location.href = oauthUri
+  } catch (error) {
+    authorizationWindow.close()
+    toast.error(error instanceof Error ? error.message : '无法创建落雪授权链接')
+    return
+  } finally {
+    updatingState.lxns = false
+  }
+  authDialogState.sourceKey = 'lxns'
   authDialogState.mode = 'oauth'
   authDialogState.errorInfo = null
   authDialogState.title = '使用落雪 OAuth'
-  authDialogState.subtitle = '已打开授权页面。授权成功后，请将获得的授权码填入此处。'
+  authDialogState.subtitle = '已打开授权页面。授权成功后，请回到当前标签页填写授权码（或完整回调 URL）。请勿使用旧授权链接。'
   authDialogState.credentialLabel = '授权码'
   authDialogState.credentialPlaceholder = '落雪OAuth授权码'
   authDialogState.initialCredential = ''
@@ -359,6 +378,11 @@ const updateLXNS = async (token: string, type: LXNSAuthType = 'Token', remember 
 }
 
 const handleSyncLxns = async () => {
+  if (updatingState.lxns) return
+  if (OAuthStore.LXNSOAuth.access_token && !OAuthStore.LXNSOAuth.pkce) {
+    OAuthStore.cleanLXNSOAuth()
+    toast.info('落雪已切换为 PKCE 直连，旧 OAuth 凭证需要重新授权')
+  }
   if (OAuthStore.hasLXNSOAuth) {
     updatingState.lxns = true
     if (OAuthStore.isAccessTokenExpired()) {
